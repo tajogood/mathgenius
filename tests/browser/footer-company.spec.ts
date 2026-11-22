@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('학년 단원 학습 최하단에 회사 정보만 표시하고 중복 교육과정 카드를 제거한다',async({page})=>{
-  await page.goto('/');
+  await page.goto('/?guest=1');
   const footer=page.getByRole('contentinfo',{name:'수학천재 운영회사 정보'});
   await expect(footer).toHaveCount(1);
   await expect(footer).toContainText('주식회사 라릭 (Larix Inc.)');
@@ -15,7 +15,7 @@ test('학년 단원 학습 최하단에 회사 정보만 표시하고 중복 교
   await expect(page.getByRole('button',{name:/성취기준 121개 학습/})).toBeVisible();
 });
 test('121개 성취기준 학습 화면에도 동일한 회사 정보가 표시된다',async({page})=>{
-  await page.goto('/');
+  await page.goto('/?guest=1');
   await page.getByRole('button',{name:/성취기준 121개 학습/}).click();
   await expect(page.locator('.standard-studio')).toBeVisible();
   const footer=page.getByRole('contentinfo',{name:'수학천재 운영회사 정보'});
@@ -25,7 +25,7 @@ test('121개 성취기준 학습 화면에도 동일한 회사 정보가 표시�
 });
 test('390px 모바일에서 회사 정보가 잘리지 않고 푸터로 남는다',async({page})=>{
   await page.setViewportSize({width:390,height:844});
-  await page.goto('/');
+  await page.goto('/?guest=1');
   const footer=page.getByRole('contentinfo',{name:'수학천재 운영회사 정보'});
   await footer.scrollIntoViewIfNeeded();
   await expect(footer).toBeVisible();
