@@ -51,11 +51,11 @@ export default function App() {
   const [topic, setTopic] = useState<Topic>('fraction');
   const [phase, setPhase] = useState<Phase>('concept');
   const [step, setStep] = useState(0);
-  const [blue, setBlue] = useState(2);
   const [problem, setProblem] = useState<Problem>(() => createProblem('fraction'));
   const [selected, setSelected] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const [progress, setProgress] = useState<Progress>(readProgress);
+  const [explored, setExplored] = useState(false);
   const gradeInfo = grades.find(item => item.grade === grade)!;
   const currentInfo = gradeInfo.chapters.find(item => item.id === unitId) ?? gradeInfo.chapters[0];
   const right = selected === problem.answer;
@@ -73,8 +73,9 @@ export default function App() {
     setTopic(nextTopic);
     setPhase('concept');
     setStep(0);
-    setBlue(2);
+    setExplored(false);
     setProblem(createProblem(nextTopic));
+    setExplored(false);
     setSelected(null);
     setChecked(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -229,16 +230,16 @@ export default function App() {
         <div className="workspace">
           <section className="visual-card" aria-label="수학 체험 화면">
             <div className="card-topline"><div className="card-kicker">✳ INTERACTIVE MATH</div><span className="live-badge"><span /> 움직이는 수학</span></div>
-            <h3>{phase === 'concept' ? '눈으로 보고 직접 확인해요'
+            <h3>{phase === 'concept' ? '직접 움직여 원리를 발견해요'
               : phase === 'question' ? '그림을 보면서 풀어 보세요'
               : '정답까지 가는 길을 살펴봐요'}</h3>
-            <Visuals topic={topic} phase={phase} step={step} problem={problem} blue={blue} onBlueChange={setBlue} />
-            <div className="visual-caption"><span aria-hidden="true">✦</span> {phase === 'concept' && topic === 'ratio' ? '구슬의 개수를 바꾸면 비율도 달라져요.' : '도형을 관찰하면서 수학의 원리를 찾아보세요.'}</div>
+            <Visuals phase={phase} step={step} problem={problem} onEngage={() => setExplored(true)} />
+            <div className="visual-caption"><span aria-hidden="true">✦</span> {explored ? '내 손으로 수학을 변화시켰어요! 다른 방법도 탐구해 보세요.' : '블록·선·도형을 클릭하거나 손가락으로 움직여 보세요.'}</div>
           </section>
 
           <section className="guide-card" aria-live="polite">
             {phase === 'concept' ? <>
-              <div className="guide-eyebrow">STEP {step + 1} / 3</div>
+              <div className="guide-eyebrow">STEP {step + 1} / 3 · {explored ? '✓ 직접 조작 완료' : '☝ 교구를 움직여 보세요'}</div>
               <h3>차근차근 알아볼까요?</h3>
               <div className="guide-body">
                 <span className="guide-icon" aria-hidden="true">💡</span>
