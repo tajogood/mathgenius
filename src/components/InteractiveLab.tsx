@@ -1,0 +1,69 @@
+import { interactionForProblem, type LabKind } from '../interactions.ts';
+import type { Problem } from '../math.ts';
+import type { LabPhase } from './labs/types';
+import { BlocksLab, PlaceLab, ArraysLab, EquationLab } from './labs/CountingLabs';
+import { FractionsLab, NumberlineLab, RatiosLab, MeasuresLab } from './labs/RepresentLabs';
+import { GeometryLab, AnglesLab, ClockLab, CircleLab, SolidsLab } from './labs/GeometryLabs';
+import { ChartsLab, PatternsLab, ChanceLab } from './labs/DataLabs';
+
+export type InteractiveLabProps = {
+  problem: Problem;
+  phase: LabPhase;
+  step: number;
+};
+
+const LAB_LABELS: Record<LabKind, [string, string]> = {
+  blocks: ['직접 세는 블록', '블록을 눌러 한 개씩 세어 보세요'],
+  placevalue: ['자릿값 만들기', '자릿값 카드를 고르고 수를 만들어 보세요'],
+  numberline: ['움직이는 수직선', '파란 점을 드래그해 숫자를 비교해 보세요'],
+  fractions: ['색칠하는 분수 막대', '등분된 칸을 터치해 분수의 크기를 바꿔 보세요'],
+  geometry: ['도형 실험실', '도형을 회전·뒤집고 꼭짓점을 움직여 보세요'],
+  angles: ['손으로 움직이는 각도기', '각의 끝점을 드래그해 각도를 바꿔 보세요'],
+  clock: ['돌아가는 시계', '시곗바늘을 손으로 움직여 보세요'],
+  measures: ['단위 환산 실험', '수를 움직이면 단위 변환 값이 달라져요'],
+  charts: ['내 손으로 만드는 그래프', '막대를 터치하거나 슬라이더를 움직여 보세요'],
+  arrays: ['묶음과 배열 실험', '묶음을 눌러 선택하고 줄 수를 바꿔 보세요'],
+  ratios: ['색으로 보는 비율', '두 색의 수를 바꾸면 비율이 달라져요'],
+  solids: ['입체도형 연구실', '쌓기·회전·펼치기를 해 보세요'],
+  patterns: ['규칙 찾아보기', '시작 수와 규칙을 바꿔 보세요'],
+  equations: ['움직이는 계산판', '묶음의 크기나 곱하는 수를 바꿔 보세요'],
+  chance: ['확률 실험실', '구슬 색을 바꾸고 무작위로 뽑아 보세요'],
+  circle: ['커졌다 작아지는 원', '반지름을 조절해 원주와 넓이를 비교해 보세요'],
+};
+
+/** All 83 topic IDs resolve to one of 16 interactive lab families. */
+function ActiveLab({problem,phase,step}:InteractiveLabProps) {
+  const props={problem,phase,step};
+  const kind=interactionForProblem(problem);
+  switch(kind) {
+    case 'blocks':return <BlocksLab {...props}/>;
+    case 'placevalue':return <PlaceLab {...props}/>;
+    case 'numberline':return <NumberlineLab {...props}/>;
+    case 'fractions':return <FractionsLab {...props}/>;
+    case 'geometry':return <GeometryLab {...props}/>;
+    case 'angles':return <AnglesLab {...props}/>;
+    case 'clock':return <ClockLab {...props}/>;
+    case 'measures':return <MeasuresLab {...props}/>;
+    case 'charts':return <ChartsLab {...props}/>;
+    case 'arrays':return <ArraysLab {...props}/>;
+    case 'ratios':return <RatiosLab {...props}/>;
+    case 'solids':return <SolidsLab {...props}/>;
+    case 'patterns':return <PatternsLab {...props}/>;
+    case 'equations':return <EquationLab {...props}/>;
+    case 'chance':return <ChanceLab {...props}/>;
+    case 'circle':return <CircleLab {...props}/>;
+  }
+}
+
+export default function InteractiveLab({problem,phase,step}:InteractiveLabProps) {
+  const kind=interactionForProblem(problem);
+  const [title,instructions]=LAB_LABELS[kind];
+  return <div className={'interactive-lab interactive-lab--'+kind}>
+    <div className="lab-heading">
+      <span className="lab-spark" aria-hidden="true">✦</span>
+      <div><strong>{title}</strong><span>{instructions}</span></div>
+      <span className="lab-interactive-tag">터치 가능</span>
+    </div>
+    <ActiveLab key={problem.topic+'|'+problem.prompt} problem={problem} phase={phase} step={step}/>
+  </div>;
+}
