@@ -29,6 +29,11 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Check mobile/tablet/desktop quizzes
         run: npm run test:viewport
+      - name: Validate installable offline app
+        run: |
+          test -f dist/sw.js
+          test -f dist/manifest.webmanifest
+          npm run test:offline
       - name: Save browser QA evidence
         if: failure()
         uses: actions/upload-artifact@v4
