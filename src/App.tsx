@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { grades, curriculumUnits, TOTAL_UNITS, type Chapter } from './curriculum';
 import { standardsForChapter } from './standards';
 import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
@@ -9,7 +9,20 @@ import { parseProgress, recordAnswer, unitMastery, masteryCount, nextPracticeTop
 import { diagnosticHint, conceptTipForTopic } from './feedback.ts';
 import { TOPIC_CHALLENGES } from './interactions.ts';
 
+import type { StudyEvent } from './member/client.ts';
+import type { StandardProgress } from './standards/progress.ts';
+
 type Phase = 'concept' | 'question' | 'solution';
+export type AppProps = {
+  initialGrade?: number;
+  initialUnitId?: string;
+  initialProgress?: LearningProgress;
+  initialStandardProgress?: StandardProgress;
+  onProgressChange?: (next: LearningProgress) => void;
+  onStandardProgressChange?: (next: StandardProgress) => void;
+  onLearningEvent?: (event: StudyEvent) => void;
+  cloudMode?: boolean;
+};
 const storageKey = 'mathgenius-progress-v1';
 
 function readProgress(): LearningProgress {
@@ -34,19 +47,26 @@ const topicIcons: Partial<Record<Topic, string>> = {
   ratio: '🔵', proportion: '⚖️', volume: '🧊',
 };
 
-export default function App() {
-  const [grade, setGrade] = useState(5);
+export default function App({initialGrade=5,initialUnitId,initialProgress,initialStandardProgress,
+  onProgressChange,onStandardProgressChange,onLearningEvent,cloudMode=false}:AppProps={}) {
+  const initialUnit=curriculumUnits.find(u=>u.id===initialUnitId) ??
+    (initialGrade!==5?curriculumUnits.find(u=>u.grade===initialGrade):null) ??
+    curriculumUnits.find(u=>u.id==='5-1-5')!;
+  const firstTopic=initialUnit.topics[0];
+  const [grade, setGrade] = useState(initialUnit.grade);
   const [studioOpen,setStudioOpen] = useState(false);
   const [studioId,setStudioId] = useState('6수01-08');
-  const [unitId, setUnitId] = useState('5-1-5');
-  const [topic, setTopic] = useState<Topic>('fraction');
-  const [introduced, setIntroduced] = useState<Set<Topic>>(()=>new Set(['fraction']));
+  const [unitId, setUnitId] = useState(initialUnit.id);
+  const [topic, setTopic] = useState<Topic>(firstTopic);
+  const [introduced, setIntroduced] = useState<Set<Topic>>(()=>new Set([firstTopic]));
   const [phase, setPhase] = useState<Phase>('concept');
   const [step, setStep] = useState(0);
-  const [problem, setProblem] = useState<Problem>(() => createProblem('fraction'));
+  const [problem, setProblem] = useState<Problem>(() => createProblem(firstTopic));
   const [selected, setSelected] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
-  const [progress, setProgress] = useState<LearningProgress>(readProgress);
+  const [progress, setProgress] = useState<LearningProgress>(()=>initialProgress?
+    parseProgress(initialProgress):readProgress());
+  const lastActivityAt=useRef(Date.now());
   const [explored, setExplored] = useState(false);
   const gradeInfo = grades.find(item => item.grade === grade)!;
   const currentInfo = gradeInfo.chapters.find(item => item.id === unitId) ?? gradeInfo.chapters[0];
@@ -80,13 +100,39 @@ export default function App() {
       '직접 교구를 여러 번 움직이며 결과가 어떻게 달라지는지 살펴봐요. 원래대로 돌려놓은 뒤 문제에 도전해 보세요.'] as const;
 
   useEffect(() => {
+    if (onProgressChange) {onProgressChange(progress);return;}
     try { window.localStorage.setItem(storageKey, JSON.stringify(progress)); } catch { /* 저장 제한 시 무시 */ }
-  }, [progress]);
+  }, [progress, onProgressChange]);
+
+  useEffect(()=>{
+    if(!cloudMode || !onLearningEvent)return;
+    const markActive=()=>{lastActivityAt.current=Date.now();};
+    window.addEventListener('pointerdown',markActive);
+    window.addEventListener('keydown',markActive);
+    const timer=window.setInterval(()=>{
+      if(document.visibilityState!=='hidden' && Date.now()-lastActivityAt.current<90000){
+        onLearningEvent({event_type:'active_time',unit_id:unitId,seconds:20});
+      }
+    },20000);
+    return ()=>{
+      window.clearInterval(timer);
+      window.removeEventListener('pointerdown',markActive);
+      window.removeEventListener('keydown',markActive);
+    };
+  },[cloudMode,onLearningEvent,unitId]);
+
+  useEffect(()=>{
+    if(cloudMode && onLearningEvent){
+      onLearningEvent({event_type:'lesson_open',unit_id:unitId});
+    }
+  },[]); // Opening of the initially selected unit
+
 
   function startTopic(unit: Chapter) {
     const nextTopic = unit.topics[0];
     setGrade(unit.grade);
     setUnitId(unit.id);
+    onLearningEvent?.({event_type:'lesson_open',unit_id:unit.id});
     setTopic(nextTopic);
     setIntroduced(new Set([nextTopic]));
     setPhase('concept');
@@ -105,6 +151,7 @@ export default function App() {
   }
 
   function nextConcept() {
+    onLearningEvent?.({event_type:'concept_view',unit_id:unitId,topic});
     if (step < 2) setStep(step + 1);
     else {
       setPhase('question');
@@ -116,6 +163,7 @@ export default function App() {
   function checkAnswer() {
     if (selected === null || checked) return;
     setChecked(true);
+    onLearningEvent?.({event_type:'answer',unit_id:unitId,topic,correct:selected===problem.answer});
     setProgress(previous => recordAnswer(previous, unitId, topic, selected === problem.answer));
   }
 
@@ -191,7 +239,7 @@ export default function App() {
             setStudioOpen(true);
           }}>🎯 성취기준 121개 학습</button>
       </div>
-      {studioOpen ? <StandardStudio initialId={studioId} onExit={()=>setStudioOpen(false)}/> : <>
+      {studioOpen ? <StandardStudio initialId={studioId} onExit={()=>setStudioOpen(false)} initialRecords={initialStandardProgress} onRecordsChange={onStandardProgressChange} onLearningEvent={onLearningEvent}/> : <>
       <div className="mobile-unit-picker">
         <label htmlFor="lesson-picker">{grade}학년 · 학습할 단원</label>
         <select id="lesson-picker" value={unitId}
@@ -257,7 +305,7 @@ export default function App() {
             <h3>{phase === 'concept' ? '직접 움직여 원리를 발견해요'
               : phase === 'question' ? '그림을 보면서 풀어 보세요'
               : '정답까지 가는 길을 살펴봐요'}</h3>
-            <Visuals phase={phase} step={step} problem={problem} onEngage={() => setExplored(true)} />
+            <Visuals phase={phase} step={step} problem={problem} onEngage={() => {setExplored(true);onLearningEvent?.({event_type:'lab_interaction',unit_id:unitId,topic});}} />
             <div className="visual-caption"><span aria-hidden="true">✦</span> {explored ? '내 손으로 수학을 변화시켰어요! 다른 방법도 탐구해 보세요.' : '블록·선·도형을 클릭하거나 손가락으로 움직여 보세요.'}</div>
           </section>
 
@@ -343,7 +391,7 @@ export default function App() {
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Larix Inc. All rights reserved.</span>
-          <span>학습 기록은 이 기기에만 저장됩니다.</span>
+          <span>{cloudMode?'학습 기록은 로그인 계정에 연결해 저장됩니다.':'학습 기록은 이 기기에만 저장됩니다.'}</span>
         </div>
       </footer>
     </main>
