@@ -19,7 +19,7 @@ test('학생이 사탕을 선택하고 다른 친구에게 한 개 전달하면 
  await lab.getByRole('button',{name:'두 번째 친구 1번째 사탕 선택해 옮기기'}).click();
  await lab.getByRole('button',{name:'첫 번째 친구에게 사탕 한 개 전달'}).click();
  await expect(lab.getByText('10 + 12 + 4 = 26개')).toBeVisible();
- await expect(lab.getByText(/전체 26개는 그대로예요/)).toBeVisible();
+ await expect(lab.getByRole('status').getByText(/전체 26개는 그대로예요/)).toBeVisible();
 });
 
 test('실제 마우스 드래그로 두 번째 바구니 사탕을 첫 번째 바구니로 옮긴다',async({page})=>{
