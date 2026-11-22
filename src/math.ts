@@ -1,4 +1,4 @@
-import { EXTRA_TOPICS, createExpandedProblem, type ExtraTopic } from './expandedMath';
+import { EXTRA_TOPICS, createExpandedProblem, type ExtraTopic } from './expandedMath.ts';
 
 export const BASE_TOPICS = [
   'split', 'addsub', 'shapes',
