@@ -15,6 +15,7 @@ import { AverageBalanceLab } from './labs/AverageBalanceLab';
 import { PolyhedronExplorerLab } from './labs/PolyhedronExplorerLab';
 import { UnitCubesLab } from './labs/UnitCubesLab';
 import { RoundSolidsExplorerLab } from './labs/RoundSolidsExplorerLab';
+import { ShapePlayLab, LinePlayLab } from './labs/ShapePlayLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -52,7 +53,7 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'placevalue':return <PlaceLab {...props}/>;
     case 'numberline':return <NumberlineLab {...props}/>;
     case 'fractions':return <FractionsLab {...props}/>;
-    case 'geometry':return problem.topic==='symmetry'?<SymmetryLab {...props}/>:problem.topic==='perimeter'?<RectangleConceptLab {...props}/>:<GeometryLab {...props}/>;
+    case 'geometry':return problem.topic==='shapes'?<ShapePlayLab {...props}/>:problem.topic==='lines'?<LinePlayLab {...props}/>:problem.topic==='symmetry'?<SymmetryLab {...props}/>:problem.topic==='perimeter'?<RectangleConceptLab {...props}/>:<GeometryLab {...props}/>;
     case 'angles':return <AnglesLab {...props}/>;
     case 'clock':return <ClockLab {...props}/>;
     case 'measures':return <MeasuresLab {...props}/>;
@@ -81,7 +82,11 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
 
 export default function InteractiveLab({problem,phase,step,standardId,onEngage}:InteractiveLabProps) {
   const kind=interactionForProblem(problem);
-  const [title,instructions]=problem.topic==='decimaldiv'?
+  const [title,instructions]=problem.topic==='shapes'?
+    ['세모·네모·동그라미 탐험','도형을 직접 끌어 이동하고 주황 꼭짓점을 움직여 변과 꼭짓점을 찾아보세요'] :
+    problem.topic==='lines'?
+    ['직선·선분·반직선 직접 조작','선의 끝점을 직접 움직이면서 끝점과 뻗는 방향을 관찰해 보세요'] :
+    problem.topic==='decimaldiv'?
     ['같은 양을 고르게 나누는 소수 나눗셈','나누는 수를 바꾸어도 나누어지는 수는 그대로! 한 묶음의 크기를 비교해 보세요'] :
     problem.topic==='decimalmul' ?
     ['소수 100칸 곱셈 실험실','두 소수를 겹쳐서 곱셈의 크기를 직접 찾아보세요'] :
