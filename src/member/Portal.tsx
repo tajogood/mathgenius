@@ -306,6 +306,39 @@ export default function Portal() {
         <article><span>🎯</span><h2>나에게 맞춘 복습</h2><p>반복해서 틀리는 개념을 다시 추천해요.</p></article>
         <article><span>👨‍👩‍👧</span><h2>우리 아이 학습 현황</h2><p>부모님이 진도와 숙제를 한눈에 관리해요.</p></article>
       </section>
+      <section className="member-audience-section" aria-labelledby="member-audience-heading">
+        <div className="member-section-heading">
+          <small>수학천재 사용 가이드</small>
+          <h2 id="member-audience-heading">학부모, 초등 교사, 교육 관계자를 위한 수학 학습</h2>
+          <p>초등학교 1~6학년 수학 개념을 이해하고 가르치는 방법을 대상별로 살펴보세요.</p>
+        </div>
+        <div className="member-audience-grid">
+          <a href="./for-parents/">
+            <span aria-hidden="true">🏠</span><strong>학부모 가정학습</strong>
+            <p>자녀와 함께 분수·도형·넓이 개념을 탐구하고 오답을 복습하는 방법</p>
+            <small>가정학습 안내 보기 →</small>
+          </a>
+          <a href="./for-teachers/">
+            <span aria-hidden="true">📐</span><strong>초등학교 교사</strong>
+            <p>수업 도입과 탐구 활동에 활용할 인터랙티브 수학 교구 및 질문 예시</p>
+            <small>교사용 수업 안내 보기 →</small>
+          </a>
+          <a href="./for-education/">
+            <span aria-hidden="true">🏫</span><strong>교육청·교육 연구 관계자</strong>
+            <p>2022 개정 수학과 교육과정 참고 연계와 디지털 콘텐츠 검토 기준</p>
+            <small>교육 관계자 안내 보기 →</small>
+          </a>
+        </div>
+      </section>
+      <section className="member-curriculum-teaser" aria-labelledby="member-curriculum-heading">
+        <div>
+          <small>2022 개정 수학과 교육과정 참고</small>
+          <h2 id="member-curriculum-heading">초등 1~6학년 수학 단원별 개념 체험</h2>
+          <p>수 세기와 덧셈부터 분수, 소수, 도형, 평균, 비율, 부피까지 학년별 학습 내용을 찾아보세요.</p>
+          <p className="member-disclaimer">단원 편제와 성취기준 연결은 자체 학습 자료이며 교육부 공식 인증 또는 학교 성취평가가 아닙니다.</p>
+        </div>
+        <a href="./curriculum/">학년별 단원 전체 보기 →</a>
+      </section>
       <footer className="member-site-footer">© {new Date().getFullYear()} Larix Inc. · 수학천재
         <button onClick={()=>setLegalOpen('terms')}>서비스 이용약관</button>
         <button onClick={()=>setLegalOpen('privacy')}>개인정보 처리 안내</button>
