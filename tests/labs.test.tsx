@@ -215,7 +215,7 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
     fireEvent.click(screen.getByRole('button',{name:/접어 보기/}));
     expect(screen.getByText('접힌 입체 모형')).toBeTruthy();
     rerender(<NetLab {...props(p)} standardId="6수03-06"/>);
-    expect(screen.getByText('삼각기둥')).toBeTruthy();
+    expect(screen.getAllByText('삼각기둥').length).toBeGreaterThan(0);
   });
 
 });
