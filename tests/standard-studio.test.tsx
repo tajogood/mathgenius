@@ -13,7 +13,7 @@ function advanceScenes(){
 describe('성취기준 121개 독립 교실',()=>{
   it('학년군을 선택하고 개별 기준을 검색해 수업을 바꿀 수 있다',()=>{
     render(<StandardStudio initialId="2수01-01" onExit={()=>{}}/>);
-    expect(screen.getByText('0')).toBeTruthy();
+    expect(screen.getByLabelText('성취기준별 학습 확인 0/121')).toBeTruthy();
     expect(screen.getByRole('heading',{name:'0부터 100까지 세고 표현하기'})).toBeTruthy();
     fireEvent.change(screen.getByLabelText('학년군'),{target:{value:'5~6학년'}});
     expect(screen.getByText('6수03-14')).toBeTruthy();
