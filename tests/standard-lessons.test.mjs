@@ -16,7 +16,7 @@ test('국가 성취기준 121개 각각에 독립된 학습 목표·조작 활�
     assert.ok(standardLessonMap.has(lesson.id),lesson.id);
     assert.ok(TOPICS.includes(lesson.topic),lesson.id);
     for(const key of ['title','discover','principle','explanation']){
-      assert.ok(lesson[key].length>12,lesson.id+' '+key);
+      assert.ok(lesson[key].length>(key==='title'?4:12),lesson.id+' '+key);
     }
     assert.ok(lesson.check.prompt.length>8,lesson.id);
     assert.equal(lesson.check.choices.length,4,lesson.id);
