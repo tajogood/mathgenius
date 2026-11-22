@@ -4,7 +4,8 @@ import { standardsForChapter } from './standards';
 import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
 import Visuals from './components/Visuals';
 import { parseProgress, recordAnswer, unitMastery, masteryCount, nextPracticeTopic, type LearningProgress } from './progress.ts';
-import { diagnosticHint } from './feedback.ts';
+import { diagnosticHint, conceptTipForTopic } from './feedback.ts';
+import { TOPIC_CHALLENGES } from './interactions.ts';
 
 type Phase = 'concept' | 'question' | 'solution';
 const storageKey = 'mathgenius-progress-v1';
@@ -35,6 +36,7 @@ export default function App() {
   const [grade, setGrade] = useState(5);
   const [unitId, setUnitId] = useState('5-1-5');
   const [topic, setTopic] = useState<Topic>('fraction');
+  const [introduced, setIntroduced] = useState<Set<Topic>>(()=>new Set(['fraction']));
   const [phase, setPhase] = useState<Phase>('concept');
   const [step, setStep] = useState(0);
   const [problem, setProblem] = useState<Problem>(() => createProblem('fraction'));
@@ -49,6 +51,9 @@ export default function App() {
   const completedCount = masteryCount(progress);
   const unitStatus = unitMastery(progress, unitId);
   const topicStatus = progress.records[unitId]?.[topic];
+  const conceptGuidance = topic===currentInfo.topics[0] ? currentInfo.concept :
+    [TOPIC_CHALLENGES[topic],conceptTipForTopic(topic),
+      '직접 교구를 여러 번 움직이며 결과가 어떻게 달라지는지 살펴봐요. 원래대로 돌려놓은 뒤 문제에 도전해 보세요.'] as const;
 
   useEffect(() => {
     try { window.localStorage.setItem(storageKey, JSON.stringify(progress)); } catch { /* 저장 제한 시 무시 */ }
@@ -59,6 +64,7 @@ export default function App() {
     setGrade(unit.grade);
     setUnitId(unit.id);
     setTopic(nextTopic);
+    setIntroduced(new Set([nextTopic]));
     setPhase('concept');
     setStep(0);
     setExplored(false);
@@ -93,11 +99,13 @@ export default function App() {
     const nextTopic = nextPracticeTopic(progress, unitId, topic);
     setTopic(nextTopic);
     setProblem(createProblem(nextTopic));
+    const needsConcept=nextTopic!==topic&&!introduced.has(nextTopic);
+    if(needsConcept)setIntroduced(previous=>new Set(previous).add(nextTopic));
     setSelected(null);
     setChecked(false);
     setExplored(false);
     setStep(0);
-    setPhase('question');
+    setPhase(needsConcept?'concept':'question');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -223,7 +231,7 @@ export default function App() {
               <h3>차근차근 알아볼까요?</h3>
               <div className="guide-body">
                 <span className="guide-icon" aria-hidden="true">💡</span>
-                <p>{currentInfo.concept[step]}</p>
+                <p>{conceptGuidance[step]}</p>
               </div>
               <div className="guide-progress" role="img" aria-label={'개념 ' + String(step + 1) + '/3 단계'}>
                 {[0, 1, 2].map(i => <span key={i} className={i <= step ? 'guide-progress--filled' : ''} />)}
