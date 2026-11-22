@@ -9,6 +9,7 @@ import { AreaShapesLab,ProjectionLab,NetLab } from './labs/SpecialLabs';
 import { DecimalMultiplyLab } from './labs/DecimalMultiplyLab';
 import { SymmetryLab } from './labs/SymmetryLab';
 import { RectangleConceptLab } from './labs/RectangleConceptLab';
+import { SolidExplorerLab } from './labs/SolidExplorerLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -54,6 +55,8 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'arrays':return standardId==='6수03-14'&&phase!=='question'?<AreaShapesLab {...props}/>:problem.topic==='area'?<RectangleConceptLab {...props}/>:<ArraysLab {...props}/>;
     case 'ratios':return <RatiosLab {...props}/>;
     case 'solids':
+      if(problem.topic==='nets'||problem.topic==='surface'||
+        (problem.topic==='shapes3d'&&problem.a===0))return <SolidExplorerLab {...props}/>;
       if(phase!=='question'){
         if(standardId==='6수03-10')return <ProjectionLab {...props}/>;
         if(standardId==='6수03-06'||standardId==='6수03-08')return <NetLab {...props}/>;
@@ -73,7 +76,9 @@ export default function InteractiveLab({problem,phase,step,standardId,onEngage}:
     problem.topic==='symmetry'?
     ['합동·선대칭·점대칭 실험실','도형을 직접 드래그하고 주황 손잡이로 회전시켜 보세요'] :
     problem.topic==='area'||problem.topic==='perimeter'?
-    ['둘레와 넓이 탐구실','1cm² 정사각형을 한 줄씩 채우거나 네 변을 따라가며 계산해 보세요'] : LAB_LABELS[kind];
+    ['둘레와 넓이 탐구실','1cm² 정사각형을 한 줄씩 채우거나 네 변을 따라가며 계산해 보세요'] :
+    problem.topic==='nets'||problem.topic==='surface'||(problem.topic==='shapes3d'&&problem.a===0)?
+    ['손으로 돌리는 입체도형 실험실','직육면체를 직접 360도 회전하고 면·모서리·꼭짓점을 눌러 보세요'] : LAB_LABELS[kind];
   return <div className={'interactive-lab interactive-lab--'+kind}
     onClickCapture={onEngage} onChangeCapture={onEngage}
     onPointerDownCapture={onEngage} onKeyDownCapture={event=>{
