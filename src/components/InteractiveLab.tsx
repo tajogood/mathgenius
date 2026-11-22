@@ -13,6 +13,7 @@ import { SolidExplorerLab } from './labs/SolidExplorerLab';
 import { AverageBalanceLab } from './labs/AverageBalanceLab';
 import { PolyhedronExplorerLab } from './labs/PolyhedronExplorerLab';
 import { UnitCubesLab } from './labs/UnitCubesLab';
+import { RoundSolidsExplorerLab } from './labs/RoundSolidsExplorerLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -58,6 +59,8 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'arrays':return standardId==='6수03-14'&&phase!=='question'?<AreaShapesLab {...props}/>:problem.topic==='area'?<RectangleConceptLab {...props}/>:<ArraysLab {...props}/>;
     case 'ratios':return <RatiosLab {...props}/>;
     case 'solids':
+      if(problem.topic==='curvedsolids'||(problem.topic==='shapes3d'&&problem.a!==0))
+        return <RoundSolidsExplorerLab {...props}/>;
       if(problem.topic==='polyhedra'||problem.topic==='pyramid')return <PolyhedronExplorerLab {...props}/>;
       if(problem.topic==='volume'||problem.topic==='stacking')return <UnitCubesLab {...props}/>;
       if(problem.topic==='solidviews')return <ProjectionLab {...props}/>;
@@ -92,7 +95,9 @@ export default function InteractiveLab({problem,phase,step,standardId,onEngage}:
     problem.topic==='volume'||problem.topic==='stacking'?
     ['1cm³ 쌓기나무 실험실','한 줄의 정육면체를 세고 한 층씩 쌓아 부피를 스스로 계산해 보세요'] :
     problem.topic==='solidviews'?
-    ['세 방향에서 보는 쌓기나무','위에서 본 칸을 터치해 층을 쌓고 앞·옆 모양이 어떻게 바뀌는지 확인해 보세요'] : LAB_LABELS[kind];
+    ['세 방향에서 보는 쌓기나무','위에서 본 칸을 터치해 층을 쌓고 앞·옆 모양이 어떻게 바뀌는지 확인해 보세요'] :
+    problem.topic==='curvedsolids'||(problem.topic==='shapes3d'&&problem.a!==0)?
+    ['직접 돌리는 원기둥·원뿔·구','평평한 원 모양 밑면과 둥근 곡면을 눌러 비교하고 실제 전개도를 탐구해 보세요'] : LAB_LABELS[kind];
   return <div className={'interactive-lab interactive-lab--'+kind}
     onClickCapture={onEngage} onChangeCapture={onEngage}
     onPointerDownCapture={onEngage} onKeyDownCapture={event=>{
