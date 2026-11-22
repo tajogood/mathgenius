@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { TOPICS, createProblem, solutionSteps, fractionText, percentage } from '../src/math.ts';
+import { BASE_TOPICS, createProblem, solutionSteps, fractionText, percentage } from '../src/math.ts';
 
 const shapes = ['원', '세모', '네모', '직사각형'];
 const movements = ['밀기', '뒤집기', '돌리기'];
