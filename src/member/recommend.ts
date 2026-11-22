@@ -1,4 +1,5 @@
 import { curriculumUnits } from '../curriculum.ts';
+import { TOPIC_CHALLENGES } from '../interactions.ts';
 import { type LearningProgress, unitMastery } from '../progress.ts';
 
 export type StudyRecommendation = {
@@ -25,8 +26,8 @@ export function recommendStudy(progress: LearningProgress, grade: number): Study
     const {unit, topic, record} = weak[0];
     return {
       kind: 'review', title: unit.title + ' 다시 배우기',
-      detail: topic + ' 유형에서 ' + record!.attempts + '번 중 ' +
-        (record!.attempts - record!.correct) + '번 틀렸어요. 교구를 다시 움직여 보세요.',
+      detail: '이 개념의 문제를 ' + record!.attempts + '번 풀면서 ' +
+        (record!.attempts - record!.correct) + '번 틀렸어요. ' + TOPIC_CHALLENGES[topic] + ' 교구를 다시 움직여 보세요.',
       unitId: unit.id, topic,
     };
   }
