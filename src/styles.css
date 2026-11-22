@@ -439,3 +439,125 @@ button:focus-visible, input:focus-visible { outline: 3px solid #97a8ff; outline-
   .app-shell--question .guide-card { padding: 10px 13px; }
   .app-shell--question .choice { min-height: 35px; }
 }
+
+
+/* 71-unit course navigator, learning tools, small-screen semester switching */
+.chapter-list {
+  max-height: min(62vh, 680px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ccd4ec transparent;
+  padding-right: 3px;
+}
+.chapter-row-group { display: grid; gap: 2px; }
+.semester-heading {
+  color: #6773b0;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 12px 9px 6px;
+  border-bottom: 1px solid #edf0fa;
+  margin: 3px 0 6px;
+}
+.chapter-main strong { white-space: normal; line-height: 1.35; word-break: keep-all; }
+.mobile-unit-picker { display: none; }
+.mobile-unit-picker label { display: block; color: #7687b7; font-weight: 900; font-size: 11px; margin-bottom: 6px; }
+.mobile-unit-picker select {
+  background: #fff; color: #4255a4; border: 1px solid #dce2f2; font-size: 13px; font-weight: 900;
+  border-radius: 11px; width: 100%; min-height: 42px; padding: 8px 11px;
+}
+.mobile-unit-picker select:focus-visible { outline: 3px solid #8997ef; outline-offset: 2px; }
+
+.scene-inner--expanded { max-width: 580px; gap: 9px; }
+.expanded-center { width: 100%; display: grid; justify-items: center; align-items: center; gap: 12px; }
+.expanded-equation { font-size: clamp(17px, 2.2vw, 24px); font-weight: 900; text-align: center;
+  color: #5263c5; line-height: 1.5; word-break: keep-all; }
+.expanded-label { color: #7182aa; text-align: center; line-height: 1.5; font-size: 12px; font-weight: 800; }
+.expanded-blocks { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; max-width: min(100%,330px); }
+.expanded-block { width: 21px; height: 21px; border-radius: 6px; display: block;
+  box-shadow: inset 0 -2px #0000000c; animation: dot-appear .4s both; }
+.expanded-two-batches { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.expanded-two-batches > div { display: grid; justify-items: center; gap: 7px; }
+.expanded-two-batches .expanded-blocks { max-width: 155px; }
+.expanded-places { display: flex; align-items: stretch; justify-content: center;
+  gap: 5px; width: 100%; flex-wrap: wrap; }
+.expanded-place { min-width: 49px; flex: 1 1 0; max-width: 85px; background: #fff; border: 1px solid #dce3f6;
+  border-radius: 12px; padding: 8px 4px; text-align: center; display: grid; gap: 3px; }
+.expanded-place small { font-size: 9px; font-weight: 900; color: #7e90b7; }
+.expanded-place strong { font-size: clamp(18px,2.4vw,29px); color: #5d73d5; }
+.expanded-place span { font-size: 10px; color: #8193b2; overflow-wrap: anywhere; }
+.expanded-chart { display: block; width: min(100%,340px); max-height: 165px; }
+.expanded-geometry { display: block; width: min(100%,300px); max-height: 170px; }
+.expanded-geometry .expanded-shape { animation: expanded-float 4s ease-in-out infinite; transform-origin: center; }
+@keyframes expanded-float { 0%,100% { transform: scale(.98); } 50% { transform: scale(1.025); } }
+.expanded-pie {
+  display: grid; place-items: center; width: 145px; height: 145px; border-radius: 50%;
+  border: 3px solid #fff; box-shadow: 0 4px 13px #879ad037;
+  animation: expanded-pie-enter .6s ease both;
+}
+.expanded-pie span { background: #fff; width: 72px; height: 72px; border-radius: 50%; font-size: 10px;
+  font-weight: 900; color: #6c7ca8; display: grid; place-items: center; }
+@keyframes expanded-pie-enter { from{transform: scale(.7);opacity:.2} to{transform:scale(1);opacity:1} }
+.expanded-sequence { display: flex; gap: 7px; width: 100%; justify-content: center; align-items: center; }
+.expanded-sequence > span { border-radius: 11px; padding: 11px; font-size: clamp(14px,2.3vw,25px); font-weight: 900;
+  color: #5a6ac8; background: #fff; border: 1px solid #dbe2fa; min-width: 55px; text-align: center; }
+.expanded-sequence > span:last-child { color: #dc9b53; border-color: #f5dbb9; }
+.expanded-bars { display: grid; width: min(100%,450px); gap: 7px; }
+.expanded-bar-group { display: grid; width: 100%; gap: 4px; }
+.expanded-bar-group .expanded-label { text-align: left; }
+.expanded-fraction-bar { display: block; width: 100%; height: 47px; }
+.expanded-fill { transform-origin: 0 50%; animation: fraction-fill-grow .45s ease both; }
+.expanded-math-strip { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; }
+.expanded-number-card { background: #fff; border: 2px solid #b3c2fc; color: #5c71d1; border-radius: 15px;
+  min-width: 100px; padding: 16px 13px; display: grid; justify-items: center; gap: 2px; }
+.expanded-number-card--secondary { border-color: #ffd7ac; color: #dda35c; }
+.expanded-number-card strong { font-size: clamp(20px,2.8vw,32px); line-height: 1.25; }
+.expanded-number-card small { color: #8491b4; font-size: 10px; font-weight: 800; }
+.expanded-operation { font-size: 22px; color: #9ca9c7; }
+.expanded-stacks { display: grid; gap: 4px; }
+.expanded-stack-layer { display: flex; flex-wrap: wrap; gap: 4px; padding: 5px; background: #edf1ff;
+  border: 2px solid #b5c2e8; border-radius: 7px; max-width: 280px; }
+.expanded-stack-layer > span { width: 17px; height: 17px; border-radius: 3px; background: #7390ed; }
+.expanded-stack-layer:nth-child(even) > span { background: #f4b573; }
+.expanded-answer { margin-top: 5px; color: #279e81; font-size: 18px; font-weight: 900; }
+
+@media (max-width: 1190px) {
+  .mobile-unit-picker { display: block; margin-bottom: 10px; }
+  .chapter-list { max-height: none; }
+}
+@media (max-width: 850px) {
+  .expanded-center { gap: 6px; }
+  .expanded-fraction-bar { height: 36px; }
+  .expanded-chart { max-height: 134px; }
+  .expanded-geometry { max-height: 134px; }
+  .expanded-pie { width: 106px; height: 106px; }
+  .expanded-pie span { width: 52px; height: 52px; font-size: 8px; }
+  .expanded-label { font-size: 10px; }
+  .expanded-place { min-width: 40px; padding: 5px 2px; }
+  .expanded-block { width: 17px; height: 17px; border-radius: 5px; }
+  .expanded-number-card { padding: 7px; min-width: 75px; }
+  .expanded-sequence > span { padding: 7px; min-width: 39px; }
+  .expanded-stack-layer > span { width: 13px; height: 13px; }
+}
+@media (max-width: 500px) {
+  .app-shell--question .mobile-unit-picker { margin-bottom: 5px; }
+  .app-shell--question .mobile-unit-picker label { display: none; }
+  .app-shell--question .mobile-unit-picker select { min-height: 33px; font-size: 11px; padding: 4px 9px; }
+  .app-shell--question .expanded-equation { font-size: 14px; }
+  .app-shell--question .expanded-center { gap: 4px; }
+  .app-shell--question .expanded-chart, .app-shell--question .expanded-geometry { max-height: 104px; }
+  .app-shell--question .expanded-fraction-bar { height: 25px; }
+  .app-shell--question .expanded-places { gap: 3px; }
+  .app-shell--question .expanded-place { min-width: 32px; padding: 3px; }
+  .app-shell--question .expanded-place small, .app-shell--question .expanded-place span { font-size: 8px; }
+  .app-shell--question .expanded-place strong { font-size: 17px; }
+  .app-shell--question .expanded-sequence > span { min-width: 29px; font-size: 12px; padding: 5px; }
+  .app-shell--question .expanded-two-batches { gap: 8px; }
+  .app-shell--question .expanded-block { width: 13px; height: 13px; }
+  .app-shell--question .expanded-blocks { gap: 3px; }
+  .app-shell--question .expanded-number-card { padding: 6px; min-width: 65px; }
+  .app-shell--question .expanded-number-card strong { font-size: 18px; }
+  .app-shell--question .expanded-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .expanded-fill, .expanded-pie, .expanded-geometry .expanded-shape { animation: none; }
+}
