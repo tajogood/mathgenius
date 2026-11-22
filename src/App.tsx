@@ -55,7 +55,11 @@ export default function App() {
   const completedCount = masteryCount(progress);
   const unitStatus = unitMastery(progress, unitId);
   const topicStatus = progress.records[unitId]?.[topic];
-  const conceptGuidance = topic===currentInfo.topics[0] ? currentInfo.concept :
+  const conceptGuidance = topic==='area'||topic==='perimeter' ? [
+    '넓이 탭을 선택해 보세요. 한 칸은 가로 1cm, 세로 1cm인 1cm² 정사각형이에요. 가로 5칸을 세로 3줄 채워 5+5+5=15칸을 직접 만들어 보세요.',
+    '둘레 탭을 선택하고 윗변, 오른쪽 변, 아랫변, 왼쪽 변을 차례로 터치해 보세요. 5cm+3cm+5cm+3cm=16cm로 바깥쪽 경계 길이를 구해요.',
+    '같은 직사각형도 넓이는 안에 들어간 칸 수(5×3=15cm²), 둘레는 바깥 네 변의 길이(16cm)예요. 주황 모서리를 움직이며 둘의 차이를 다시 비교해 보세요.',
+  ] as const : topic===currentInfo.topics[0] ? currentInfo.concept :
     [TOPIC_CHALLENGES[topic],conceptTipForTopic(topic),
       '직접 교구를 여러 번 움직이며 결과가 어떻게 달라지는지 살펴봐요. 원래대로 돌려놓은 뒤 문제에 도전해 보세요.'] as const;
 
