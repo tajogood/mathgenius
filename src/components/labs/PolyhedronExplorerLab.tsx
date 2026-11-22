@@ -4,7 +4,7 @@ import type {LabProps} from './types';
 import {LabHint,LabTools,bound} from './types';
 import {
   buildPolyhedron,projectPoint,polyhedronCounts,facesContainingEdge,facesContainingVertex,
-  type PolyKind,type PolyFace,type P2
+  type PolyKind,type P2
 } from './polyhedronMath.ts';
 
 type Focus='face'|'edge'|'vertex';
@@ -211,7 +211,7 @@ export function PolyhedronExplorerLab({problem:p,standardId}:LabProps){
          <defs><pattern id="poly-grid" width="20" height="20" patternUnits="userSpaceOnUse">
            <path d="M20 0H0V20" fill="none" stroke="#e0e9f8" strokeWidth="0.8"/></pattern></defs>
          <rect width="334" height="236" rx="14" fill="url(#poly-grid)" pointerEvents="none"/>
-         {sortedFaces.map((face,index)=>{
+         {sortedFaces.map((face)=>{
            const highlighted=mode==='face'?face.id===faceId:chosenFaces.some(f=>f.id===face.id);
            return <g key={face.id} role="button" tabIndex={0}
              aria-label={face.label+' 직접 선택'}
@@ -226,7 +226,7 @@ export function PolyhedronExplorerLab({problem:p,standardId}:LabProps){
              <text x={face.points.reduce((acc,p)=>acc+p.x,0)/face.points.length}
                y={face.points.reduce((acc,p)=>acc+p.y,0)/face.points.length+4}
                textAnchor="middle" fill="#324a91" fontWeight="900" fontSize="10"
-               pointerEvents="none">{face.kind==='base'?'밑면':index+1}</text>
+               pointerEvents="none">{face.kind==='base'?'밑면':Number(face.id.split('-')[1])+1}</text>
            </g>;
          })}
          {mode==='edge'&&model.edges.map((edge,i)=>{
