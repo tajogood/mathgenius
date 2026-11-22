@@ -1110,3 +1110,18 @@
 .lab-band-divider{position:absolute;top:0;height:100%;width:5px;transform:translateX(-50%);
  background:#fff;box-shadow:0 0 0 2px #4e6bcb,0 0 9px #4562b5;pointer-events:none;
  border-radius:5px;z-index:3;}
+
+
+/* Click whole units to unfold equivalence instead of merely staring at a ruler. */
+.lab-meter-whole--clickable,.lab-meter-extra--clickable{cursor:pointer;touch-action:manipulation;
+ border:2px solid #9eb4e9;transition:background .15s,transform .15s;}
+.lab-meter-whole--clickable:hover,.lab-meter-whole--clickable:focus-visible{
+ background:#deebff;transform:translateY(-2px);outline:2px solid #5475d0;}
+.lab-meter-whole--opened{background:#e7f5ee!important;border-color:#7fc9a8!important;color:#298369!important;}
+.lab-meter-whole--clickable strong{font-size:11px;font-weight:900}
+.lab-unit-chunks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;
+ width:100%;max-width:100px;align-items:center;margin-top:5px}
+.lab-unit-chunks i{display:block;background:#67bd9d;border:1px solid #39977a;
+ min-width:6px;height:13px;border-radius:3px}
+.lab-meter-extra--clickable:hover,.lab-meter-extra--clickable:focus-visible{
+ border-color:#efa852;filter:brightness(1.07);outline:2px solid #efb169;}
