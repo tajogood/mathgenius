@@ -1,5 +1,6 @@
-import { describe,it,expect } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { afterEach,describe,it,expect } from 'vitest';
+import { cleanup,render, screen, within } from '@testing-library/react';
+afterEach(cleanup);
 import { Fraction,MathText } from '../src/components/MathText.tsx';
 
 describe('초등 교과서형 분수 표기',()=>{
