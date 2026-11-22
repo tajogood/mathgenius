@@ -55,7 +55,11 @@ export default function App() {
   const completedCount = masteryCount(progress);
   const unitStatus = unitMastery(progress, unitId);
   const topicStatus = progress.records[unitId]?.[topic];
-  const conceptGuidance = topic==='nets'||topic==='surface' ? [
+  const conceptGuidance = topic==='average' ? [
+    '세 친구의 사탕을 모두 합쳐 보세요. 9개, 13개, 4개라면 합계는 26개예요. 처음부터 정답을 찾기보다 사탕을 손으로 옮겨 봐요.',
+    '사탕이 많은 친구의 사탕을 클릭해 적은 친구에게 옮겨 주세요. 한 개씩 옮겨도 합계 26개는 변하지 않아요. '▶ 사탕 한 개 고르게 옮기기' 버튼으로도 체험할 수 있어요.',
+    '모두 비슷해지면 남은 사탕까지 똑같이 나눠 보세요. 26개를 3명에게 나누면 8개씩 주고 2개가 남으므로 한 사람의 평균은 8과 3분의 2개예요.',
+  ] as const : topic==='nets'||topic==='surface' ? [
     '직육면체의 여섯 면을 공간에서 만나게 해 보세요. 파란 3D 모형을 마우스나 손가락으로 직접 돌리고, 앞면·윗면·옆면을 눌러 서로 다른 면을 선택해요.',
     '위의 ‘모서리 12개’와 ‘꼭짓점 8개’ 버튼을 눌러 관찰 모드를 바꿔 보세요. 모서리는 두 면이 만나는 선, 꼭짓점은 세 모서리가 만나는 점이에요.',
     '‘전개도 펼치기’를 눌러 평면의 여섯 면과 입체의 여섯 면을 짝지어 보세요. 정육면체로 바꾸면 여섯 면 모두 같은 정사각형이 돼요.',
