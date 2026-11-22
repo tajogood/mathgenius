@@ -1199,3 +1199,47 @@
  .decimal-share-chip{width:6px;height:6px;}
  .decimal-division-feedback{font-size:10px;}
 }
+
+
+/* Grade 1–2: identify edges and vertices by physically manipulating the figure.
+   Degree measurements and numeric rotations are intentionally omitted. */
+.lab-shape-play {width:100%;min-width:0;gap:9px;}
+.shape-play-hint {display:grid;gap:4px;border-radius:12px;background:#eef4ff;
+ border:1px solid #dde7fa;text-align:center;padding:9px 11px;color:#5570ad;}
+.shape-play-hint strong {font-size:12px;color:#4965ad;}
+.shape-play-hint span {font-size:10px;line-height:1.45;}
+.shape-play-select {display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+.shape-play-select button {border:1px solid #cbd9f4;border-radius:9px;background:#fff;
+ color:#6073ad;font-weight:900;font-size:11px;padding:6px 11px;cursor:pointer;touch-action:manipulation;}
+.shape-play-select button:hover {background:#e8efff;}
+.shape-play-select button[aria-pressed=true] {background:#5f7bdd;color:#fff;border-color:#5971cb;}
+.shape-play-stage {display:block;width:min(100%,390px);height:auto;max-height:236px;
+ border:1px solid #dbe7fa;border-radius:12px;background:#f7faff;justify-self:center;
+ touch-action:none;cursor:grab;user-select:none;}
+.shape-play-stage:focus-visible {outline:3px solid #5879cf;}
+.shape-play-stage:active {cursor:grabbing;}
+.shape-play-body {cursor:grab;transition:fill .15s,filter .15s;}
+.shape-play-body:hover {fill:#9fb9f7;filter:brightness(1.05);}
+.shape-play-handle {cursor:grab;touch-action:none;transition:stroke-width .15s,r .15s;}
+.shape-play-handle:hover,.shape-play-handle:focus-visible {fill:#f08e38;stroke:#ffe1ac;stroke-width:5;}
+.shape-play-stage g[role=button] {cursor:pointer;}
+.shape-play-stage g[role=button]:focus-visible {outline:none;filter:brightness(1.09);}
+.shape-play-explain {width:100%;display:grid;justify-items:center;gap:4px;text-align:center;
+ background:#eef3ff;border:1px solid #dce7f9;border-radius:12px;padding:9px 11px;}
+.shape-play-explain strong {font-size:13px;color:#506cb8;}
+.shape-play-explain span {font-size:11px;color:#6c7fa9;line-height:1.55;}
+.shape-play-explain small {font-size:10px;color:#95a2bd;}
+@media(max-width:700px){
+ .shape-play-stage {max-height:165px;}
+ .shape-play-hint,.shape-play-explain {padding:6px;}
+ .shape-play-select button {font-size:10px;padding:4px 8px;}
+ .shape-play-explain span {font-size:10px;}
+}
+.app-shell--question .shape-play-hint,
+.standard-studio--concept .shape-play-hint,.standard-studio--application .shape-play-hint {display:none;}
+.app-shell--question .shape-play-stage,.standard-studio--concept .shape-play-stage,
+.standard-studio--application .shape-play-stage {max-height:124px;}
+.app-shell--question .shape-play-explain,.standard-studio--concept .shape-play-explain,
+.standard-studio--application .shape-play-explain {padding:4px;gap:2px;}
+.app-shell--question .shape-play-explain small,.standard-studio--concept .shape-play-explain small,
+.standard-studio--application .shape-play-explain small{display:none;}
