@@ -291,3 +291,18 @@
 .lab-count-tile--moved,.lab-count-tile--moved:hover {background:#f4bd7e;border-color:#e9a854;color:#fff;
   transform:translateY(5px);box-shadow:0 4px 9px #daae73aa;}
 .lab-count-tile--moved .lab-count-mark {background:#dc914b;}
+
+/* The intersection of two rational parts visualizes fraction multiplication. */
+.lab-fraction-area {display:grid;justify-items:center;gap:5px;width:100%;max-width:440px;}
+.lab-fraction-area-grid {display:grid;width:100%;height:72px;border:2px solid #9babcb;
+  border-radius:8px;overflow:hidden;background:#fff;}
+.lab-fraction-area-cell {min-width:0;min-height:0;border-right:1px dashed #b1bfdf;
+  border-bottom:1px dashed #b1bfdf;background:white;}
+.lab-fraction-area-cell--blue {background:#9fb4ef;}
+.lab-fraction-area-cell--amber {background:#f5d09e;}
+.lab-fraction-area-cell--overlap {background:repeating-linear-gradient(45deg,#5874d9,#5874d9 4px,#f1a95e 4px,#f1a95e 8px);}
+.lab-fraction-area small {font-size:10px;color:#6d80b1;font-weight:900;text-align:center;}
+@media(max-width:850px) {
+ .app-shell--question .lab-fraction-area-grid {height:45px;}
+ .app-shell--question .lab-fraction-area small {display:none;}
+}
