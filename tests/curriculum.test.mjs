@@ -104,3 +104,25 @@ test('71개 모든 단원 문제 유형이 실제 출제 가능',()=>{
     }
   }
 });
+
+import { achievementStandards, STANDARDS_TOTAL, standardsForChapter } from '../src/standards.ts';
+
+test('2022 개정 국가 수학 성취기준 코드 121개가 단원과 연결됨', () => {
+  assert.equal(STANDARDS_TOTAL, 121);
+  assert.equal(achievementStandards.length, 121);
+  assert.equal(new Set(achievementStandards.map(s => s.id)).size, 121);
+  const counts = {
+    '1~2학년': achievementStandards.filter(s => s.band === '1~2학년').length,
+    '3~4학년': achievementStandards.filter(s => s.band === '3~4학년').length,
+    '5~6학년': achievementStandards.filter(s => s.band === '5~6학년').length,
+  };
+  assert.deepEqual(counts, { '1~2학년': 29, '3~4학년': 47, '5~6학년': 45 });
+  const known = new Set(curriculumUnits.map(unit=>unit.id));
+  for(const standard of achievementStandards){
+    assert.ok(standard.chapterIds.length>=1,standard.id);
+    assert.ok(standard.chapterIds.every(id=>known.has(id)),standard.id);
+  }
+  for(const unit of curriculumUnits){
+    assert.ok(standardsForChapter(unit.id).length>=1,unit.id);
+  }
+});
