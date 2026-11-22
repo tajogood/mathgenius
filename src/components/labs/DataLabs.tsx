@@ -118,24 +118,50 @@ export function PatternsLab({problem:p}:LabProps) {
   const correspond=p.topic==='correspond';
   const [start,setStart]=useState(correspond?p.c??2:p.a);
   const [interval,setInterval]=useState(correspond?p.a:p.b);
+  const [selected,setSelected]=useState<number|null>(null);
+  const dragging=useRef<{y:number;interval:number}|null>(null);
   const next=correspond?interval*start+p.b:start+interval*3;
   const list=correspond?
     [start,start+1,start+2].map(x=>[x,interval*x+p.b]):[0,1,2,3].map(i=>[i,start+interval*i]);
   return <div className="lab-body">
     <div className="lab-hero-count"><strong>{next}</strong><span>{correspond?' 출력값':' 다음 수'}</span></div>
-    <div className="lab-pattern-strip" role="img" aria-label="규칙에 따라 이어지는 수">
+    <div className="lab-pattern-strip" role="group" aria-label="규칙의 숫자를 직접 눌러 조사하거나 위아래로 끌어 규칙 바꾸기">
       {list.map(([input,out],i)=><div className="lab-pattern-pair" key={input}>
         {correspond&&<small>입력 {input}</small>}
-        <span>{out}</span>
+        <button type="button" className="lab-pattern-value"
+          aria-label={(i+1)+'번째 규칙 수 '+out+' 선택 및 위아래 드래그'}
+          aria-pressed={selected===i}
+          onClick={()=>setSelected(i)}
+          onPointerDown={e=>{
+            dragging.current={y:e.clientY,interval};setSelected(i);
+            try{e.currentTarget.setPointerCapture(e.pointerId);}catch{/* test DOM */}
+          }}
+          onPointerMove={e=>{
+            const info=dragging.current;if(!info)return;
+            const next=bound(info.interval+Math.round((info.y-e.clientY)/15),1,10);
+            setInterval(next);
+          }}
+          onPointerUp={e=>{
+            dragging.current=null;
+            try{if(e.currentTarget.hasPointerCapture?.(e.pointerId))
+              e.currentTarget.releasePointerCapture(e.pointerId);}catch{/* browser */}
+          }}
+          onPointerCancel={()=>{dragging.current=null;}}>{out}</button>
         {!correspond&&i<3&&<em>+{interval} →</em>}
       </div>)}
     </div>
-    <LabHint>{correspond?'입력을 바꾸면 같은 대응 규칙으로 출력이 변해요.':
-      '규칙의 시작 수와 늘어나는 간격을 바꿔 보세요. 숫자들이 함께 움직여요.'}</LabHint>
+    <div className="lab-pattern-explanation" aria-live="polite">
+      {selected===null?'숫자를 눌러 이 값이 만들어지는 식을 찾아보세요.':
+        correspond?
+          list[selected][0]+' × '+interval+' + '+p.b+' = '+list[selected][1]:
+          start+' + '+interval+' × '+selected+' = '+list[selected][1]}
+    </div>
+    <LabHint>수를 직접 누르면 해당 규칙을 식으로 확인할 수 있어요.
+      수 카드를 위아래로 끌면 간격이 변하며 다른 수들도 함께 바뀌어요.</LabHint>
     <LabTools>
       <SmallControl label={correspond?'입력':'시작 수'} value={start} change={setStart} min={0} max={20}/>
       <SmallControl label={correspond?'곱하는 수':'늘어나는 수'} value={interval} change={setInterval} min={1} max={10}/>
-      <button type="button" className="lab-action" onClick={()=>{setStart(correspond?p.c??2:p.a);setInterval(correspond?p.a:p.b);}}>
+      <button type="button" className="lab-action" onClick={()=>{setStart(correspond?p.c??2:p.a);setInterval(correspond?p.a:p.b);setSelected(null);}}>
         ↺ 원래 규칙</button>
     </LabTools>
   </div>;
