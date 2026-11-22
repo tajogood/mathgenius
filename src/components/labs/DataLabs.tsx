@@ -17,6 +17,21 @@ export function ChartsLab({problem:p}:LabProps) {
   const average=(values.reduce((a,b)=>a+b,0)/values.length);
   const line=p.topic==='linegraph';
   const svg=useRef<SVGSVGElement>(null);
+  const pieRef=useRef<HTMLDivElement>(null);
+  const pieDragging=useRef(false);
+  const movePie=(event:ReactPointerEvent<HTMLDivElement>)=>{
+    const bounds=pieRef.current?.getBoundingClientRect();
+    if(!bounds)return;
+    let percent:number;
+    if(p.topic==='bandgraph'){
+      percent=(event.clientX-bounds.left)/bounds.width*100;
+    }else{
+      const x=event.clientX-bounds.left-bounds.width/2;
+      const y=event.clientY-bounds.top-bounds.height/2;
+      percent=((Math.atan2(x,-y)*180/Math.PI+360)%360)/3.6;
+    }
+    update(0,bound(Math.round(percent),0,100));
+  };
   const [dragIndex,setDragIndex]=useState<number|null>(null);
   const move=(event:ReactPointerEvent<SVGSVGElement|SVGCircleElement>,i:number)=>{
     const bounds=svg.current?.getBoundingClientRect();
@@ -28,14 +43,37 @@ export function ChartsLab({problem:p}:LabProps) {
   return <div className="lab-body">
     <div className="lab-hero-count"><strong>{pie?values[0]+'%':p.topic==='average'?displayNumber(average,1):values[0]}</strong>
       <span>{pie?' 파란 영역의 비율':p.topic==='average'?' 현재 그래프 평균':' 파란 막대의 높이'}</span></div>
-    {pie?<div className={'lab-pie '+(p.topic==='bandgraph'?'lab-pie--band':'')}
-      role="img" aria-label={'파란 부분 '+values[0]+'%, 주황 부분 '+values[1]+'%'}
+    {pie?<div ref={pieRef} className={'lab-pie '+(p.topic==='bandgraph'?'lab-pie--band':'')}
+      role="slider" tabIndex={0} aria-valuemin={0} aria-valuemax={100} aria-valuenow={values[0]}
+      aria-label={'파란 영역과 주황 영역의 경계를 직접 드래그해 조절: 파랑 '+values[0]+'%'}
+      onPointerDown={e=>{pieDragging.current=true;
+        try{e.currentTarget.setPointerCapture(e.pointerId);}catch{/* simulated DOM */}
+        movePie(e);
+      }}
+      onPointerMove={e=>{if(pieDragging.current)movePie(e);}}
+      onPointerUp={e=>{pieDragging.current=false;
+        try{if(e.currentTarget.hasPointerCapture?.(e.pointerId))
+          e.currentTarget.releasePointerCapture(e.pointerId);}catch{/* released */}
+      }}
+      onPointerCancel={()=>{pieDragging.current=false;}}
+      onKeyDown={e=>{
+        if(e.key==='ArrowLeft'||e.key==='ArrowDown'){
+          e.preventDefault();update(0,bound(values[0]-5,0,100));
+        }
+        if(e.key==='ArrowRight'||e.key==='ArrowUp'){
+          e.preventDefault();update(0,bound(values[0]+5,0,100));
+        }
+      }}
       style={{background:p.topic==='bandgraph'?undefined:
         'conic-gradient(#667deb '+values[0]+'%,#f4ae69 '+values[0]+'% 100%)'}}>
       {p.topic==='bandgraph'?<div className="lab-band">
         <span style={{width:values[0]+'%'}}>파랑 {values[0]}%</span>
         <span style={{width:values[1]+'%'}}>주황 {values[1]}%</span>
-      </div>:<span className="lab-pie-center">전체 100%</span>}
+        <i className="lab-band-divider" style={{left:values[0]+'%'}} aria-hidden="true"/>
+      </div>:<><span className="lab-pie-center">전체 100%</span>
+        <span className="lab-pie-divider" aria-hidden="true"
+          style={{transform:'translate(-50%,-50%) rotate('+(values[0]*3.6)+'deg) translateY(-73px)'}}/>
+      </>}
     </div>:line?<svg ref={svg} viewBox="0 0 340 168" className="lab-linechart-svg"
       role="img" aria-label="데이터 점을 드래그해 꺾은선그래프를 바꿔 보세요"
       onPointerMove={e=>{if(dragIndex!==null&&e.buttons>0)move(e,dragIndex);}}
@@ -64,7 +102,7 @@ export function ChartsLab({problem:p}:LabProps) {
         <span>{i+1}번</span>
       </div>)}
     </div>}
-    <LabHint>{pie?'슬라이더를 움직이면 원형·띠그래프의 크기가 즉시 달라져요.':
+    <LabHint>{pie?'원그래프나 띠그래프를 직접 눌러 경계를 옮겨 보세요. 파랑과 주황을 더하면 항상 100%예요.':
       line?'점에 손가락을 올려 드래그하거나 아래 슬라이더를 움직이면 꺾은선이 달라져요.':
       '막대를 터치하면 높이가 1 증가해요. 아래 슬라이더로도 바꿀 수 있어요.'}</LabHint>
     <LabTools>
