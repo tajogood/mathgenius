@@ -561,3 +561,23 @@ button:focus-visible, input:focus-visible { outline: 3px solid #97a8ff; outline-
 @media (prefers-reduced-motion: reduce) {
   .expanded-fill, .expanded-pie, .expanded-geometry .expanded-shape { animation: none; }
 }
+
+
+/* References to the 2022 revised national curriculum (informational only). */
+.curriculum-standards {
+  display: grid;
+  gap: 9px;
+  padding: 17px 20px;
+  margin-top: 16px;
+  border-radius: 16px;
+  border: 1px solid #e8ebf5;
+  background: #fff;
+}
+.curriculum-standards > strong { font-size: 12px; color: #5869b5; }
+.curriculum-standard-codes { display: flex; flex-wrap: wrap; gap: 5px; }
+.curriculum-standard-codes span {
+  border-radius: 8px; background: #f0f3ff; padding: 5px 8px;
+  color: #697abe; font-size: 10px; font-weight: 900;
+}
+.curriculum-standards small { font-size: 10px; color: #94a0b9; line-height: 1.6; }
+.app-shell--question .curriculum-standards { display: none; }
