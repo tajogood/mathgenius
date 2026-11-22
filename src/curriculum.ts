@@ -1,4 +1,4 @@
-import { TOPICS, type Topic } from './math';
+import { TOPICS, type Topic } from './math.ts';
 
 /**
  * 2022 revised elementary mathematics, organized by grade and semester.
