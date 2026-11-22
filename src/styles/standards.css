@@ -156,3 +156,32 @@
  .standard-studio--concept .studio-subskills,
  .standard-studio--application .studio-subskills {display:none;}
 }
+
+/* Specialist manipulatives for compound standards */
+.lab-shape-selector {display:flex;gap:5px;justify-content:center;flex-wrap:wrap;}
+.lab-shape-selector button {border:1px solid #cfdaef;background:#fff;color:#6075ab;border-radius:9px;
+ font-size:10px;font-weight:900;padding:8px 9px;touch-action:manipulation;}
+.lab-shape-selector button:hover,.lab-shape-selector button.lab-shape-choice--active {
+ background:#e1e9ff;border-color:#7189e0;color:#4662b7;}
+.lab-area-svg,.lab-net-svg {width:min(100%,370px);max-height:215px;height:auto;display:block;}
+.lab-views {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;}
+.lab-views > div {min-width:0;display:grid;justify-items:center;align-content:start;gap:6px;}
+.lab-views strong {font-size:10px;color:#6780bc;text-align:center;}
+.lab-projection-top {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;max-width:145px;width:100%;}
+.lab-projection-top button {aspect-ratio:1;border:2px solid #b8c7e7;border-radius:5px;
+ background:#fff;color:#8492ad;font-size:12px;font-weight:900;touch-action:manipulation;}
+.lab-projection-top button.lab-projection-top--filled {background:#7891e8;color:#fff;border-color:#5d79d6;}
+.lab-projection-top button:hover {transform:scale(1.09);box-shadow:0 3px 8px #6678d555;}
+.lab-projection-bars {height:132px;display:flex;align-items:end;gap:3px;justify-content:center;width:100%;}
+.lab-projection-bars span {flex:1;max-width:33px;min-width:0;display:flex;align-items:end;justify-content:center;
+ background:#9cb2f1;border:1px solid #768fd6;border-radius:4px 4px 0 0;color:#fff;font-size:10px;font-weight:900;
+ transition:height .2s;}
+@media(max-width:700px){
+ .standard-studio--concept .lab-area-svg,.standard-studio--concept .lab-net-svg,
+ .standard-studio--application .lab-area-svg {max-height:145px;}
+ .studio-manipulative .lab-shape-selector button {padding:4px 5px;font-size:9px;}
+ .studio-manipulative .lab-views {gap:3px;}
+ .studio-manipulative .lab-projection-bars {height:90px;}
+ .studio-manipulative .lab-projection-top {max-width:95px;}
+ .studio-manipulative .lab-projection-top button {font-size:10px;}
+}
