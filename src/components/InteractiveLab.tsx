@@ -10,6 +10,7 @@ export type InteractiveLabProps = {
   problem: Problem;
   phase: LabPhase;
   step: number;
+  standardId?: string;
   onEngage?: () => void;
 };
 
@@ -33,8 +34,8 @@ const LAB_LABELS: Record<LabKind, [string, string]> = {
 };
 
 /** All 83 topic IDs resolve to one of 16 interactive lab families. */
-function ActiveLab({problem,phase,step}:InteractiveLabProps) {
-  const props={problem,phase,step};
+function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
+  const props={problem,phase,step,standardId};
   const kind=interactionForProblem(problem);
   switch(kind) {
     case 'blocks':return <BlocksLab {...props}/>;
@@ -56,7 +57,7 @@ function ActiveLab({problem,phase,step}:InteractiveLabProps) {
   }
 }
 
-export default function InteractiveLab({problem,phase,step,onEngage}:InteractiveLabProps) {
+export default function InteractiveLab({problem,phase,step,standardId,onEngage}:InteractiveLabProps) {
   const kind=interactionForProblem(problem);
   const [title,instructions]=LAB_LABELS[kind];
   return <div className={'interactive-lab interactive-lab--'+kind}
@@ -69,6 +70,6 @@ export default function InteractiveLab({problem,phase,step,onEngage}:Interactive
       <div><strong>{title}</strong><span>{TOPIC_CHALLENGES[problem.topic] || instructions}</span></div>
       <span className="lab-interactive-tag">터치 가능</span>
     </div>
-    <ActiveLab key={problem.topic+'|'+problem.prompt} problem={problem} phase={phase} step={step}/>
+    <ActiveLab key={problem.topic+'|'+problem.prompt} problem={problem} phase={phase} step={step} standardId={standardId}/>
   </div>;
 }
