@@ -38,6 +38,16 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
     expect(screen.getByText(/개 남음 · 뺀 블록 2개/)).toBeTruthy();
   });
 
+  it('받아올림 덧셈에서 10개를 선택하면 십 묶음 1개를 표시한다',()=>{
+    render(<BlocksLab {...props(problem('carry',8,5))}/>);
+    for(let i=1;i<=10;i++)fireEvent.click(screen.getByRole('button',{
+      name:new RegExp(i+'번째 블록 세기')
+    }));
+    expect(screen.getByText('10개 묶음 1개')).toBeTruthy();
+    expect(screen.getByText('낱개 0개')).toBeTruthy();
+    expect(screen.getByText(/10개를 묶었어요/)).toBeTruthy();
+  });
+
   it('분류 학습에서는 파란색 블록만 따로 세어 준다',()=>{
     render(<BlocksLab {...props(problem('classify',3,2))}/>);
     fireEvent.click(screen.getByRole('button',{name:/1번째 블록 세기/}));
