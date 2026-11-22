@@ -4,7 +4,11 @@ async function openStandard(page: import('@playwright/test').Page,id:string) {
   await page.goto('/');
   await page.getByRole('button',{name:/성취기준 121개 학습/}).click();
   await page.locator('#standard-search').fill(id);
-  await page.locator('.studio-lesson-link').filter({hasText:id}).click();
+  const entry=page.locator('.studio-lesson-link').filter({hasText:id});
+  if(!await entry.isVisible()){
+    await page.locator('.studio-catalog-toggle').click();
+  }
+  await entry.click();
 }
 
 test('합동과 대칭의 도형을 마우스로 직접 끌어서 이동한다',async({page})=>{
