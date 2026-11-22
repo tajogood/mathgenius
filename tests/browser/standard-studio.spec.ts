@@ -35,7 +35,7 @@ test('성취기준별 실험은 별도 도형 교구와 개별 평가를 연결�
  await page.locator('#standard-search').fill('6수03-14');
  await page.locator('.studio-lesson-link').filter({hasText:'6수03-14'}).click();
  await expect(page.locator('[data-testid="area-shape-experiment"]')).toBeVisible();
- await page.getByRole('button',{name:'사다리꼴'}).click();
+ await page.getByTestId('area-shape-experiment').getByRole('button',{name:'사다리꼴'}).click();
  await expect(page.getByText(/윗변 \+ 아랫변/)).toBeVisible();
  for(let i=0;i<2;i++)await page.getByRole('button',{name:/다음 장면/}).click();
  await page.getByRole('button',{name:/개념 확인 시작/}).click();
