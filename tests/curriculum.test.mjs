@@ -29,6 +29,25 @@ test('학년별 두 학기 · 71개 단원 · 고유 코드', () => {
 function verifyExpanded(p) {
   const a=p.a,b=p.b,c=p.c,d=p.d;
   switch(p.topic) {
+    case 'capacity': return (a*1000+b)+'mL';
+    case 'multiples': assert.equal(a*b,Number(p.answer)); return String(a*b);
+    case 'roundup': return String(Math.ceil(a/b)*b);
+    case 'rounddown': return String(Math.floor(a/b)*b);
+    case 'fractioncompare': {
+      const delta=a*d-c*b; return delta===0?'=':delta>0?'>':'<';
+    }
+    case 'fractionsub': return fraction(a*d-c*b,b*d);
+    case 'bandgraph': return a+'%';
+    case 'naturalfraction': return fraction(a,b);
+    case 'circumference': return String(Number((a*2*3.14).toFixed(2)))+'cm';
+    case 'anglesum': return (a-2)*180+'°';
+    case 'timecalc': return (b+c)+'분';
+    case 'decimalcompare': return a>b?'>':'<';
+    case 'pyramid': return String(a+1);
+    case 'range': return p.mode==='이상'?'포함':'포함하지 않음';
+    case 'gcdlcm': return String(p.mode==='gcd'?gcd(a,b):a*b/gcd(a,b));
+    case 'fractiontypes': return ['진분수','가분수','대분수'][a];
+    case 'solidviews': return String(a*b);
     case 'count9': case 'count50': case 'count100': case 'classify':
     case 'datagraph': case 'organize': case 'bargraph': return numeric(a);
     case 'compare': return a>b?'>':'<';
