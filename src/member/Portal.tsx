@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import App from '../App.tsx';
 import { curriculumUnits, grades } from '../curriculum.ts';
+import { TOPIC_CHALLENGES } from '../interactions.ts';
+import type { Topic } from '../math.ts';
 import { emptyProgress, parseProgress, unitMastery, type LearningProgress } from '../progress.ts';
 import { normalizeStandardProgress, type StandardProgress } from '../standards/progress.ts';
 import { db, type Assignment, type MemberProfile, type MemberRole, type StudyEvent } from './client.ts';
@@ -55,6 +57,7 @@ function learningSummary(events: Array<{event_type: string; correct: boolean | n
 }
 const titleForUnit=(id:string)=>curriculumUnits.find(unit=>unit.id===id)?.title ?? id;
 const gradeForUnit=(id:string)=>curriculumUnits.find(unit=>unit.id===id)?.grade ?? 5;
+const friendlyTopic=(topic:string)=>{const hint=TOPIC_CHALLENGES[topic as Topic]??topic;return hint.length>48?hint.slice(0,45)+'…':hint;};
 
 export default function Portal() {
   const [screen,setScreen]=useState<Screen>(()=>
@@ -256,6 +259,13 @@ export default function Portal() {
     setActiveAssignment(null);
     setMessage('숙제 완료로 표시되었습니다.');
   }
+  useEffect(()=>{
+    const child=children.find(item=>item.profile.id===selectedChild);
+    if(!child)return;
+    const first=curriculumUnits.find(unit=>unit.grade===child.profile.grade);
+    if(first)setHomeworkUnit(first.id);
+  },[selectedChild,children]);
+
   const visibleRecommendation=profile?.role==='student'
     ?recommendStudy(progress,profile.grade??5):null;
   const selectedReport=children.find(c=>c.profile.id===selectedChild);
@@ -416,7 +426,7 @@ export default function Portal() {
           <section className="member-panel"><h2>🔎 오답이 많은 개념</h2>
             {selectedReport.wrongByTopic.length===0?<p>아직 오답 기록이 없어요.</p>:
               selectedReport.wrongByTopic.map(w=><p key={w.unit_id+'-'+w.topic}>
-                {titleForUnit(w.unit_id)} · {w.topic}: {w.count}회 오답</p>)}
+                {titleForUnit(w.unit_id)} · {friendlyTopic(w.topic)}: {w.count}회 오답</p>)}
             <h2>🔁 반복해서 방문한 단원</h2>
             {selectedReport.revisits.length===0?<p>반복 방문 기록이 없어요.</p>:
               selectedReport.revisits.map(r=><p key={r.unit_id}>{titleForUnit(r.unit_id)} · {r.count}회 방문</p>)}
