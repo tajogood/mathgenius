@@ -3,6 +3,7 @@ import { grades, curriculumUnits, TOTAL_UNITS, type Chapter } from './curriculum
 import { standardsForChapter } from './standards';
 import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
 import Visuals from './components/Visuals';
+import StandardStudio from './components/StandardStudio.tsx';
 import { parseProgress, recordAnswer, unitMastery, masteryCount, nextPracticeTopic, type LearningProgress } from './progress.ts';
 import { diagnosticHint, conceptTipForTopic } from './feedback.ts';
 import { TOPIC_CHALLENGES } from './interactions.ts';
@@ -34,6 +35,8 @@ const topicIcons: Partial<Record<Topic, string>> = {
 
 export default function App() {
   const [grade, setGrade] = useState(5);
+  const [studioOpen,setStudioOpen] = useState(false);
+  const [studioId,setStudioId] = useState('6수01-08');
   const [unitId, setUnitId] = useState('5-1-5');
   const [topic, setTopic] = useState<Topic>('fraction');
   const [introduced, setIntroduced] = useState<Set<Topic>>(()=>new Set(['fraction']));
@@ -109,7 +112,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  return <div className={"app-shell" + (phase === "question" && topic ? " app-shell--question" : "")}>
+  return <div className={"app-shell" + (!studioOpen && phase === "question" && topic ? " app-shell--question" : "")}>
     <aside className="sidebar">
       <div className="brand">
         <span className="brand-symbol" aria-hidden="true">✦</span>
@@ -156,6 +159,18 @@ export default function App() {
     </aside>
 
     <main className="main">
+      <div className="standard-mode-switch" role="group" aria-label="학습 방식 선택">
+        <button type="button" className={!studioOpen?'active':''}
+          aria-pressed={!studioOpen} onClick={()=>setStudioOpen(false)}>📗 단원별 학습</button>
+        <button type="button" className={studioOpen?'active':''}
+          aria-pressed={studioOpen}
+          onClick={()=>{
+            const first=standardsForChapter(unitId)[0];
+            if(first)setStudioId(first.id);
+            setStudioOpen(true);
+          }}>🎯 성취기준 121개 학습</button>
+      </div>
+      {studioOpen ? <StandardStudio initialId={studioId} onExit={()=>setStudioOpen(false)}/> : <>
       <div className="mobile-unit-picker">
         <label htmlFor="lesson-picker">{grade}학년 · 학습할 단원</label>
         <select id="lesson-picker" value={unitId}
@@ -297,13 +312,15 @@ export default function App() {
         <strong>📚 2022 개정 교육과정 연계</strong>
         <div className="curriculum-standard-codes">
           {standardsForChapter(unitId).map(item =>
-            <span key={item.id} title={item.band + ' · 연계 코드 (세부 학습 완료를 뜻하지 않음)'}>
-              {item.id}
-            </span>)}
+            <button type="button" key={item.id} title={item.band+' · 해당 성취기준 개별 수업 열기'}
+              onClick={()=>{setStudioId(item.id);setStudioOpen(true);}}>
+              {item.id} · 개별 수업
+            </button>)}
         </div>
         <small>단원과 관련된 국가 교육과정 성취기준 코드입니다. 모든 세부 학습 요소의 평가가 완료되었다는 뜻은 아닙니다.</small>
       </section>
       <footer className="page-footer">© 2026 수학천재 · 교육 콘텐츠 개발 초기 버전 · 학습 기록은 이 기기에만 저장됩니다.</footer>
+      </>}
     </main>
   </div>;
 }
