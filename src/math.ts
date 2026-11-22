@@ -90,7 +90,7 @@ export function createProblem(topic: Topic): Problem {
         answer: String(answer), choices: numericChoices(answer) };
     }
     case 'addsub': {
-      const a = rand(4, 9), b = rand(1, 5), subtract = Math.random() > 0.5;
+      const a = rand(4, 9), b = rand(1, Math.min(5, a)), subtract = Math.random() > 0.5;
       const result = subtract ? a - b : a + b;
       return { topic, a, b, mode: subtract ? 'subtract' : 'add', prompt: a + (subtract ? ' − ' : ' + ') + b + ' = ?',
         answer: String(result), choices: numericChoices(result) };
