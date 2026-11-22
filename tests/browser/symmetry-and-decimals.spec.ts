@@ -49,3 +49,22 @@ test('소수 곱셈의 100칸 모형에서 누른 칸에 따라 소수 값이 �
   await lab.getByRole('button',{name:/반복 덧셈으로도 보기/}).click();
   await expect(lab.getByText(/÷ 10 = 0.06/)).toBeVisible();
 });
+
+test('휴대폰에서도 소수 곱셈 문제와 네 선택지가 스크롤 없이 화면 안에 들어온다',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await openStandard(page,'6수01-13');
+  for(let i=0;i<2;i++)await page.getByRole('button',{name:/다음 장면/}).click();
+  await page.getByRole('button',{name:/개념 확인 시작/}).click();
+  const choices=page.locator('.studio-option');
+  await expect(choices).toHaveCount(4);
+  const coordinates=await page.evaluate(()=>{
+    const title=document.querySelector('.studio-card h3')?.getBoundingClientRect();
+    const answers=Array.from(document.querySelectorAll('.studio-option'));
+    const last=answers.at(-1)?.getBoundingClientRect();
+    return {top:title?.top,bottom:last?.bottom,scrollWidth:document.documentElement.scrollWidth,
+      width:innerWidth,height:innerHeight};
+  });
+  expect(coordinates.scrollWidth).toBeLessThanOrEqual(coordinates.width+2);
+  expect(coordinates.top).toBeGreaterThanOrEqual(0);
+  expect(coordinates.bottom).toBeLessThanOrEqual(coordinates.height-4);
+});
