@@ -40,7 +40,7 @@ test('띠그래프의 색깔 경계를 그림 위에서 직접 끌면 파랑과 
  await page.mouse.up();
  await expect(chart).toHaveAttribute('aria-valuenow','80');
  const lab=page.locator('.interactive-lab--charts');
- await expect(lab.getByText('80%')).toBeVisible();
+ await expect(lab.getByText('80%',{exact:true})).toBeVisible();
 });
 
 test('원그래프의 경계는 마우스로 아래쪽을 가리키면 50%가 된다',async({page})=>{
