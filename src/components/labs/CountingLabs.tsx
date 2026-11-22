@@ -180,7 +180,8 @@ export function EquationLab({problem:p}:LabProps) {
   else if(p.topic==='factors') value=a+'의 약수를 찾아요';
   else if (p.topic==='mixedcalc') value=a+' + '+b+' × '+factor+' = '+(a+b*factor);
   else if(p.topic==='decimalmul') value=(a/10).toFixed(1)+' × '+(factor/10).toFixed(1)+' = '+(a*factor/100).toFixed(2);
-  else if(p.topic==='decimaldiv') value=(a*factor/10).toFixed(1)+' ÷ '+factor+' = '+(a/10).toFixed(1);
+  else if(p.topic==='decimaldiv') {const result=a*b/(10*factor);const exact=Math.abs(result-Number(result.toFixed(3)))<1e-10;
+    value=(a*b/10).toFixed(1)+' ÷ '+factor+(exact?' = ':' ≈ ')+(exact?String(Number(result.toFixed(3))):result.toFixed(3));}
   else value=a+' × '+factor+' = '+a*factor;
   return <div className="lab-body">
     <div className="lab-math-feedback lab-math-feedback--big"><strong>{value}</strong></div>
@@ -191,7 +192,7 @@ export function EquationLab({problem:p}:LabProps) {
           onClick={()=>setPick(n)}>{n}</button>)}
     </div>:<div className="lab-tens-board">
       {Array.from({length:Math.min(10,factor)},(_,i)=>
-        <span key={i} className="lab-tens-board-cell" style={{animationDelay:i*35+'ms'}}>{p.topic==='decimaldiv'?(a/10).toFixed(1):a}</span>)}
+        <span key={i} className="lab-tens-board-cell" style={{animationDelay:i*35+'ms'}}>{p.topic==='decimaldiv'?Number((a*b/(10*factor)).toFixed(3)).toString():a}</span>)}
     </div>}
     {isFactor ? <LabHint>{pick===null?'숫자를 선택해 두 수의 나눗셈 관계를 확인해 보세요.':
       isCommon?(p.mode==='gcd'?
@@ -202,10 +203,10 @@ export function EquationLab({problem:p}:LabProps) {
       a%pick===0?'✅ '+a+' ÷ '+pick+' = '+a/pick+' · 나누어떨어져요!':
       '💡 '+a+' ÷ '+pick+'는 나머지 '+a%pick+'이므로 약수가 아니에요.'}</LabHint>
       :<LabHint>{p.topic==='decimaldiv'?
-        '카드 하나의 양은 '+(a/10).toFixed(1)+'이에요. 같은 양을 '+factor+'묶음으로 나누면 한 묶음의 소수 값이 남아요.':
+        '전체 '+(a*b/10).toFixed(1)+'을 '+factor+'개의 같은 몫으로 나눕니다. 나누어지는 수는 고정된 채 한 몫의 크기만 달라져요.':
         '배수를 움직이면 묶음의 수와 식의 값이 실시간으로 변해요.'}</LabHint>}
     <LabTools>
-      {!isFactor&&<label className="lab-slider-label">곱하는 수 {factor}
+      {!isFactor&&<label className="lab-slider-label">{p.topic==='decimaldiv'?'나누는 수':'곱하는 수'} {factor}
         <input type="range" min="1" max="10" value={factor} onChange={e=>setFactor(Number(e.target.value))}/></label>}
       <button className="lab-action" type="button" onClick={()=>{setFactor(Math.max(1,Math.min(10,p.b)));setPick(null);}}>↺ 처음</button>
     </LabTools>
