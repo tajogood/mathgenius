@@ -667,4 +667,6 @@ button:focus-visible, input:focus-visible { outline: 3px solid #97a8ff; outline-
   .footer-company-info { display: grid; gap: 5px; }
 }
 /* Quiz controls retain viewport priority; footer remains below them, never overlaid. */
-.app-shell--question .page-footer { position: static; margin-top: 12px; padding-top: 12px; }
+/* The quiz must keep its question and four choices within one viewport.
+   Company details remain at the page bottom on lesson/solution/studio screens. */
+.app-shell--question .page-footer { display: none; }
