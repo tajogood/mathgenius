@@ -16,13 +16,18 @@ test('합동과 대칭의 도형을 마우스로 직접 끌어서 이동한다',
   await openStandard(page,'6수03-02');
   const lab=page.getByTestId('symmetry-experiment');
   await expect(lab).toBeVisible();
+  // Exercise a deterministic mode. The generated standard problem can pick
+  // different default modes, and the SVG group bounding box includes empty space.
+  await lab.getByRole('button',{name:'선대칭 거울'}).click();
   const wing=lab.locator('.lab-symmetry-draggable').first();
   const before=await wing.getAttribute('transform');
-  const box=await wing.boundingBox();
+  const box=await wing.locator('polygon').boundingBox();
   expect(box).not.toBeNull();
-  await page.mouse.move(box!.x+box!.width/2,box!.y+box!.height/2);
+  // Point well inside the actual visible polygon, not at the group's empty center.
+  const x=box!.x+box!.width*0.65, y=box!.y+box!.height*0.30;
+  await page.mouse.move(x,y);
   await page.mouse.down();
-  await page.mouse.move(box!.x+box!.width/2-38,box!.y+box!.height/2-15,{steps:7});
+  await page.mouse.move(x-38,y-15,{steps:7});
   await page.mouse.up();
   const after=await wing.getAttribute('transform');
   expect(after).not.toBe(before);
