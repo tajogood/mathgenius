@@ -1,6 +1,4 @@
 -- Execute in Supabase SQL Editor. Never expose a service role key to the browser.
-create extension if not exists pgcrypto;
-
 create table if not exists public.member_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   role text not null check (role in ('student','parent')),
@@ -129,9 +127,9 @@ declare new_code text;
 begin
   if not exists (select 1 from public.member_profiles p where p.id=auth.uid() and p.role='student')
   then raise exception '학생 계정에서만 연결할 수 있습니다'; end if;
-  new_code := encode(gen_random_bytes(16),'hex');
+  new_code := replace(gen_random_uuid()::text,'-','');
   insert into public.student_pairing_codes(student_id,code_hash,expires_at)
-  values (auth.uid(),encode(digest(new_code,'sha256'),'hex'),now()+interval '15 minutes')
+  values (auth.uid(),md5(new_code),now()+interval '15 minutes')
   on conflict (student_id) do update set
     code_hash=excluded.code_hash,expires_at=excluded.expires_at,created_at=now();
   return new_code;
@@ -146,7 +144,7 @@ begin
   then raise exception '학부모 계정에서만 연결할 수 있습니다'; end if;
   if char_length(entered_code)<>32 then raise exception '유효하지 않은 연결 코드입니다'; end if;
   select c.student_id into sid from public.student_pairing_codes c
-   where c.code_hash=encode(digest(lower(entered_code),'sha256'),'hex')
+   where c.code_hash=md5(lower(entered_code))
    and c.expires_at>now() for update;
   if sid is null then raise exception '연결 코드가 만료되었거나 틀렸습니다'; end if;
   select p.under_14 into young from public.member_profiles p where p.id=sid;
@@ -157,6 +155,10 @@ begin
   else return '연결되었습니다'; end if;
 end $$;
 
+revoke all on function public.can_access_child(uuid,uuid) from public,anon;
+revoke all on function public.student_is_active(uuid) from public,anon;
+grant execute on function public.can_access_child(uuid,uuid) to authenticated;
+grant execute on function public.student_is_active(uuid) to authenticated;
 revoke all on function public.issue_pairing_code() from public,anon;
 revoke all on function public.accept_pairing_code(text) from public,anon;
 grant execute on function public.issue_pairing_code() to authenticated;
@@ -197,4 +199,4 @@ create policy "linked family can update homework" on public.homework_assignments
     (student_id=(select auth.uid()) and public.student_is_active(student_id)));
 revoke update on public.homework_assignments from authenticated;
 grant update (status) on public.homework_assignments to authenticated;
--- DB-side trigger enforces completion scope, prevents a student changing arbitrary fields.
+-- Only the status column is mutable by authenticated users; other fields are immutable.
