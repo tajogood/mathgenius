@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import App from '../App.tsx';
 import { curriculumUnits, grades } from '../curriculum.ts';
 import { emptyProgress, parseProgress, unitMastery, type LearningProgress } from '../progress.ts';
+import { normalizeStandardProgress, type StandardProgress } from '../standards/progress.ts';
 import { db, type Assignment, type MemberProfile, type MemberRole, type StudyEvent } from './client.ts';
 import { recommendStudy } from './recommend.ts';
 import { CHILD_EXTRA, LEGAL_VERSION, PARENT_EXTRA, PRIVACY, TERMS } from './legal.ts';
@@ -61,6 +62,7 @@ export default function Portal() {
   const [session,setSession]=useState<Session|null>(null);
   const [profile,setProfile]=useState<MemberProfile|null>(null);
   const [progress,setProgress]=useState<LearningProgress>(emptyProgress);
+  const [standardProgress,setStandardProgress]=useState<StandardProgress>({});
   const [assignments,setAssignments]=useState<Assignment[]>([]);
   const [children,setChildren]=useState<ChildReport[]>([]);
   const [pendingLinks,setPendingLinks]=useState(0);
@@ -85,7 +87,7 @@ export default function Portal() {
   async function loadStudent(student: MemberProfile) {
     if (!db) return;
     const [snap,home,link] = await Promise.all([
-      db.from('learning_snapshots').select('progress').eq('student_id',student.id).maybeSingle(),
+      db.from('learning_snapshots').select('progress,standard_progress').eq('student_id',student.id).maybeSingle(),
       db.from('homework_assignments').select('*').eq('student_id',student.id).order('created_at',{ascending:false}),
       db.from('parent_student_links').select('consent_verified_at').eq('student_id',student.id),
     ]);
@@ -93,6 +95,7 @@ export default function Portal() {
     const verified= !student.under_14 || (link.data ?? []).some(item=>item.consent_verified_at!==null);
     if (!verified) { setScreen('pending'); return; }
     const p = parseProgress(snap.data?.progress ?? null);
+    setStandardProgress(normalizeStandardProgress(snap.data?.standard_progress??null));
     const homeworks = (home.data ?? []) as Assignment[];
     setProgress(p); setAssignments(homeworks);
     const pending=homeworks.find(item=>item.status==='assigned');
@@ -109,11 +112,12 @@ export default function Portal() {
       .select('student_id,consent_verified_at').eq('parent_id',parentId);
     if(linksError){setMessage(linksError.message);return;}
     const connected=(links ?? []) as LinkRow[];
-    setPendingLinks(connected.filter(link=>!link.consent_verified_at).length);
+    setPendingLinks(0);
     const ids=connected.map(link=>link.student_id);
     if(!ids.length){setChildren([]);return;}
     const {data:profiles,error:profileError}=await db.from('member_profiles').select('*').in('id',ids);
     if(profileError){setMessage(profileError.message);return;}
+    setPendingLinks(connected.length-(profiles?.length??0));
     const reports=await Promise.all(((profiles??[]) as MemberProfile[]).map(async child=>{
       const [snapshot,eventRes,homeRes]=await Promise.all([
         db!.from('learning_snapshots').select('progress').eq('student_id',child.id).maybeSingle(),
@@ -226,6 +230,14 @@ export default function Portal() {
       student_id:profile.id,progress:next,updated_at:new Date().toISOString(),
     },{onConflict:'student_id'});
     if(error)setMessage('학습 기록 저장 실패: '+error.message);
+  }
+  async function sendStandardProgress(next:StandardProgress){
+    setStandardProgress(next);
+    if(!db || !profile || profile.role!=='student')return;
+    const {error}=await db.from('learning_snapshots').upsert({
+      student_id:profile.id,standard_progress:next,updated_at:new Date().toISOString(),
+    },{onConflict:'student_id'});
+    if(error)setMessage('성취기준 기록 저장 실패: '+error.message);
   }
   function sendEvent(event:StudyEvent){
     if(!db || !profile || profile.role!=='student')return;
@@ -434,7 +446,7 @@ export default function Portal() {
         <button onClick={()=>void finishHomework()}>숙제 완료로 표시</button>
       </div>}
       <App key={profile.id+'|'+(lessonUnit??'free')} initialGrade={lessonUnit?gradeForUnit(lessonUnit):profile.grade??5}
-        initialUnitId={lessonUnit??undefined} initialProgress={progress} onProgressChange={next=>void sendProgress(next)}
+        initialUnitId={lessonUnit??undefined} initialProgress={progress} initialStandardProgress={standardProgress} onStandardProgressChange={next=>void sendStandardProgress(next)} onProgressChange={next=>void sendProgress(next)}
         onLearningEvent={sendEvent} cloudMode/>
     </>}
     {message&&<div className="member-toast" role="status">{message}<button type="button" onClick={()=>setMessage('')}>닫기</button></div>}
