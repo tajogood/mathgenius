@@ -330,7 +330,7 @@ export default function App() {
       </section>}
 
       </>}
-      <footer className="page-footer" aria-label="수학천재 운영회사 정보">
+      <footer className="page-footer" role="contentinfo" aria-label="수학천재 운영회사 정보">
         <div className="footer-top">
           <strong className="footer-brand">수학<span>천재</span> <small>MathGenius</small></strong>
           <a href="https://larix.kr" target="_blank" rel="noopener noreferrer" className="footer-company-site">운영사 웹사이트 ↗</a>
