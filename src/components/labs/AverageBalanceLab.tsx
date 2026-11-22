@@ -1,5 +1,5 @@
 import {useRef,useState} from 'react';
-import type {PointerEvent as ReactPointerEvent} from 'react';
+import type {CSSProperties,PointerEvent as ReactPointerEvent} from 'react';
 import type {LabProps} from './types';
 import {LabHint,LabTools} from './types';
 import {Fraction} from '../MathText.tsx';
@@ -165,9 +165,9 @@ export function AverageBalanceLab({problem:p}:LabProps){
       <div className="average-shares">
         {captions.map((name,i)=><div className="average-share" key={name}>
           <b>{name}</b>
-          <div className="average-share-candies" aria-label={name+' '+share.whole+'개'+(fractional?'와 '+share.remainder+'분의 3개':'')}>
+          <div className="average-share-candies" aria-label={name+' '+share.whole+'개'+(fractional?'와 3분의 '+share.remainder+'개':'')}>
             {Array.from({length:share.whole},(_,j)=><i key={j} className={'average-share-candy average-candy--'+i}/>)}
-            {fractional&&<span className="average-piece" style={{'--share-portion':share.remainder/3} as React.CSSProperties}>
+            {fractional&&<span className="average-piece" style={{'--share-portion':share.remainder/3} as CSSProperties}>
               <Fraction numerator={share.remainder} denominator={3}/></span>}
           </div>
           <span>{share.whole}{fractional&&<> + <Fraction numerator={share.remainder} denominator={3}/></>}개</span>
