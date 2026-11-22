@@ -234,23 +234,45 @@ export function MeasuresLab({problem:p}:LabProps) {
   const factor=time?60:capacity||weight?1000:100;
   const [whole,setWhole]=useState(p.a);
   const [extra,setExtra]=useState(time?0:p.b);
+  const [expanded,setExpanded]=useState<Set<number>>(()=>new Set());
+  const wholeChange=(next:number)=>{setWhole(next);setExpanded(new Set());};
+  const chunks=time?6:10;
+  const chunkValue=factor/chunks;
+  const toggleUnit=(index:number)=>setExpanded(prev=>{
+    const next=new Set(prev);
+    if(next.has(index))next.delete(index);else next.add(index);
+    return next;
+  });
   const sum=whole*factor+extra;
   return <div className="lab-body">
     <div className="lab-hero-count"><strong>{sum.toLocaleString('ko-KR')} {lower}</strong>
       <span> 작은 단위로 바꾼 값</span></div>
-    <div className="lab-meter">
-      {Array.from({length:Math.min(8,whole)},(_,i)=><span key={i} className="lab-meter-whole">{unit} 1</span>)}
-      {extra>0&&<span className="lab-meter-extra">{extra}{lower}</span>}
+    <div className="lab-meter" role="group" aria-label="큰 단위를 직접 눌러 작은 단위로 펼쳐보기">
+      {Array.from({length:Math.min(8,whole)},(_,i)=><button key={i} type="button"
+        aria-pressed={expanded.has(i)}
+        aria-label={(i+1)+'번째 1'+unit+' 단위를 '+factor+lower+'로 펼쳐보기'}
+        onClick={()=>toggleUnit(i)}
+        className={'lab-meter-whole lab-meter-whole--clickable'+(expanded.has(i)?' lab-meter-whole--opened':'')}>
+        <strong>{expanded.has(i)?factor+lower:'1'+unit}</strong>
+        {expanded.has(i)&&<span className="lab-unit-chunks"
+          aria-label={chunks+'개로 나눈 작은 단위, 각 '+chunkValue+lower}>
+          {Array.from({length:chunks},(_,j)=><i key={j} title={chunkValue+lower}/>)}
+        </span>}
+      </button>)}
+      {extra>0&&<button type="button" className="lab-meter-extra lab-meter-extra--clickable"
+        onClick={()=>setExtra(v=>Math.max(0,v-(time?10:capacity||weight?100:10)))}
+        aria-label={extra+lower+'에서 작은 단위 조금 덜어내기'}>{extra}{lower} ▾</button>}
     </div>
     <div className="lab-math-feedback"><strong>{whole}{unit} + {extra}{lower}</strong>
       <span>= {sum}{lower}</span></div>
     <LabTools>
-      <SmallControl label={unit} value={whole} change={setWhole} min={0} max={8}/>
+      <SmallControl label={unit} value={whole} change={wholeChange} min={0} max={8}/>
       {!time&&<label className="lab-slider-label">{lower} {extra}
         <input type="range" min={0} max={factor-1} step={capacity||weight?100:10} value={extra}
           onChange={e=>setExtra(Number(e.target.value))}/></label>}
-      <button type="button" className="lab-action" onClick={()=>{setWhole(p.a);setExtra(time?0:p.b);}}>↺ 원래 단위</button>
+      <button type="button" className="lab-action" onClick={()=>{setWhole(p.a);setExtra(time?0:p.b);setExpanded(new Set());}}>↺ 원래 단위</button>
     </LabTools>
-    <LabHint>큰 단위 한 개는 작은 단위 {factor}개와 같아요. 단위를 움직여 환산 결과가 어떻게 바뀌는지 보세요.</LabHint>
+    <LabHint>큰 단위 카드 하나를 직접 눌러 작은 단위 {factor}{lower}로 펼쳐 보세요.
+      모양이 바뀌어도 전체 양은 같아요. 작은 단위 카드를 누르면 실제 양을 덜어낼 수도 있어요.</LabHint>
   </div>;
 }
