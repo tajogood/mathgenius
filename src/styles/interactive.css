@@ -999,3 +999,45 @@
  .app-shell--question .poly-viewport,.standard-studio--concept .poly-viewport{max-height:105px}
  .app-shell--question .poly-info small{display:none}
 }
+
+
+/* Isometric unit-cube model for genuine volume (no visually capped block count). */
+.lab-voxel{width:100%;gap:9px}
+.voxel-explainer{display:grid;width:100%;justify-items:center;gap:3px;text-align:center;
+ border-radius:10px;border:1px solid #dce7fb;background:#f2f6ff;padding:8px}
+.voxel-explainer strong{font-size:12px;color:#5570b7}
+.voxel-explainer span{font-size:10px;color:#7c8dae}
+.voxel-stage{width:100%;display:grid;justify-items:center;gap:5px;
+ background:linear-gradient(155deg,#f9fbff,#eff5ff);border:1px solid #dfe7f8;
+ border-radius:12px;padding:6px}
+.voxel-svg{width:min(100%,360px);max-height:238px;height:auto}
+.voxel-svg g[role=button]{cursor:pointer;outline:0}
+.voxel-tile-top{transition:fill .18s,filter .18s}
+.voxel-svg g[role=button]:hover .voxel-tile-top,
+.voxel-svg g[role=button]:focus-visible .voxel-tile-top{
+ fill:#f4c47c;filter:brightness(1.06);stroke:#ed9632;stroke-width:2.5}
+.voxel-floor-button{cursor:pointer;background:#e7edff;color:#506fb8;
+ border:1px solid #c0cef6;border-radius:9px;padding:7px 12px;font-size:11px;
+ font-weight:900;touch-action:manipulation}
+.voxel-floor-button:hover{background:#d6e4ff}
+.voxel-math{display:grid;gap:5px;width:100%;padding:10px 12px;
+ background:#eef3ff;border:1px solid #d5e1fc;border-radius:12px;
+ text-align:center;color:#506bb3;font-size:12px}
+.voxel-math strong{font-size:12px}
+.voxel-math span{font-size:11px;color:#7183ad}
+.voxel-math small{font-size:10px;border-radius:6px;background:#e0f7ea;padding:5px;color:#38886c}
+@media(max-width:700px){
+ .voxel-svg{max-height:160px}
+ .voxel-explainer{padding:5px}
+ .voxel-math{padding:6px;gap:3px}
+}
+.app-shell--question .voxel-explainer,.standard-studio--concept .voxel-explainer,
+.standard-studio--application .voxel-explainer{display:none}
+.app-shell--question .voxel-svg,.standard-studio--concept .voxel-svg,
+.standard-studio--application .voxel-svg{max-height:120px}
+.app-shell--question .voxel-math,.standard-studio--concept .voxel-math,
+.standard-studio--application .voxel-math{padding:4px;gap:2px;font-size:10px}
+.app-shell--question .voxel-math small,.standard-studio--concept .voxel-math small,
+.standard-studio--application .voxel-math small{display:none}
+.app-shell--question .voxel-floor-button,.standard-studio--concept .voxel-floor-button,
+.standard-studio--application .voxel-floor-button{padding:3px 6px;font-size:9px}
