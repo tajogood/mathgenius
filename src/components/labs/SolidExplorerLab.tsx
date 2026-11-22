@@ -32,7 +32,8 @@ const faceCss=(face:SolidFace,size:CuboidDimensions,unit:number):CSSProperties=>
     left:'translate(-50%,-50%) rotateY(-90deg) translateZ('+(W/2)+'px)',
     right:'translate(-50%,-50%) rotateY(90deg) translateZ('+(W/2)+'px)'
   };
-  return {width:fw*unit,height:fh*unit,transform:placement[face],
+  return {width:fw*unit,height:fh*unit,left:-fw*unit/2,top:-fh*unit/2,
+    transform:placement[face].replace('translate(-50%,-50%) ', ''),
     '--solid-face-color':faceColors[face]} as CSSProperties;
 };
 const facePositions:Record<SolidFace,{col:number;row:number}>={
