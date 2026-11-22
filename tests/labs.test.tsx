@@ -62,6 +62,27 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
     expect(screen.getAllByText('1/4').length).toBeGreaterThan(0);
   });
 
+  it('분수 곱셈은 부분의 부분을 겹치는 격자로 보여 주고 곱셈 결과를 계산한다',()=>{
+    render(<FractionsLab {...props(problem('fractionmul',1,2,1,4))}/>);
+    expect(screen.getByRole('img',{name:/곱할 때 겹치는 부분/})).toBeTruthy();
+    expect(screen.getByText('= 1/8')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:/2번째 분수 칸/}));
+    expect(screen.getByText('= 1/4')).toBeTruthy();
+  });
+
+  it('분수 나눗셈에서 나누는 수를 0으로 바꾸면 계산을 막는다',()=>{
+    render(<FractionsLab {...props(problem('fractiondiv',1,2,1,4))}/>);
+    expect(screen.getByText('= 2/1')).toBeTruthy();
+    fireEvent.click(screen.getAllByRole('button',{name:/1번째 분수 칸/})[1]);
+    expect(screen.getByText(/0으로 나눌 수 없어요/)).toBeTruthy();
+  });
+
+  it('분수의 뺄셈은 두 막대의 현재 색칠 양으로 결과를 다시 계산한다',()=>{
+    const p={...problem('samefraction',3,1,4),mode:'subtract'};
+    render(<FractionsLab {...props(p)}/>);
+    expect(screen.getByText('= 1/2')).toBeTruthy();
+  });
+
   it('자릿값 카드를 선택하고 선택한 자리의 수를 1만큼 증가시킨다',()=>{
     render(<PlaceLab {...props(problem('place3',524,1))}/>);
     fireEvent.click(screen.getByRole('button',{name:/십의 자리/}));
