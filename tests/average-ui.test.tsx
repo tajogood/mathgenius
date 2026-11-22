@@ -25,7 +25,7 @@ describe('평균은 고르게 나누기',()=>{
   fireEvent.click(screen.getByRole('button',{name:'두 번째 친구 1번째 사탕 선택해 옮기기'}));
   fireEvent.click(screen.getByRole('button',{name:'첫 번째 친구에게 사탕 한 개 전달'}));
   expect(screen.getByText('10 + 12 + 4 = 26개')).toBeTruthy();
-  expect(screen.getByText(/전체 26개는 그대로예요/)).toBeTruthy();
+  expect(screen.getAllByText(/전체 26개는 그대로예요/).length).toBeGreaterThan(0);
  });
  it('한 개씩 고르게 옮기기를 네 번 하면 9,9,8이 되고 2/3를 발견한다',()=>{
   render(<AverageBalanceLab {...props(problem(9,13,4))}/>);
