@@ -6,6 +6,7 @@ import { FractionsLab, NumberlineLab, RatiosLab } from '../src/components/labs/R
 import { GeometryLab, AnglesLab, ClockLab, SolidsLab } from '../src/components/labs/GeometryLabs.tsx';
 import { ChartsLab, PatternsLab, ChanceLab } from '../src/components/labs/DataLabs.tsx';
 import { AreaShapesLab,ProjectionLab,NetLab } from '../src/components/labs/SpecialLabs.tsx';
+import { DecimalMultiplyLab } from '../src/components/labs/DecimalMultiplyLab.tsx';
 
 afterEach(cleanup);
 const problem = (topic:Topic,a:number,b:number,c?:number,d?:number):Problem=>
@@ -216,6 +217,36 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
     expect(screen.getByText('접힌 입체 모형')).toBeTruthy();
     rerender(<NetLab {...props(p)} standardId="6수03-06"/>);
     expect(screen.getAllByText('삼각기둥').length).toBeGreaterThan(0);
+  });
+
+  it('소수 곱셈은 9라는 정수 카드 대신 0.9×0.6의 겹친 54칸을 나타낸다',()=>{
+    render(<DecimalMultiplyLab {...props(problem('decimalmul',9,6))}/>);
+    expect(screen.getByText('0.9 × 0.6 = 0.54')).toBeTruthy();
+    expect(screen.getByText(/겹치는 칸 54개/)).toBeTruthy();
+    expect(screen.getAllByRole('button',{name:/번째 줄 .*번째 칸/})).toHaveLength(100);
+    expect(screen.getByRole('math',{name:'100분의 54'})).toBeTruthy();
+    expect(screen.queryByText(/^9$/)).toBeNull();
+  });
+
+  it('소수 곱셈 격자를 클릭하거나 슬라이더를 옮기면 실제 겹치는 수가 달라진다',()=>{
+    render(<DecimalMultiplyLab {...props(problem('decimalmul',9,6))}/>);
+    fireEvent.click(screen.getByRole('button',{name:/2번째 줄 3번째 칸/}));
+    expect(screen.getByText('0.3 × 0.2 = 0.06')).toBeTruthy();
+    fireEvent.change(screen.getByRole('slider',{name:/두 번째 소수/}),{target:{value:'8'}});
+    expect(screen.getByText('0.3 × 0.8 = 0.24')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:/원래 소수/}));
+    expect(screen.getByText('0.9 × 0.6 = 0.54')).toBeTruthy();
+  });
+
+  it('반복 덧셈을 택하면 0.9를 여섯 번 더한 값 5.4를 10으로 나눔을 설명한다',()=>{
+    render(<DecimalMultiplyLab {...props(problem('decimalmul',9,6))}/>);
+    fireEvent.click(screen.getByRole('button',{name:/반복 덧셈으로도 보기/}));
+    expect(screen.getByTestId('decimal-repeated-addition')).toBeTruthy();
+    expect(screen.getByText(/5.4 ÷ 10 = 0.54/)).toBeTruthy();
+    expect(screen.getByText(/6개의 10분의 1/)).toBeTruthy();
+    const chips=screen.getByLabelText('0.9을 6번 반복해 더하기');
+    expect(chips.querySelectorAll('b')).toHaveLength(6);
+    expect(chips.textContent).not.toContain('9 + 9');
   });
 
 });
