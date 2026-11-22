@@ -66,7 +66,7 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
     render(<FractionsLab {...props(problem('fractionmul',1,2,1,4))}/>);
     expect(screen.getByRole('img',{name:/곱할 때 겹치는 부분/})).toBeTruthy();
     expect(screen.getByText('= 1/8')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button',{name:/2번째 분수 칸/}));
+    fireEvent.click(screen.getAllByRole('button',{name:/2번째 분수 칸/})[1]);
     expect(screen.getByText('= 1/4')).toBeTruthy();
   });
 
