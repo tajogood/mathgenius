@@ -39,7 +39,7 @@ describe('학년별 도형과 원주율 직접 조작',()=>{
  it('6학년 원주율은 실제 지름·원주 관계를 설명하고 π 기호도 소개한다',()=>{
   render(<CirclePiLab {...props(problem('circumference',5))}/>);
   expect(screen.getByText(/원주율은 원의 둘레가 지름의 몇 배인지/)).toBeTruthy();
-  expect(screen.getByText(/원주 ÷ 지름/).closest('.pi-stats')).toBeTruthy();
+  expect(screen.getByText('원주 ÷ 지름').closest('.pi-stats')).toBeTruthy();
   fireEvent.click(screen.getByRole('button',{name:/잰 줄자를 펼쳐 지름과 비교/}));
   expect(screen.getByTestId('pi-unroll-explanation')).toBeTruthy();
   expect(screen.getByText(/π\(파이\)는 원주율을 나타내는 기호/)).toBeTruthy();
