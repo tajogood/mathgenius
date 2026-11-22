@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { LabProps } from './types';
 import { LabHint, LabTools, SmallControl, bound } from './types';
 import { displayNumber } from '../../interactions.ts';
@@ -15,6 +16,15 @@ export function ChartsLab({problem:p}:LabProps) {
   });
   const average=(values.reduce((a,b)=>a+b,0)/values.length);
   const line=p.topic==='linegraph';
+  const svg=useRef<SVGSVGElement>(null);
+  const [dragIndex,setDragIndex]=useState<number|null>(null);
+  const move=(event:ReactPointerEvent<SVGSVGElement|SVGCircleElement>,i:number)=>{
+    const bounds=svg.current?.getBoundingClientRect();
+    if(!bounds)return;
+    const y=(event.clientY-bounds.top)*168/bounds.height;
+    update(i,bound(Math.round((135-y)/100*max),0,max));
+  };
+  const points=values.map((v,i)=>({x:40+i*130,y:135-v/max*100}));
   return <div className="lab-body">
     <div className="lab-hero-count"><strong>{pie?values[0]+'%':p.topic==='average'?displayNumber(average,1):values[0]}</strong>
       <span>{pie?' 파란 영역의 비율':p.topic==='average'?' 현재 그래프 평균':' 파란 막대의 높이'}</span></div>
@@ -26,7 +36,25 @@ export function ChartsLab({problem:p}:LabProps) {
         <span style={{width:values[0]+'%'}}>파랑 {values[0]}%</span>
         <span style={{width:values[1]+'%'}}>주황 {values[1]}%</span>
       </div>:<span className="lab-pie-center">전체 100%</span>}
-    </div>:<div className="lab-chart" role="group" aria-label="막대를 눌러 높이를 바꾸세요">
+    </div>:line?<svg ref={svg} viewBox="0 0 340 168" className="lab-linechart-svg"
+      role="img" aria-label="데이터 점을 드래그해 꺾은선그래프를 바꿔 보세요"
+      onPointerMove={e=>{if(dragIndex!==null&&e.buttons>0)move(e,dragIndex);}}
+      onPointerUp={()=>setDragIndex(null)} onPointerCancel={()=>setDragIndex(null)}>
+      {Array.from({length:5},(_,i)=><line key={i} x1="20" x2="320" y1={35+i*25} y2={35+i*25}
+        stroke="#dce4f8" strokeDasharray="5 4"/>)}
+      <polyline points={points.map(point=>point.x+','+point.y).join(' ')}
+        fill="none" stroke="#6681e8" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+      {points.map((point,i)=><g key={i}>
+        <circle cx={point.x} cy={point.y} r="12" fill={i===1?'#f0ae65':'#647ded'} stroke="#fff"
+          strokeWidth="3" className="lab-linechart-handle"
+          onPointerDown={e=>{
+            e.currentTarget.ownerSVGElement?.setPointerCapture(e.pointerId);setDragIndex(i);move(e,i);
+          }}/>
+        <text x={point.x} y={point.y-18} textAnchor="middle" fill="#5267c6" fontSize="15"
+          fontWeight="900">{values[i]}</text>
+        <text x={point.x} y="160" textAnchor="middle" fill="#7a8aab" fontSize="12">{i+1}번</text>
+      </g>)}
+    </svg>:<div className="lab-chart" role="group" aria-label="막대를 눌러 높이를 바꾸세요">
       {values.map((v,i)=><div className="lab-chart-column" key={i}>
         <strong>{v}</strong>
         <button className={'lab-chart-bar'+(line?' lab-chart-bar--line':'')}
@@ -37,6 +65,7 @@ export function ChartsLab({problem:p}:LabProps) {
       </div>)}
     </div>}
     <LabHint>{pie?'슬라이더를 움직이면 원형·띠그래프의 크기가 즉시 달라져요.':
+      line?'점에 손가락을 올려 드래그하거나 아래 슬라이더를 움직이면 꺾은선이 달라져요.':
       '막대를 터치하면 높이가 1 증가해요. 아래 슬라이더로도 바꿀 수 있어요.'}</LabHint>
     <LabTools>
       {values.map((value,i)=><label className="lab-slider-label" key={i}>{pie?(i===0?'파랑':'주황'):(i+1)+'번'} {value}
