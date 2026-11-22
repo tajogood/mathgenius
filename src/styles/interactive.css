@@ -1125,3 +1125,17 @@
  min-width:6px;height:13px;border-radius:3px}
 .lab-meter-extra--clickable:hover,.lab-meter-extra--clickable:focus-visible{
  border-color:#efa852;filter:brightness(1.07);outline:2px solid #efb169;}
+
+
+/* Students can tap and drag a rule term directly, rather than moving only sliders. */
+.lab-pattern-value{min-width:48px;padding:10px 8px;text-align:center;border:2px solid #bccaf4;
+ border-radius:10px;background:#fff;color:#5c73d2;font-size:18px;font-weight:900;
+ cursor:ns-resize;touch-action:none;user-select:none;
+ box-shadow:0 3px 10px #a7b6e433;transition:transform .13s,background .13s;}
+.lab-pattern-value:hover,.lab-pattern-value:focus-visible{background:#e5edff;
+ outline:3px solid #6c86e4;transform:translateY(-3px);}
+.lab-pattern-value[aria-pressed=true]{background:#d8e5ff;color:#385ac7;
+ border-color:#5675d5;}
+.lab-pattern-explanation{width:100%;text-align:center;background:#eaf2ff;
+ border-radius:10px;padding:8px 10px;color:#4865b4;font-weight:900;
+ font-size:12px;line-height:1.5;}
