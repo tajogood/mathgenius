@@ -1,4 +1,4 @@
-import type { Topic } from './math.ts';
+import { TOPICS, type Topic } from './math.ts';
 import { curriculumUnits } from './curriculum.ts';
 
 export const MASTERY_STREAK = 2;
@@ -82,9 +82,16 @@ function isRecord(v:unknown):v is Record<string,unknown> {
 /** Never trust raw localStorage records, and do not misrepresent old demo completions as mastery. */
 export function parseProgress(raw: unknown): LearningProgress {
   if (!isRecord(raw)) return emptyProgress();
-  const finished = Array.isArray(raw.finished) ? raw.finished.filter(
-    (item):item is string=>typeof item==='string'&&curriculumUnits.some(unit=>unit.id===item),
-  ) : [];
+  const finished = Array.isArray(raw.finished) ? raw.finished.flatMap((item:unknown):string[]=>{
+    if(typeof item!=='string')return [];
+    if(curriculumUnits.some(unit=>unit.id===item))return [item];
+    // The original 18-topic demo used topic IDs instead of chapter IDs.
+    if(TOPICS.includes(item as Topic)) {
+      const legacy=curriculumUnits.find(unit=>unit.topics.includes(item as Topic));
+      return legacy?[legacy.id]:[];
+    }
+    return [];
+  }) : [];
   const result:LearningProgress={
     finished:[...new Set(finished)],
     attempts:numeric(raw.attempts),
