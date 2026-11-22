@@ -334,3 +334,26 @@
   .app-shell--question .lab-hero-count span {font-size:9px;}
   .app-shell--question .lab-body {gap:6px;}
 }
+
+
+/* Classroom fraction notation: never show slash-form fractions to children. */
+.math-fraction {display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+ vertical-align:middle;position:relative;flex:none;line-height:1.08;
+ font-variant-numeric:tabular-nums;min-width:1.05em;white-space:nowrap;
+ margin:0 .12em;padding:.08em .05em;max-width:100%;text-align:center;}
+.math-fraction__top,.math-fraction__bottom {display:block;padding:0 .13em;min-width:100%;}
+.math-fraction__bar {display:block;align-self:stretch;height:0;border-top:currentColor solid max(1.5px,.075em);margin:.10em 0;}
+.guide-card .math-fraction,.studio-card .math-fraction {font-weight:900;}
+.choices .math-fraction,.studio-options .math-fraction {font-size:1.05em;}
+.lab-fraction-caption .math-fraction {font-size:1.45em;font-weight:900;}
+.lab-hero-count .math-fraction {font-size:1em;}
+.lab-math-feedback .math-fraction {font-size:1.17em;}
+.lab-math-feedback {flex-wrap:wrap;align-items:center;gap:.3em .5em;}
+@media(max-width:700px){
+ .choices .math-fraction,.studio-options .math-fraction {font-size:1em;}
+ .lab-fraction-caption .math-fraction {font-size:1.25em;}
+ .math-fraction {margin:0 .08em;}
+}
+@media(max-width:500px){
+ .app-shell--question .choices .math-fraction {font-size:.95em;line-height:1;}
+}
