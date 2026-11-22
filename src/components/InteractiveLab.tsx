@@ -8,6 +8,7 @@ import { ChartsLab, PatternsLab, ChanceLab } from './labs/DataLabs';
 import { AreaShapesLab,ProjectionLab,NetLab } from './labs/SpecialLabs';
 import { DecimalMultiplyLab } from './labs/DecimalMultiplyLab';
 import { SymmetryLab } from './labs/SymmetryLab';
+import { RectangleConceptLab } from './labs/RectangleConceptLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -45,12 +46,12 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'placevalue':return <PlaceLab {...props}/>;
     case 'numberline':return <NumberlineLab {...props}/>;
     case 'fractions':return <FractionsLab {...props}/>;
-    case 'geometry':return problem.topic==='symmetry'?<SymmetryLab {...props}/>:<GeometryLab {...props}/>;
+    case 'geometry':return problem.topic==='symmetry'?<SymmetryLab {...props}/>:problem.topic==='perimeter'?<RectangleConceptLab {...props}/>:<GeometryLab {...props}/>;
     case 'angles':return <AnglesLab {...props}/>;
     case 'clock':return <ClockLab {...props}/>;
     case 'measures':return <MeasuresLab {...props}/>;
     case 'charts':return <ChartsLab {...props}/>;
-    case 'arrays':return standardId==='6수03-14'&&phase!=='question'?<AreaShapesLab {...props}/>:<ArraysLab {...props}/>;
+    case 'arrays':return standardId==='6수03-14'&&phase!=='question'?<AreaShapesLab {...props}/>:problem.topic==='area'?<RectangleConceptLab {...props}/>:<ArraysLab {...props}/>;
     case 'ratios':return <RatiosLab {...props}/>;
     case 'solids':
       if(phase!=='question'){
@@ -70,7 +71,9 @@ export default function InteractiveLab({problem,phase,step,standardId,onEngage}:
   const [title,instructions]=problem.topic==='decimalmul' ?
     ['소수 100칸 곱셈 실험실','두 소수를 겹쳐서 곱셈의 크기를 직접 찾아보세요'] :
     problem.topic==='symmetry'?
-    ['합동·선대칭·점대칭 실험실','도형을 직접 드래그하고 주황 손잡이로 회전시켜 보세요'] : LAB_LABELS[kind];
+    ['합동·선대칭·점대칭 실험실','도형을 직접 드래그하고 주황 손잡이로 회전시켜 보세요'] :
+    problem.topic==='area'||problem.topic==='perimeter'?
+    ['둘레와 넓이 탐구실','1cm² 정사각형을 한 줄씩 채우거나 네 변을 따라가며 계산해 보세요'] : LAB_LABELS[kind];
   return <div className={'interactive-lab interactive-lab--'+kind}
     onClickCapture={onEngage} onChangeCapture={onEngage}
     onPointerDownCapture={onEngage} onKeyDownCapture={event=>{
