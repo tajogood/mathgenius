@@ -191,7 +191,7 @@ export function EquationLab({problem:p}:LabProps) {
           onClick={()=>setPick(n)}>{n}</button>)}
     </div>:<div className="lab-tens-board">
       {Array.from({length:Math.min(10,factor)},(_,i)=>
-        <span key={i} className="lab-tens-board-cell" style={{animationDelay:i*35+'ms'}}>{a}</span>)}
+        <span key={i} className="lab-tens-board-cell" style={{animationDelay:i*35+'ms'}}>{p.topic==='decimaldiv'?(a/10).toFixed(1):a}</span>)}
     </div>}
     {isFactor ? <LabHint>{pick===null?'숫자를 선택해 두 수의 나눗셈 관계를 확인해 보세요.':
       isCommon?(p.mode==='gcd'?
@@ -201,7 +201,9 @@ export function EquationLab({problem:p}:LabProps) {
           '아직 공배수가 아니에요. 두 수의 배수인지 모두 확인해요.')):
       a%pick===0?'✅ '+a+' ÷ '+pick+' = '+a/pick+' · 나누어떨어져요!':
       '💡 '+a+' ÷ '+pick+'는 나머지 '+a%pick+'이므로 약수가 아니에요.'}</LabHint>
-      :<LabHint>배수를 움직이면 묶음의 수와 식의 값이 실시간으로 변해요.</LabHint>}
+      :<LabHint>{p.topic==='decimaldiv'?
+        '카드 하나의 양은 '+(a/10).toFixed(1)+'이에요. 같은 양을 '+factor+'묶음으로 나누면 한 묶음의 소수 값이 남아요.':
+        '배수를 움직이면 묶음의 수와 식의 값이 실시간으로 변해요.'}</LabHint>}
     <LabTools>
       {!isFactor&&<label className="lab-slider-label">곱하는 수 {factor}
         <input type="range" min="1" max="10" value={factor} onChange={e=>setFactor(Number(e.target.value))}/></label>}
