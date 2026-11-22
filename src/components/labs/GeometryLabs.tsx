@@ -230,44 +230,90 @@ export function ClockLab({problem:p}:LabProps) {
   </div>;
 }
 
+function SolidShape({kind,sides,rotation}: {kind:string;sides:number;rotation:number}) {
+  const regular=(cx:number,cy:number,rx:number,ry:number)=>Array.from({length:sides},(_,i)=>{
+    const a=-Math.PI/2+i*2*Math.PI/sides;
+    return [cx+rx*Math.cos(a),cy+ry*Math.sin(a)] as const;
+  });
+  const prismFront=regular(122,120,60,30), prismBack=regular(172,72,60,30);
+  return <div className="lab-solid-model" style={{transform:'rotateY('+rotation+'deg)'}}>
+    <svg viewBox="0 0 295 190" role="img" aria-label={kind+' 입체도형을 회전해 관찰하세요'}>
+      <defs><radialGradient id="lab-solid-ball"><stop stopColor="#f3f6ff"/><stop offset=".8" stopColor="#9aafea"/>
+        <stop offset="1" stopColor="#5874cc"/></radialGradient></defs>
+      {kind==='sphere'?<g>
+        <circle cx="145" cy="96" r="75" fill="url(#lab-solid-ball)" stroke="#6880d9" strokeWidth="3"/>
+        <ellipse cx="145" cy="96" rx="75" ry="23" fill="none" stroke="#8ca3df" strokeWidth="2" strokeDasharray="5 5"/>
+      </g>:kind==='cylinder'?<g>
+        <path d="M75 55 V138 Q145 179 215 138 V55" fill="#b0c4f5" stroke="#607bda" strokeWidth="3"/>
+        <ellipse cx="145" cy="55" rx="70" ry="27" fill="#dbe5ff" stroke="#607bda" strokeWidth="3"/>
+        <path d="M75 138 Q145 179 215 138" fill="none" stroke="#607bda" strokeWidth="3"/>
+      </g>:kind==='cone'?<g>
+        <path d="M145 17 L66 143 Q145 190 224 143 Z" fill="#bccbfa" stroke="#647cda" strokeWidth="3"/>
+        <ellipse cx="145" cy="143" rx="79" ry="30" fill="#d6e0fe" stroke="#647cda" strokeWidth="3"/>
+      </g>:kind==='prism'?<g>
+        <polygon points={prismBack.map(x=>x.join(',')).join(' ')} fill="#dbe4ff" stroke="#7d92d5" strokeWidth="2"/>
+        {prismFront.map((point,i)=><line key={i} x1={point[0]} y1={point[1]} x2={prismBack[i][0]}
+          y2={prismBack[i][1]} stroke="#7189da" strokeWidth="2.4"/>)}
+        <polygon points={prismFront.map(x=>x.join(',')).join(' ')} fill="#a8bdf6" stroke="#5d76d6" strokeWidth="3"/>
+      </g>:kind==='pyramid'?<g>
+        <polygon points={prismFront.map(x=>x.join(',')).join(' ')} fill="#d5defe" stroke="#7389d5" strokeWidth="3"/>
+        {prismFront.map((point,i)=><line key={i} x1="148" y1="24" x2={point[0]} y2={point[1]}
+          stroke="#6680dd" strokeWidth={i%2?2:3}/>)}
+        <circle cx="148" cy="24" r="5" fill="#4862c8"/>
+      </g>:<g>
+        <path d="M74 55 L193 55 L239 25 L122 25 Z" fill="#dce4ff" stroke="#6880d7" strokeWidth="3"/>
+        <path d="M193 55 L239 25 V138 L193 166 Z" fill="#879fe7" stroke="#6880d7" strokeWidth="3"/>
+        <path d="M74 55 H193 V166 H74 Z" fill="#b4c8ff" stroke="#6880d7" strokeWidth="3"/>
+      </g>}
+    </svg>
+  </div>;
+}
+
 export function SolidsLab({problem:p}:LabProps) {
-  const [layers,setLayers]=useState(Math.max(1,Math.min(6,p.c??3)));
+  const initialLayers=Math.max(1,Math.min(6,p.c??3));
+  const [layers,setLayers]=useState(initialLayers);
   const [rotation,setRotation]=useState(22);
   const [unfold,setUnfold]=useState(false);
   const [sides,setSides]=useState(Math.max(3,Math.min(8,p.a)));
   const isNet=p.topic==='nets';
-  const boxes=Math.min(40,Math.max(1,p.a)*Math.max(1,p.b));
+  const stack=['volume','surface','stacking','solidviews'].includes(p.topic);
+  const kind=p.topic==='shapes3d'?['box','cylinder','sphere'][p.a]:
+    p.topic==='curvedsolids'?['cylinder','cone','sphere'][p.a]:
+    p.topic==='polyhedra'?'prism':p.topic==='pyramid'?'pyramid':'box';
+  const boxes=p.a*Math.max(1,p.b);
+  const actual=boxes*layers;
+  const typeName:Record<string,string>={box:'직육면체',cylinder:'원기둥',cone:'원뿔',
+    sphere:'구',prism:sides+'각기둥',pyramid:sides+'각뿔'};
   return <div className="lab-body">
-    <div className="lab-solid-stage" role="img"
-      aria-label={isNet?'면을 접었다 펼칠 수 있는 직육면체 전개도':'층을 쌓고 회전해 볼 수 있는 입체도형'}>
+    <div className="lab-solid-stage" role="group" aria-label="입체도형 회전·쌓기·펼치기">
       {isNet?<div className={'lab-net'+(unfold?' lab-net--unfolded':'')}>
         {Array.from({length:6},(_,i)=><span key={i}>{i+1}</span>)}
-      </div>:<div className="lab-solid-stack" style={{transform:'rotateY('+rotation+'deg) rotateX(12deg)'}}>
+      </div>:stack?<div className="lab-solid-stack" style={{transform:'rotateY('+rotation+'deg) rotateX(12deg)'}}>
         {Array.from({length:layers},(_,i)=>
           <div key={i} className="lab-solid-layer" style={{transform:'translateY('+(-i*14)+'px) translateX('+(i*3)+'px)'}}>
             {Array.from({length:Math.min(12,boxes)},(_,j)=><span key={j}/>)}
           </div>)}
-      </div>}
+      </div>:<SolidShape kind={kind} sides={sides} rotation={rotation}/>}
     </div>
-    <div className="lab-math-feedback"><strong>{isNet?(unfold?'펼친 전개도':'접힌 전개도 모형'):
-      layers+'층 · 한 층 '+boxes+'칸 = '+(layers*boxes)+'칸 표시'}
-      </strong></div>
+    <div className="lab-math-feedback"><strong>{isNet?(unfold?'여섯 면으로 펼친 전개도':'입체도형의 면을 접는 실험'):
+      stack?layers+'층 × 층당 '+boxes+'개 = '+actual+'개':
+      typeName[kind]+(['polyhedra','pyramid'].includes(p.topic)?
+        ' · 꼭짓점 '+(kind==='prism'?2*sides:sides+1)+'개':'')}</strong></div>
     <LabTools>
       {isNet?<button type="button" className="lab-action" onClick={()=>setUnfold(v=>!v)}>
-        {unfold?'▣ 접어 보기':'▤ 펼쳐 보기'}</button>:<>
-        <SmallControl label="층" value={layers} change={setLayers} min={1} max={6}/>
+        {unfold?'▣ 다시 접기':'▤ 전개도 펼치기'}</button>:<>
+        {stack&&<SmallControl label="층" value={layers} change={setLayers} min={1} max={6}/>}
         <label className="lab-slider-label">회전 {rotation}°
           <input type="range" min="-80" max="80" value={rotation} onChange={e=>setRotation(Number(e.target.value))}/></label>
-        {['polyhedra','pyramid'].includes(p.topic)&&
-          <SmallControl label="밑면 변 수" value={sides} change={setSides} min={3} max={8}/>}
+        {['polyhedra','pyramid'].includes(p.topic)&&<SmallControl label="밑면 변 수" value={sides}
+          change={setSides} min={3} max={8}/>}
       </>}
       <button type="button" className="lab-action" onClick={()=>{
-        setLayers(Math.max(1,Math.min(6,p.c??3)));setRotation(22);setUnfold(false);setSides(Math.max(3,Math.min(8,p.a)));
-      }}>↺ 처음</button>
+        setLayers(initialLayers);setRotation(22);setUnfold(false);setSides(Math.max(3,Math.min(8,p.a)));
+      }}>↺ 원래 도형</button>
     </LabTools>
-    <LabHint>입체도형을 회전·쌓기·펼치기로 탐구하세요.
-      {p.topic==='volume'||p.topic==='stacking'?' 층을 바꾸면 전체 블록 수도 달라져요.':''}
-      {['polyhedra','pyramid'].includes(p.topic)?' 밑면 변의 수에 따라 꼭짓점 수가 달라져요: '+sides+'각형.':''}
-    </LabHint>
+    <LabHint>{isNet?'면을 접었다 펼치면 맞닿는 모서리를 찾아볼 수 있어요.':
+      stack?'층을 추가하면 전체 블록이 늘어요. 회전하여 앞·뒤 모습도 비교해 보세요.':
+      typeName[kind]+'을 회전시켜 평평한 면과 둥근 면의 차이를 찾아보세요.'}</LabHint>
   </div>;
 }
