@@ -99,11 +99,34 @@ function Geometry({ topic, a, b }: {topic:string;a:number;b:number}) {
     <text x="150" y="112" textAnchor="middle" fontSize="12" fill="#b17b41">지름 = 2 × 반지름</text>
   </svg>;
   if (topic==='shapes3d'||topic==='curvedsolids'||topic==='nets'||topic==='polyhedra') {
-    const name=topic==='shapes3d'||topic==='curvedsolids' ? ['직육면체','원기둥','구'][a%3] :
-      topic==='polyhedra'?a+'각기둥':'직육면체';
+    const name=topic==='shapes3d' ? ['직육면체','원기둥','구'][a%3]
+      : topic==='curvedsolids' ? ['원기둥','원뿔','구'][a%3]
+      : topic==='polyhedra'?a+'각기둥':'직육면체';
+    if (topic==='nets') return <svg className="expanded-geometry" viewBox="0 0 330 200" role="img" aria-label="직육면체 전개도 여섯 면">
+      {[[15,63],[85,63],[155,63],[225,63],[85,0],[85,126]].map(([x,y],i)=>
+        <rect key={i} x={x} y={y} width="70" height="63" rx="2" fill={i%2?'#c6d2ff':'#a3b6f6'}
+          stroke="#5b75d5" strokeWidth="2" strokeDasharray={i%2?'0':'4 3'}/>)}
+      <text x="160" y="197" textAnchor="middle" fontSize="12" fill="#6072be">접으면 직육면체가 되는 전개도</text>
+    </svg>;
+    if (topic==='polyhedra') {
+      const vertices=(cx:number,cy:number)=>Array.from({length:a},(_,i)=>{
+        const theta=2*Math.PI*i/a-Math.PI/2;
+        return [cx+48*Math.cos(theta),cy+42*Math.sin(theta)];
+      });
+      const back=vertices(195,69),front=vertices(128,113);
+      return <svg className="expanded-geometry" viewBox="0 0 310 190" role="img" aria-label={a+'각기둥'}>
+        <polygon points={back.map(p=>p.join(',')).join(' ')} fill="#d4ddff" stroke="#7891e1" strokeWidth="2"/>
+        {front.map((p,i)=><line key={i} x1={p[0]} y1={p[1]} x2={back[i][0]} y2={back[i][1]}
+          stroke="#7288d8" strokeWidth="2"/>)}
+        <polygon points={front.map(p=>p.join(',')).join(' ')} fill="#b0c2fa" stroke="#596fd3" strokeWidth="3"/>
+        <text x="155" y="184" textAnchor="middle" fontSize="12" fill="#5366b8">{a}각기둥</text>
+      </svg>;
+    }
     return <svg className="expanded-geometry" viewBox="0 0 310 190" role="img" aria-label={name}>
       {name==='구'?<><circle cx="150" cy="95" r="73" fill="#d0dcff" stroke={BLUE} strokeWidth="3"/>
         <ellipse cx="150" cy="95" rx="73" ry="25" fill="none" stroke="#7185ca" strokeDasharray="5 5"/></>:
+        name==='원뿔'?<><path d="M150 20 L76 150 Q150 194 224 150 Z" fill="#b9c9fa" stroke={BLUE} strokeWidth="3"/>
+          <ellipse cx="150" cy="150" rx="74" ry="25" fill="#c2d0fb" stroke={BLUE} strokeWidth="3"/></>:
         name==='원기둥'?<><path d="M80 45 V145 Q150 187 220 145 V45" fill="#dce4ff" stroke={BLUE} strokeWidth="3"/>
           <ellipse cx="150" cy="45" rx="70" ry="25" fill="#a7b9f4" stroke={BLUE} strokeWidth="3"/>
           <path d="M80 145 Q150 185 220 145" fill="none" stroke={BLUE} strokeWidth="3"/></>:
@@ -113,6 +136,14 @@ function Geometry({ topic, a, b }: {topic:string;a:number;b:number}) {
       <text x="150" y="184" textAnchor="middle" fontSize="13" fontWeight="800" fill="#5265b4">{name}</text>
     </svg>;
   }
+  if (topic==='triangletypes') {
+    const points=['150,23 80,160 220,160','150,20 80,160 220,160','75,160 75,28 225,160'][a%3];
+    return <svg className="expanded-geometry" viewBox="0 0 300 190" role="img" aria-label={['정삼각형','이등변삼각형','직각삼각형'][a%3]}>
+      <polygon points={points} fill="#b8c7ff" stroke="#667de3" strokeWidth="4"/>
+      {a===2&&<path d="M75 140 H95 V160" stroke="#5269c7" strokeWidth="2" fill="none"/>}
+      {a===0&&<text x="150" y="182" textAnchor="middle" fill="#576bbd" fontSize="12">세 변의 길이가 같아요</text>}
+    </svg>;
+  }
   if (topic==='lines') return <svg viewBox="0 0 320 135" className="expanded-geometry" role="img" aria-label="선의 양 끝이 나타난 그림">
     <line x1="40" y1="67" x2="280" y2="67" stroke={BLUE} strokeWidth="5" strokeLinecap="round" />
     {a!==0&&<circle cx="40" cy="67" r="7" fill={GOLD}/>}
@@ -120,10 +151,17 @@ function Geometry({ topic, a, b }: {topic:string;a:number;b:number}) {
     {a!==1&&<path d="M268 57 L282 67 L268 77" fill="none" stroke={BLUE} strokeWidth="4" />}
     {a===0&&<path d="M52 57 L38 67 L52 77" fill="none" stroke={BLUE} strokeWidth="4"/>}
   </svg>;
-  if(topic==='symmetry')return <svg viewBox="0 0 300 200" className="expanded-geometry" role="img" aria-label="대칭인 두 도형">
-    <path d="M150 18 V184" stroke="#8091b9" strokeWidth="2" strokeDasharray="6 5"/>
-    <polygon points="130,40 55,72 113,113 80,150 130,155" fill="#b7c7ff" stroke={BLUE} strokeWidth="3"/>
-    <polygon points="170,40 245,72 187,113 220,150 170,155" fill="#ffd4a3" stroke={GOLD} strokeWidth="3"/>
+  if(topic==='symmetry')return <svg viewBox="0 0 300 200" className="expanded-geometry"
+    role="img" aria-label={a===0?'대칭축을 따라 양쪽이 반사된 선대칭 도형':'중심을 기준으로 180도 돌리면 겹치는 점대칭 도형'}>
+    {a===0?<><path d="M150 18 V184" stroke="#8091b9" strokeWidth="2" strokeDasharray="6 5"/>
+      <polygon points="130,40 55,72 113,113 80,150 130,155" fill="#b7c7ff" stroke={BLUE} strokeWidth="3"/>
+      <polygon points="170,40 245,72 187,113 220,150 170,155" fill="#ffd4a3" stroke={GOLD} strokeWidth="3"/>
+    </>:<>
+      <polygon points="45,68 130,43 130,112 75,108" fill="#b7c7ff" stroke={BLUE} strokeWidth="3"/>
+      <polygon points="255,132 170,157 170,88 225,92" fill="#ffd4a3" stroke={GOLD} strokeWidth="3"/>
+      <circle cx="150" cy="100" r="5" fill="#5262bd"/>
+      <path d="M145 100 L155 100 M150 95 L150 105" stroke="#fff" strokeWidth="1"/>
+    </>}
   </svg>;
   if(topic==='quadtypes')return <svg viewBox="0 0 300 180" className="expanded-geometry" role="img" aria-label="사각형">
     <polygon points={['65,26 235,26 235,156 65,156','55,45 245,45 245,137 55,137','100,25 245,25 197,153 52,153','100,30 208,30 251,149 55,149'][a%4]}
@@ -190,11 +228,12 @@ export default function ExpandedVisuals({problem:p,phase,step}:Props) {
     const denominator=t==='fractionmul'||t==='fractiondiv'?p.b:t==='samefraction'?p.c!:t==='probability'?10:p.b;
     const firstNumerator=p.a;
     const otherDenom=t==='fractionmul'||t==='fractiondiv'?p.d!:denominator;
+    const otherNumerator=t==='fractionmul'||t==='fractiondiv'?p.c!:p.b;
     body=<div className="expanded-center">
       <div className="expanded-equation">{p.prompt}</div>
       <div className="expanded-bars">
         <Bar numerator={firstNumerator} denominator={denominator} caption="첫 번째 전체 · 1" />
-        {twoFractions&&<Bar numerator={p.b} denominator={otherDenom} color={GOLD} caption="두 번째 전체 · 1" />}
+        {twoFractions&&<Bar numerator={otherNumerator} denominator={otherDenom} color={GOLD} caption="두 번째 전체 · 1" />}
       </div>
       <Label>막대 전체 길이는 같고 점선으로 나눈 칸 수가 달라요.</Label>
     </div>;
