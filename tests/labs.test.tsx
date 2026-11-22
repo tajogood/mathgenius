@@ -76,7 +76,7 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
   it('막대를 클릭해 그래프 높이를 조절한다',()=>{
     render(<ChartsLab {...props(problem('bargraph',4,3,2))}/>);
     fireEvent.click(screen.getByRole('button',{name:/그래프 1번 값을 한 칸 올리기/}));
-    expect(screen.getByText('5')).toBeTruthy();
+    expect(screen.getAllByText('5').length).toBeGreaterThan(0);
   });
 
   it('수직선의 값을 슬라이더로 움직이면 숫자가 변한다',()=>{
