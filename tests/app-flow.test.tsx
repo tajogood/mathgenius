@@ -30,7 +30,7 @@ describe('복합 단원과 단원 달성 흐름',()=>{
     for(let i=0;i<3;i++) fireEvent.click(container.querySelector('.guide-actions .btn--primary')!);
     fireEvent.click(container.querySelector('.choice')!);
     fireEvent.click(screen.getByRole('button',{name:'정답 확인'}));
-    fireEvent.click(screen.getByRole('button',{name:/풀이 확인하기/}));
+    fireEvent.click(container.querySelector('.guide-actions .btn--primary')!);
     fireEvent.click(screen.getByRole('button',{name:/다음 풀이/}));
     fireEvent.click(screen.getByRole('button',{name:/다음 풀이/}));
     fireEvent.click(screen.getByRole('button',{name:/다른 문제 풀기/}));
