@@ -145,7 +145,7 @@ export default function StandardStudio({initialId,onExit}:Props){
         </div>:<div className="studio-stage-layout">
           <div className="studio-manipulative">
             <strong>☝️ 만지고 움직이는 수학</strong>
-            <Visuals phase={mode==='explore'?'concept':'question'} step={step}
+            <Visuals phase={mode==='application'?'question':'concept'} step={step} standardId={id}
               problem={mode==='application'?application.visualProblem:concept.visualProblem}
               onEngage={()=>setInteracted(true)}/>
             <div className="studio-lab-caption">
