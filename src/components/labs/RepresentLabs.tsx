@@ -89,7 +89,7 @@ export function NumberlineLab({problem:p}:LabProps) {
   const scale=decimals?t==='decimalcompare'?100:10:1;
   const reference=p.a/scale;
   const gap=['rounding','roundup','rounddown'].includes(t)?p.b:decimals?1:t==='range'?5:10;
-  const min=t==='range'?p.a-5:Math.max(0,Math.floor(reference/gap)*gap-(t==='range'?5:gap));
+  const min=t==='range'?p.a-5:Math.max(0,Math.floor(reference/gap)*gap-gap);
   const max=t==='range'?p.a+5:Math.max(reference+gap,Math.ceil(reference/gap)*gap+gap);
   const isDecimal=decimals;
   const initial=reference;
