@@ -4,6 +4,7 @@ import { standardsForChapter } from './standards';
 import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
 import Visuals from './components/Visuals';
 import { parseProgress, recordAnswer, unitMastery, masteryCount, nextPracticeTopic, type LearningProgress } from './progress.ts';
+import { diagnosticHint } from './feedback.ts';
 
 type Phase = 'concept' | 'question' | 'solution';
 const storageKey = 'mathgenius-progress-v1';
@@ -249,7 +250,7 @@ export default function App() {
                 <strong>{right ? '🎉 정답이에요!' : '🌱 조금 더 생각해 봐요!'}</strong>
                 <p>{right ? (topicStatus?.mastered ? '이 개념을 달성했어요! 다음 개념도 도전해 보세요.' :
                   '잘했어요! 같은 개념을 한 번 더 연속해서 맞히면 달성해요.') :
-                  '이 문제는 아직 달성 전이에요. 그림을 움직여 보고 풀이에서 원리를 확인해요.'}</p>
+                  diagnosticHint(problem, selected!)}</p>
               </div>}
               <div className="guide-actions">
                 <button type="button" className="btn btn--outline" onClick={() => { setPhase('concept'); setStep(0); }}>개념 다시 보기</button>
