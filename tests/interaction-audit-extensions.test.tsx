@@ -20,10 +20,11 @@ describe('83개 교구 감사에서 발견한 슬라이더 전용 시각화 보�
   expect(screen.getByText(/230 cm/)).toBeTruthy();
  });
  it('1kg, 1L 카드는 1000 단위이고 시간을 고르면 60초를 여섯 조각으로 펼친다',()=>{
-  const {rerender}=render(<MeasuresLab {...props(problem('measureweight',2,100))}/>);
+  render(<MeasuresLab {...props(problem('measureweight',2,100))}/>);
   fireEvent.click(screen.getByRole('button',{name:'1번째 1kg 단위를 1000g로 펼쳐보기'}));
   expect(screen.getByText('1000g')).toBeTruthy();
-  rerender(<MeasuresLab {...props(problem('capacity',1,200))}/>);
+  cleanup();
+  render(<MeasuresLab {...props(problem('capacity',1,200))}/>);
   fireEvent.click(screen.getByRole('button',{name:'1번째 1L 단위를 1000mL로 펼쳐보기'}));
   expect(screen.getByText('1000mL')).toBeTruthy();
  });
