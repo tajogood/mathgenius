@@ -7,6 +7,7 @@ import { GeometryLab, AnglesLab, ClockLab, CircleLab, SolidsLab } from './labs/G
 import { ChartsLab, PatternsLab, ChanceLab } from './labs/DataLabs';
 import { AreaShapesLab,ProjectionLab,NetLab } from './labs/SpecialLabs';
 import { DecimalMultiplyLab } from './labs/DecimalMultiplyLab';
+import { DecimalDivisionLab } from './labs/DecimalDivisionLab';
 import { SymmetryLab } from './labs/SymmetryLab';
 import { RectangleConceptLab } from './labs/RectangleConceptLab';
 import { SolidExplorerLab } from './labs/SolidExplorerLab';
@@ -72,7 +73,7 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
       }
       return <SolidsLab {...props}/>;
     case 'patterns':return <PatternsLab {...props}/>;
-    case 'equations':return problem.topic==='decimalmul'?<DecimalMultiplyLab {...props}/>:<EquationLab {...props}/>;
+    case 'equations':return problem.topic==='decimalmul'?<DecimalMultiplyLab {...props}/>:problem.topic==='decimaldiv'?<DecimalDivisionLab {...props}/>:<EquationLab {...props}/>;
     case 'chance':return <ChanceLab {...props}/>;
     case 'circle':return <CircleLab {...props}/>;
   }
@@ -80,7 +81,9 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
 
 export default function InteractiveLab({problem,phase,step,standardId,onEngage}:InteractiveLabProps) {
   const kind=interactionForProblem(problem);
-  const [title,instructions]=problem.topic==='decimalmul' ?
+  const [title,instructions]=problem.topic==='decimaldiv'?
+    ['같은 양을 고르게 나누는 소수 나눗셈','나누는 수를 바꾸어도 나누어지는 수는 그대로! 한 묶음의 크기를 비교해 보세요'] :
+    problem.topic==='decimalmul' ?
     ['소수 100칸 곱셈 실험실','두 소수를 겹쳐서 곱셈의 크기를 직접 찾아보세요'] :
     problem.topic==='symmetry'?
     ['합동·선대칭·점대칭 실험실','도형을 직접 드래그하고 주황 손잡이로 회전시켜 보세요'] :
