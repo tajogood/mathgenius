@@ -1,145 +1,233 @@
-import type { Topic } from './math';
+import { TOPICS, type Topic } from './math';
 
+/**
+ * 2022 revised elementary mathematics, organized by grade and semester.
+ * This is a textbook-style chapter plan, not a claim of 121/121 achievement-standard mastery.
+ * Source: MOE 2022-33 annex 8 + crosschecked grade/semester chapter index.
+ */
 export type Chapter = {
+  id: string;
+  grade: number;
+  semester: 1 | 2;
+  number: number;
   title: string;
   topic: Topic;
-  label: string;
+  topics: Topic[];
+  label: '수와 연산' | '변화와 관계' | '도형과 측정' | '자료와 가능성';
+  subtitle: string;
+  tag: string;
+  concept: [string,string,string];
+};
+export type Grade = { grade: number; title: string; chapters: Chapter[] };
+
+const COURSE: Record<number, Record<1 | 2, string[]>> = {
+  1: {
+    1: [
+      '9까지의 수|count9,split|9까지의 수를 읽고 블록을 세어 봐요.',
+      '여러 가지 모양|shapes3d|주변의 물건을 모양에 따라 구별해요.',
+      '덧셈과 뺄셈|addsub,split|수를 모으고 가르면서 덧셈과 뺄셈을 이해해요.',
+      '비교하기|compare|어느 쪽이 더 큰 수인지 블록으로 비교해요.',
+      '50까지의 수|count50|10개 묶음으로 50까지 수를 세어 봐요.',
+    ],
+    2: [
+      '100까지의 수|count100|10개 묶음으로 두 자리 수를 알아봐요.',
+      '덧셈과 뺄셈(1)|addsub|하나씩 더하고 빼는 방법을 연습해요.',
+      '여러 가지 모양|shapes|원·세모·네모의 특징을 비교해요.',
+      '덧셈과 뺄셈(2)|addsub,split|계산식을 블록으로 나타내 봐요.',
+      '시계 보기와 규칙 찾기|clock,patterns|시계를 읽고 수의 규칙을 찾아요.',
+      '덧셈과 뺄셈(3)|carry,addsub|10을 만들어 덧셈을 더 쉽게 해요.',
+    ],
+  },
+  2: {
+    1: [
+      '세 자리 수|place3|백·십·일의 자리에서 숫자가 뜻하는 값을 알아봐요.',
+      '여러 가지 도형|shapes,lines|도형의 모습과 선의 특징을 살펴봐요.',
+      '덧셈과 뺄셈|carry,addsub|자릿값과 받아올림으로 계산해요.',
+      '길이 재기|measurelength|1m와 1cm 관계를 눈금으로 이해해요.',
+      '분류하기|classify|색과 모양 같은 기준으로 자료를 모아 봐요.',
+      '곱셈|multiply|같은 수가 반복되는 상황을 곱셈으로 나타내요.',
+    ],
+    2: [
+      '네 자리 수|place4|천·백·십·일의 자릿값을 읽어요.',
+      '곱셈구구|multiply|묶음을 세어 곱셈구구를 이해해요.',
+      '길이 재기|measurelength|m와 cm를 함께 사용해 길이를 나타내요.',
+      '시각과 시간|clock,lengthtime|시침과 분침으로 시간을 읽어요.',
+      '표와 그래프|datagraph|자료를 세어 표와 간단한 그래프로 나타내요.',
+      '규칙 찾기|patterns|수와 도형에서 반복되는 규칙을 찾아요.',
+    ],
+  },
+  3: {
+    1: [
+      '덧셈과 뺄셈|column3|세 자리 수를 자릿값에 맞춰 계산해요.',
+      '평면도형|lines,shapes|직선·선분·반직선의 차이를 알아봐요.',
+      '나눗셈|divide|똑같이 나누는 활동으로 몫을 구해요.',
+      '곱셈|longmultiply|두 자리 수의 곱셈을 자릿값으로 이해해요.',
+      '길이와 시간|lengthtime,measurelength|길이와 시간의 단위를 바꿔 봐요.',
+      '분수와 소수|fractionintro,decimalintro|전체를 나눠 분수와 소수를 나타내요.',
+    ],
+    2: [
+      '곱셈|longmultiply|몇십·몇백을 곱하는 방법을 탐구해요.',
+      '나눗셈|divremainder,longdivide|나눗셈의 몫과 나머지를 이해해요.',
+      '원|circle|원의 반지름과 지름을 비교해요.',
+      '분수|fractionintro|전체를 똑같이 나눈 크기를 분수로 써요.',
+      '들이와 무게|measureweight|kg과 g, L과 mL의 관계를 살펴봐요.',
+      '자료의 정리|organize|표와 그림그래프로 자료를 읽어요.',
+    ],
+  },
+  4: {
+    1: [
+      '큰 수|bigplace|만·십만·백만 등 큰 수의 자릿값을 이해해요.',
+      '각도|angles|각의 벌어진 크기를 측정해요.',
+      '곱셈과 나눗셈|longmultiply,longdivide|여러 자리 수의 곱셈과 나눗셈을 계산해요.',
+      '평면도형의 이동|transform|도형의 밀기·뒤집기·돌리기를 비교해요.',
+      '막대그래프|bargraph|막대의 길이로 자료의 크기를 읽어요.',
+      '규칙 찾기|patterns|수의 변화 규칙을 식으로 표현해요.',
+    ],
+    2: [
+      '분수의 덧셈과 뺄셈|samefraction|분모가 같은 분수를 더하고 빼요.',
+      '삼각형|triangletypes|세 변과 각의 특징으로 삼각형을 분류해요.',
+      '소수의 덧셈과 뺄셈|decimaladd,decimalsub|소수점을 맞춰 소수를 더하고 빼요.',
+      '사각형|quadtypes|여러 사각형의 평행한 변과 각을 찾아요.',
+      '꺾은선그래프|linegraph|자료의 변화량을 선으로 이어 읽어요.',
+      '다각형|polygons|변과 꼭짓점의 수로 다각형을 구별해요.',
+    ],
+  },
+  5: {
+    1: [
+      '자연수의 혼합 계산|mixedcalc|곱셈과 나눗셈을 먼저 계산하는 이유를 알아봐요.',
+      '약수와 배수|factors|나누어떨어지는 수와 수의 배수를 찾아요.',
+      '규칙과 대응|correspond|서로 변하는 두 수의 대응 관계를 식으로 나타내요.',
+      '약분과 통분|reduce|크기가 같은 분수로 바꿔 계산을 준비해요.',
+      '분수의 덧셈과 뺄셈|fraction,samefraction|분모를 같게 바꾸어 분수를 더하고 빼요.',
+      '다각형의 둘레와 넓이|perimeter,area|경계의 길이와 내부의 넓이를 비교해요.',
+    ],
+    2: [
+      '수의 범위와 어림하기|rounding|이상·이하를 살펴보고 수를 어림해요.',
+      '분수의 곱셈|fractionmul|분수끼리 곱할 때 부분의 부분을 구해요.',
+      '합동과 대칭|symmetry|접거나 돌려 겹치는 도형을 찾아요.',
+      '소수의 곱셈|decimalmul|소수의 자릿값을 생각하며 곱해요.',
+      '직육면체|nets|직육면체의 면·모서리·꼭짓점과 전개도를 알아봐요.',
+      '평균과 가능성|average,probability|평균을 구하고 사건이 일어날 가능성을 비교해요.',
+    ],
+  },
+  6: {
+    1: [
+      '분수의 나눗셈|fractiondiv|분수의 나눗셈을 곱셈으로 바꿔 계산해요.',
+      '각기둥과 각뿔|polyhedra|밑면과 옆면의 모습으로 각기둥과 각뿔을 비교해요.',
+      '소수의 나눗셈|decimaldiv|자릿값을 이용하여 소수의 나눗셈을 이해해요.',
+      '비와 비율|ratio|두 양의 크기를 비교하고 백분율로 나타내요.',
+      '여러 가지 그래프|circlegraph,bargraph|띠그래프·원그래프가 나타내는 비율을 읽어요.',
+      '직육면체의 부피와 겉넓이|volume,surface|쌓기나무의 개수와 모든 면의 넓이를 계산해요.',
+    ],
+    2: [
+      '분수의 나눗셈|fractiondiv|나누는 분수를 뒤집어 곱하는 원리를 확인해요.',
+      '소수의 나눗셈|decimaldiv|소수점 위치를 바르게 정해 몫을 구해요.',
+      '공간과 입체|stacking|쌓기나무를 위·앞·옆에서 보고 개수를 세어요.',
+      '비례식과 비례배분|proportion,proportionshare|같은 비를 만들고 전체를 비율대로 나눠요.',
+      '원의 넓이|circlearea,circle|원주율을 이용하여 원의 넓이를 구해요.',
+      '원기둥, 원뿔, 구|curvedsolids|곡면을 가진 입체도형의 특징을 비교해요.',
+    ],
+  },
 };
 
-export const grades: { grade: number; title: string; chapters: Chapter[] }[] = [
-  { grade: 1, title: '수의 기초를 쌓아요', chapters: [
-    {title:'수 가르기와 모으기',topic:'split',label:'수와 연산'},
-    {title:'덧셈과 뺄셈',topic:'addsub',label:'수와 연산'},
-    {title:'여러 가지 모양',topic:'shapes',label:'도형과 측정'}]},
-  { grade: 2, title: '계산하는 힘을 키워요', chapters: [
-    {title:'받아올림 덧셈',topic:'carry',label:'수와 연산'},
-    {title:'곱셈구구',topic:'multiply',label:'수와 연산'},
-    {title:'시각과 시간',topic:'clock',label:'도형과 측정'}]},
-  { grade: 3, title: '나누고 비교해요', chapters: [
-    {title:'나눗셈의 원리',topic:'divide',label:'수와 연산'},
-    {title:'분수의 뜻',topic:'fractionintro',label:'수와 연산'},
-    {title:'길이와 시간',topic:'lengthtime',label:'도형과 측정'}]},
-  { grade: 4, title: '도형과 수를 탐구해요', chapters: [
-    {title:'각도와 각도기',topic:'angles',label:'도형과 측정'},
-    {title:'평면도형의 이동',topic:'transform',label:'도형과 측정'},
-    {title:'소수의 덧셈',topic:'decimaladd',label:'수와 연산'}]},
-  { grade: 5, title: '분수를 자유롭게 다뤄요', chapters: [
-    {title:'분수의 덧셈',topic:'fraction',label:'수와 연산'},
-    {title:'약분과 통분',topic:'reduce',label:'수와 연산'},
-    {title:'도형의 넓이',topic:'area',label:'도형과 측정'}]},
-  { grade: 6, title: '비율로 세상을 이해해요', chapters: [
-    {title:'비와 비율',topic:'ratio',label:'변화와 관계'},
-    {title:'비례식',topic:'proportion',label:'변화와 관계'},
-    {title:'입체도형의 부피',topic:'volume',label:'도형과 측정'}]},
-];
-
-export const lessonInfo: Record<Topic, { title: string; subtitle: string; tag: string; concept: [string, string, string] }> = {
-  split: {
-    title:'수를 쪼개고 다시 모아 봐요!',
-    subtitle:'블록을 두 묶음으로 나누면 수의 관계가 보여요.',
-    tag:'1학년 · 수 가르기와 모으기',
-    concept:['사과 7개를 두 무리로 나눠 보세요.','한쪽에 3개를 두면 다른 쪽에는 4개가 남아요.','3과 4를 모으면 다시 7이 돼요.'],
-  },
-  addsub: {
-    title:'더하고 빼는 수를 눈으로 찾아요!',
-    subtitle:'블록의 수가 늘고 줄어드는 모습을 관찰해요.',
-    tag:'1학년 · 덧셈과 뺄셈',
-    concept:['블록 5개가 있어요. 여기에 블록 2개를 더해 볼게요.','5개와 2개를 합하면 모두 7개가 돼요.','반대로 7개에서 2개를 빼면 다시 5개가 돼요.'],
-  },
-  shapes: {
-    title:'도형의 이름을 찾아볼까요?',
-    subtitle:'꼭짓점과 변을 살펴보면 모양을 구별할 수 있어요.',
-    tag:'1학년 · 여러 가지 모양',
-    concept:['동글동글한 원에는 꼭짓점이 없어요.','세모는 곧은 변 3개, 꼭짓점 3개가 있어요.','네모에는 곧은 변과 꼭짓점이 각각 4개 있어요.'],
-  },
-  carry: {
-    title:'10개를 묶으면 쉬워져요!',
-    subtitle:'블록을 옮기며 받아올림이 왜 필요한지 알아봐요.',
-    tag:'2학년 · 받아올림',
-    concept:['8개의 파란 블록과 5개의 주황 블록을 합쳐 볼까요?','8에 2를 더하면 10개가 돼요. 5에서 2개를 옮겨 10개 묶음을 만들어요.','10개 묶음 하나와 남은 3개를 더하면 13이에요.'],
-  },
-  multiply: {
-    title:'곱셈은 같은 수를 여러 번 더하는 거예요!',
-    subtitle:'격자 속 블록을 세며 곱셈구구를 익혀요.',
-    tag:'2학년 · 곱셈구구',
-    concept:['한 줄에 블록이 4개씩 있어요.','3줄이면 4개짜리 묶음이 3개, 4 + 4 + 4예요.','같은 수를 반복해서 더한 12는 3 × 4로 나타낼 수 있어요.'],
-  },
-  clock: {
-    title:'시곗바늘이 시간을 알려줘요!',
-    subtitle:'짧은 바늘과 긴 바늘의 역할을 구별해 봐요.',
-    tag:'2학년 · 시각과 시간',
-    concept:['짧은 바늘은 몇 시인지, 긴 바늘은 몇 분인지 알려줘요.','긴 바늘이 6을 가리키면 30분이 지났다는 뜻이에요.','3시에서 30분 지나면 짧은 바늘은 3과 4 사이에 있어요.'],
-  },
-  divide: {
-    title:'똑같이 나누는 게 나눗셈이에요!',
-    subtitle:'사탕을 여러 명에게 똑같이 나눠 주어 봐요.',
-    tag:'3학년 · 나눗셈',
-    concept:['사탕 12개를 친구 3명에게 나눠 줄 거예요.','한 명당 하나씩 차례로 주면 모두 같은 개수를 받아요.','12개를 3명에게 똑같이 주면 한 명당 4개예요.'],
-  },
-  fractionintro: {
-    title:'분수는 전체에서 일부를 나타내요!',
-    subtitle:'같은 크기로 나눈 막대의 색칠된 부분을 세어 봐요.',
-    tag:'3학년 · 분수의 뜻',
-    concept:['하나의 전체 막대를 똑같이 4칸으로 나누어요.','4칸 중 1칸을 칠하면 1/4이라고 써요.','분모는 전체를 나눈 칸 수, 분자는 색칠한 칸 수예요.'],
-  },
-  lengthtime: {
-    title:'길이와 시간을 단위로 바꿔요!',
-    subtitle:'m와 cm, 분과 초의 관계를 그림으로 확인해요.',
-    tag:'3학년 · 길이와 시간',
-    concept:['1m는 100cm예요. 같은 길이도 다른 단위로 나타낼 수 있어요.','1분은 60초예요. 시계가 한 바퀴 도는 시간이에요.','큰 단위가 몇 개 있는지 생각한 뒤 작은 단위로 바꿔 보세요.'],
-  },
-  angles: {
-    title:'벌어진 만큼 각도가 커져요!',
-    subtitle:'두 선 사이가 얼마나 벌어졌는지 각도기로 살펴봐요.',
-    tag:'4학년 · 각도와 각도기',
-    concept:['두 선이 한 점에서 만나면 각이 생겨요.','한 바퀴는 360도, 직각은 90도예요.','각도기를 기준선에 맞추어 얼마만큼 돌아갔는지 읽어요.'],
-  },
-  transform: {
-    title:'도형이 이리저리 움직여요!',
-    subtitle:'밀기, 뒤집기, 돌리기의 차이를 찾아봐요.',
-    tag:'4학년 · 평면도형의 이동',
-    concept:['도형을 밀면 모양과 방향이 그대로이고 위치만 바뀌어요.','뒤집으면 거울에 비친 것처럼 방향이 바뀌어요.','돌리면 중심을 기준으로 방향이 회전해요.'],
-  },
-  decimaladd: {
-    title:'소수점도 자리를 맞춰 더해요!',
-    subtitle:'0.1 크기의 조각을 세며 소수의 덧셈을 배워요.',
-    tag:'4학년 · 소수의 덧셈',
-    concept:['0.1이 10개 모이면 1이 돼요.','1.2는 0.1이 12개 있다는 뜻이에요.','1.2 + 0.5는 12개와 5개를 합친 1.7이에요.'],
-  },
-  fraction: {
-    title:'분모가 달라도 더할 수 있어요!',
-    subtitle:'서로 다른 크기의 분수 조각을 같은 크기로 만들어 봐요.',
-    tag:'5학년 · 분수의 덧셈',
-    concept:['1/2과 1/4은 조각의 크기가 달라서 분자끼리 바로 더할 수 없어요.','1/2을 2/4로 바꾸면 조각의 크기가 같아져요. 이 과정을 통분이라고 해요.','같은 크기의 조각 2개와 1개를 합치면 3/4이 돼요.'],
-  },
-  reduce: {
-    title:'분수의 크기를 바꾸지 않고 간단하게!',
-    subtitle:'같은 전체를 다른 수의 칸으로 나눠도 크기는 같아요.',
-    tag:'5학년 · 약분과 통분',
-    concept:['2/4와 1/2은 똑같이 전체의 절반이에요.','2/4의 분자와 분모를 모두 2로 나누면 1/2이 돼요.','이렇게 분수의 크기를 유지하면서 간단히 나타내는 것이 약분이에요.'],
-  },
-  area: {
-    title:'넓이는 작은 정사각형의 개수예요!',
-    subtitle:'칸을 직접 세어 직사각형 넓이 공식을 알아봐요.',
-    tag:'5학년 · 도형의 넓이',
-    concept:['가로 4칸, 세로 3칸인 직사각형을 볼게요.','한 줄에 4칸씩 3줄이 있으니 4 × 3칸이에요.','가로 × 세로 = 12칸이고, 한 칸이 1cm²면 12cm²예요.'],
-  },
-  ratio: {
-    title:'전체 중 얼마일까요?',
-    subtitle:'구슬의 수를 바꾸며 비율이 어떻게 달라지는지 확인해요.',
-    tag:'6학년 · 비와 비율',
-    concept:['파란 구슬과 주황 구슬을 세고 전체 개수를 알아봐요.','파란 구슬의 비율은 파란 구슬 수를 전체 구슬 수로 나눈 값이에요.','비율에 100을 곱하면 백분율(%)로 나타낼 수 있어요.'],
-  },
-  proportion: {
-    title:'비례식의 두 비는 같은 크기예요!',
-    subtitle:'양쪽 항을 같은 배수로 늘려 빈칸을 찾아봐요.',
-    tag:'6학년 · 비례식',
-    concept:['2 : 3은 파란 칸 2개와 주황 칸 3개의 비예요.','두 항에 각각 2를 곱하면 4 : 6이 돼요.','2 : 3 = 4 : 6처럼 같은 비를 나타내는 식이 비례식이에요.'],
-  },
-  volume: {
-    title:'작은 정육면체로 부피를 세어요!',
-    subtitle:'가로, 세로, 높이를 곱하는 이유를 입체도형으로 배워요.',
-    tag:'6학년 · 입체도형의 부피',
-    concept:['1cm³는 가로, 세로, 높이가 모두 1cm인 정육면체의 부피예요.','가로 3개, 세로 2개의 바닥에 높이 4층을 쌓아요.','3 × 2 × 4 = 24개이므로 부피는 24cm³예요.'],
-  },
+const titles: Record<number,string> = {
+  1:'수를 세고 모양을 살펴요', 2:'자릿값과 곱셈을 시작해요', 3:'나눗셈과 분수를 배워요',
+  4:'도형과 수의 관계를 찾아요', 5:'분수·넓이·규칙을 넓혀 가요', 6:'비율과 입체도형을 탐구해요',
 };
+
+const DOMAIN: Partial<Record<Topic,Chapter['label']>> = {
+  shapes:'도형과 측정', shapes3d:'도형과 측정', lines:'도형과 측정',
+  measurelength:'도형과 측정', lengthtime:'도형과 측정', clock:'도형과 측정',
+  angles:'도형과 측정', circle:'도형과 측정', triangletypes:'도형과 측정',
+  quadtypes:'도형과 측정', polygons:'도형과 측정', transform:'도형과 측정',
+  area:'도형과 측정', perimeter:'도형과 측정', nets:'도형과 측정',
+  symmetry:'도형과 측정', polyhedra:'도형과 측정', stacking:'도형과 측정',
+  volume:'도형과 측정', surface:'도형과 측정', circlearea:'도형과 측정',
+  curvedsolids:'도형과 측정', measureweight:'도형과 측정',
+  patterns:'변화와 관계', correspond:'변화와 관계',
+  ratio:'변화와 관계', proportion:'변화와 관계', proportionshare:'변화와 관계',
+  datagraph:'자료와 가능성', classify:'자료와 가능성', organize:'자료와 가능성',
+  bargraph:'자료와 가능성', linegraph:'자료와 가능성', circlegraph:'자료와 가능성',
+  average:'자료와 가능성', probability:'자료와 가능성',
+};
+
+const GUIDES: Partial<Record<Topic, [string,string]>> = {
+  count9:['블록을 하나씩 손가락으로 짚으면서 세어 보세요.','수를 빠뜨리거나 두 번 세지 않았는지 확인해요.'],
+  shapes3d:['직육면체는 평평한 네모 면으로 둘러싸여 있어요.','원기둥과 구는 둥근 표면이 있다는 점이 달라요.'],
+  compare:['두 무리의 개수를 비교하거나 수직선에서 위치를 비교해요.','오른쪽에 있는 수가 더 크고, 왼쪽에 있는 수가 더 작아요.'],
+  count50:['10개 묶음의 개수부터 세어요.','남은 낱개를 더해 수를 읽고 써요.'],
+  count100:['10개 묶음이 10개 모이면 100이 돼요.','십의 자리와 일의 자리를 구별해 보세요.'],
+  place3:['백의 자리 하나는 100을 뜻해요.','각 자리의 숫자에 100, 10, 1을 곱해 나타내요.'],
+  measurelength:['1m를 100cm로 나눌 수 있어요.','m를 cm로 바꾸고 남은 cm를 더해요.'],
+  classify:['분류 기준을 먼저 정해요.','같은 색 또는 같은 모양끼리 모아 개수를 세어요.'],
+  place4:['천의 자리 1은 1000을 뜻해요.','각 숫자의 자릿값이 얼마인지 살펴봐요.'],
+  datagraph:['그래프에 표시된 항목마다 개수를 세어요.','항목별 개수를 비교해 가장 큰 값을 찾아요.'],
+  patterns:['연속된 두 수의 차이를 비교해 봐요.','같은 규칙이 반복되는지 다음 수로 확인해요.'],
+  column3:['일·십·백의 자리를 맞춰요.','각 자리끼리 더하며 받아올림을 확인해요.'],
+  lines:['선분은 양 끝이 정해져 있어요.','직선은 양쪽으로, 반직선은 한쪽으로 끝없이 뻗어요.'],
+  longmultiply:['두 자리 수를 십의 자리와 일의 자리로 나눠요.','부분별로 곱한 값을 더하면 원래 곱셈과 같아요.'],
+  divremainder:['나누는 수로 몇 묶음을 만들 수 있는지 세어요.','남은 개수는 나누는 수보다 작아야 해요.'],
+  circle:['지름은 중심을 지나는 가장 긴 현이에요.','반지름은 지름의 절반이에요.'],
+  measureweight:['1kg은 1000g이에요.','큰 단위를 작은 단위로 바꾼 뒤 합쳐요.'],
+  organize:['표의 항목과 각 개수를 확인해요.','자료를 빠짐없이 정리하면 서로 비교하기 쉬워요.'],
+  bigplace:['만·십만·백만·천만의 자릿값을 확인해요.','큰 수일수록 네 자리씩 끊어 읽으면 쉬워요.'],
+  longdivide:['곱셈과 나눗셈은 서로 반대 관계예요.','나누는 수에 몫을 곱해 원래 수가 나오는지 검산해요.'],
+  bargraph:['막대의 길이가 길수록 큰 수를 뜻해요.','막대의 끝과 눈금을 연결해 읽어요.'],
+  samefraction:['분모가 같으면 같은 크기의 조각이에요.','분모는 그대로 두고 분자끼리 더하거나 빼요.'],
+  triangletypes:['세 변의 길이를 먼저 비교해요.','직각의 유무에 따라 직각삼각형을 구별할 수 있어요.'],
+  quadtypes:['마주 보는 변의 평행 여부를 관찰해요.','직각이나 같은 길이의 변을 찾아봐요.'],
+  linegraph:['점의 높이가 자료의 값을 나타내요.','두 점의 높이 차이는 변화량이에요.'],
+  polygons:['곧은 선분으로 둘러싸인 도형을 살펴봐요.','변의 수와 꼭짓점의 수가 같아요.'],
+  mixedcalc:['괄호가 있다면 괄호 속부터 계산해요.','곱셈·나눗셈을 덧셈·뺄셈보다 먼저 계산해요.'],
+  factors:['어떤 수를 나누어떨어지게 하는 수가 약수예요.','약수와 배수는 서로 연결된 개념이에요.'],
+  correspond:['입력값에 따라 출력값이 어떻게 바뀌는지 관찰해요.','같은 규칙을 □, △ 기호가 있는 식으로 나타낼 수 있어요.'],
+  rounding:['반올림할 자리의 바로 아래 자리 숫자를 확인해요.','5 이상이면 올리고 4 이하이면 버려요.'],
+  fractionmul:['분수 곱셈은 부분의 부분을 나타낼 수 있어요.','분자끼리, 분모끼리 곱하고 약분해요.'],
+  symmetry:['선대칭은 접었을 때 겹치는 모습이에요.','점대칭은 180도 돌렸을 때 겹치는 모습이에요.'],
+  decimalmul:['먼저 소수점을 무시하고 자연수처럼 곱해요.','소수 자릿수의 합만큼 답에 소수점을 찍어요.'],
+  nets:['직육면체의 면은 모두 여섯 개예요.','전개도를 접었을 때 각 면이 어떻게 맞닿는지 상상해요.'],
+  average:['자료의 합을 구한 뒤 자료의 개수로 나눠요.','평균을 구한 뒤 원래 자료의 크기와 비교해요.'],
+  probability:['전체 경우에서 원하는 경우가 몇 개인지 세어요.','가능성이 0에 가까우면 드물고 1에 가까우면 자주 일어나요.'],
+  fractiondiv:['나누는 분수의 역수를 곱하면 나눗셈을 계산할 수 있어요.','곱셈으로 바꾼 후 약분해요.'],
+  polyhedra:['각기둥에는 합동인 다각형 밑면이 두 개 있어요.','각뿔은 밑면 하나와 한 꼭짓점으로 모이는 삼각형 옆면이 있어요.'],
+  decimaldiv:['나누는 수를 자연수로 바꾸어 생각해요.','몫의 소수점 위치를 검산하며 정해요.'],
+  circlegraph:['전체를 100%로 생각해요.','원 안에서 각 항목이 차지하는 부분을 백분율로 읽어요.'],
+  surface:['겉넓이는 여섯 면의 넓이의 합이에요.','서로 같은 두 면씩 세 묶음을 만들어 계산해요.'],
+  stacking:['한 층의 쌓기나무 수를 먼저 세어요.','위로 몇 층 쌓였는지 곱해요.'],
+  circlearea:['원의 넓이는 반지름 × 반지름 × 원주율이에요.','원주율은 계산할 때 3.14로 어림해 사용할 수 있어요.'],
+  curvedsolids:['원기둥은 원 모양 밑면 두 개가 있어요.','원뿔은 원 모양 밑면 하나, 구는 둥근 곡면으로 둘러싸여 있어요.'],
+  decimalintro:['전체를 10등분하면 한 칸은 0.1이에요.','소수 첫째 자리는 0.1이 몇 개 있는지 나타내요.'],
+  decimalsub:['소수점을 세로로 맞추어 계산해요.','같은 소수 자릿값끼리 빼요.'],
+  perimeter:['둘레는 도형의 바깥 경계 길이에요.','직사각형의 둘레는 (가로 + 세로) × 2예요.'],
+  proportionshare:['전체를 두 비의 합만큼의 칸으로 나눠요.','각 비에 해당하는 칸 수를 곱해 몫을 구해요.'],
+};
+
+function makeChapter(grade: number, semester: 1 | 2, index: number, row: string): Chapter {
+  const [title, typeList, description] = row.split('|');
+  const topics = typeList.split(',') as Topic[];
+  for (const topic of topics) if (!TOPICS.includes(topic)) throw new Error('Unknown curriculum topic: '+topic);
+  const first = topics[0];
+  const guide = GUIDES[first] ?? [
+    '그림의 수와 도형을 자세히 관찰하고 특징을 찾아보세요.',
+    '같은 원리를 다른 문제에 적용하면서 설명해 보세요.',
+  ];
+  return {
+    id: grade + '-' + semester + '-' + (index + 1),
+    grade, semester, number:index+1, title, topic:first, topics,
+    label: DOMAIN[first] ?? '수와 연산',
+    subtitle:description,
+    tag:grade+'학년 '+semester+'학기 · '+(index+1)+'단원',
+    concept:[description, guide[0], topics.length > 1
+      ? (GUIDES[topics[1]]?.[0] ?? guide[1]) : guide[1]],
+  };
+}
+
+export const grades: Grade[] = Object.entries(COURSE).map(([key, semesters]) => {
+  const grade=Number(key);
+  return { grade, title:titles[grade], chapters:([1,2] as const).flatMap(semester =>
+    semesters[semester].map((row,i)=>makeChapter(grade,semester,i,row))) };
+});
+export const curriculumUnits = grades.flatMap(grade => grade.chapters);
+export const TOTAL_UNITS = curriculumUnits.length;
+
+if (TOTAL_UNITS !== 71) throw new Error('Expected 71 grade-semester chapters, got ' + TOTAL_UNITS);
