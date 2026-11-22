@@ -1,4 +1,5 @@
 import { useEffect,useMemo,useState } from 'react';
+import type { StudyEvent } from '../member/client.ts';
 import { achievementStandards } from '../standards.ts';
 import { standardLessons, standardSections,standardAssessments,standardLessonMap,rotateOptions } from '../standards/lessons.ts';
 import { extraChecksFor } from '../standards/extraChecks.ts';
@@ -8,9 +9,9 @@ import Visuals from './Visuals.tsx';
 import { MathText } from './MathText.tsx';
 
 type Mode='explore'|'concept'|'application'|'complete';
-type Props={initialId:string;onExit:()=>void};
+type Props={initialId:string;onExit:()=>void;initialRecords?:StandardProgress;onRecordsChange?:(next:StandardProgress)=>void;onLearningEvent?:(event:StudyEvent)=>void};
 
-export default function StandardStudio({initialId,onExit}:Props){
+export default function StandardStudio({initialId,onExit,initialRecords,onRecordsChange,onLearningEvent}:Props){
   const [id,setId]=useState(()=>standardLessonMap.has(initialId)?initialId:standardLessons[0].id);
   const [mode,setMode]=useState<Mode>('explore');
   const [step,setStep]=useState(0);
@@ -22,7 +23,7 @@ export default function StandardStudio({initialId,onExit}:Props){
   const [filter,setFilter]=useState('all');
   const [catalogOpen,setCatalogOpen]=useState(false);
   const [round,setRound]=useState(0);
-  const [records,setRecords]=useState<StandardProgress>(readStandardProgress);
+  const [records,setRecords]=useState<StandardProgress>(()=>initialRecords??readStandardProgress());
   const lesson=standardLessonMap.get(id)!;
   const [concept,application]=useMemo(()=>standardAssessments(lesson),[lesson,round]);
   const supplements=useMemo(()=>extraChecksFor(id),[id]);
@@ -47,14 +48,19 @@ export default function StandardStudio({initialId,onExit}:Props){
   const displayLesson=(nextId:string)=>{
     setId(nextId);setMode('explore');setStep(0);setCheckpointIndex(0);setSelected(null);setChecked(false);
     setInteracted(false);setRound(v=>v+1);setCatalogOpen(false);
+    onLearningEvent?.({event_type:'standard_open',standard_id:nextId});
     window.scrollTo?.({top:0,behavior:'instant'});
   };
-  useEffect(()=>{try{localStorage.setItem(STANDARD_STORAGE_KEY,JSON.stringify(records));}catch{/* offline restricted storage */}},[records]);
+  useEffect(()=>{
+    if(onRecordsChange){onRecordsChange(records);return;}
+    try{localStorage.setItem(STANDARD_STORAGE_KEY,JSON.stringify(records));}catch{/* offline restricted storage */}
+  },[records,onRecordsChange]);
   useEffect(()=>{if(standardLessonMap.has(initialId))displayLesson(initialId);},[initialId]);
   const answer=()=>{
     if(selected===null||checked)return;
     const isRight=selected===assessment.answer;
     setChecked(true);
+    onLearningEvent?.({event_type:'standard_answer',standard_id:id,correct:isRight});
     setRecords(prev=>answerStandard(prev,id,isRight,isRight&&mode==='application'));
   };
   const forward=()=>{
