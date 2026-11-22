@@ -45,6 +45,15 @@ test('옛 버전 체험 기록을 학습 달성으로 오인하지 않는다',()
   assert.equal(unitMastery(p,'1-1-1').complete,false);
 });
 
+test('첫 18개 체험판의 topic ID 학습 기록도 보존한다',()=>{
+  const parsed=parseProgress({finished:['fraction','ratio'],attempts:14,correct:9});
+  assert.ok(parsed.finished.includes('5-1-5'));
+  assert.ok(parsed.finished.includes('6-1-4'));
+  assert.equal(parsed.attempts,14);
+  assert.equal(parsed.correct,9);
+  assert.equal(masteryCount(parsed),0);
+});
+
 test('기기에 저장된 기록은 유효한 단원·개념만 재구성한다',()=>{
   const p=parseProgress({
     attempts:3.5,correct:2.8,finished:['1-1-1','not-a-unit','1-1-1'],
