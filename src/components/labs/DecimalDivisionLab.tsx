@@ -1,10 +1,11 @@
 import {useState} from 'react';
+import type {CSSProperties} from 'react';
 import type {LabProps} from './types';
 import {LabHint,LabTools} from './types';
 
 const decimal=(value:number)=>{
   const exact=Math.abs(value-Number(value.toFixed(3)))<1e-10;
-  return {display:exact?String(Number(value.toFixed(3))):Number(value.toFixed(3)).toFixed(3)+'…',exact};
+  return {display:exact?String(Number(value.toFixed(3))):value.toFixed(3),exact};
 };
 
 /** Divide the SAME dividend into changing numbers of equal shares.
@@ -32,7 +33,7 @@ export function DecimalDivisionLab({problem:p}:LabProps){
     <div className="decimal-share-chips" aria-hidden="true">
       {Array.from({length:fullUnits},(_,i)=><i key={i} className="decimal-share-chip"/>)}
       {fractionalTenth>1e-9&&<i className="decimal-share-chip decimal-share-chip--part"
-        style={{'--fill':(fractionalTenth*100)+'%'} as React.CSSProperties}/>}
+        style={{'--fill':(fractionalTenth*100)+'%'} as CSSProperties}/>}
     </div>
     <span>{exact?'':'약 '}{display}</span>
   </button>;
