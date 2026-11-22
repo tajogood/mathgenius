@@ -41,7 +41,7 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
   it('받아올림 덧셈에서 10개를 선택하면 십 묶음 1개를 표시한다',()=>{
     render(<BlocksLab {...props(problem('carry',8,5))}/>);
     for(let i=1;i<=10;i++)fireEvent.click(screen.getByRole('button',{
-      name:new RegExp('^'+i+'번째 블록 세기
+      name:i+'번째 블록 세기'
     }));
     expect(screen.getByText('10개 묶음 1개')).toBeTruthy();
     expect(screen.getByText('낱개 0개')).toBeTruthy();
