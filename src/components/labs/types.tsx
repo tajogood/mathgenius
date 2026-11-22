@@ -5,6 +5,7 @@ export type LabProps = {
   problem: Problem;
   phase: LabPhase;
   step: number;
+  standardId?: string;
 };
 
 export const bound = (value: number, min: number, max: number) =>
