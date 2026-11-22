@@ -25,3 +25,16 @@ jobs:
         run: npm test
       - name: Simulate student interactions
         run: npm run test:ui
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Check mobile/tablet/desktop quizzes
+        run: npm run test:viewport
+      - name: Save browser QA evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mathgenius-browser-test-evidence
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
