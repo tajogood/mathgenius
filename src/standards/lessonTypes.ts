@@ -1,4 +1,4 @@
-import type { Topic } from './math.ts';
+import type { Topic } from '../math.ts';
 export type StandardLesson={
  id:string; title:string; topic:Topic; discover:string; principle:string;
  check:{prompt:string;answer:string;choices:[string,string,string,string]}; explanation:string;
