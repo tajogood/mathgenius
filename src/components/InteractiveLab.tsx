@@ -10,6 +10,7 @@ export type InteractiveLabProps = {
   problem: Problem;
   phase: LabPhase;
   step: number;
+  onEngage?: () => void;
 };
 
 const LAB_LABELS: Record<LabKind, [string, string]> = {
@@ -55,10 +56,14 @@ function ActiveLab({problem,phase,step}:InteractiveLabProps) {
   }
 }
 
-export default function InteractiveLab({problem,phase,step}:InteractiveLabProps) {
+export default function InteractiveLab({problem,phase,step,onEngage}:InteractiveLabProps) {
   const kind=interactionForProblem(problem);
   const [title,instructions]=LAB_LABELS[kind];
-  return <div className={'interactive-lab interactive-lab--'+kind}>
+  return <div className={'interactive-lab interactive-lab--'+kind}
+    onClickCapture={onEngage} onChangeCapture={onEngage}
+    onPointerDownCapture={onEngage} onKeyDownCapture={event=>{
+      if (event.key==='Enter'||event.key===' '||event.key.startsWith('Arrow')) onEngage?.();
+    }}>
     <div className="lab-heading">
       <span className="lab-spark" aria-hidden="true">✦</span>
       <div><strong>{title}</strong><span>{instructions}</span></div>
