@@ -3,32 +3,17 @@ import { grades, curriculumUnits, TOTAL_UNITS, type Chapter } from './curriculum
 import { standardsForChapter } from './standards';
 import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
 import Visuals from './components/Visuals';
+import { parseProgress, recordAnswer, unitMastery, masteryCount, nextPracticeTopic, type LearningProgress } from './progress.ts';
 
 type Phase = 'concept' | 'question' | 'solution';
-type Progress = { finished: string[]; attempts: number; correct: number };
 const storageKey = 'mathgenius-progress-v1';
 
-function readProgress(): Progress {
+function readProgress(): LearningProgress {
   try {
-    const value = JSON.parse(window.localStorage.getItem(storageKey) || 'null');
-    if (value && Array.isArray(value.finished) && typeof value.attempts === 'number' && typeof value.correct === 'number') {
-      return {
-        finished: value.finished.flatMap((x: unknown) => {
-          if (typeof x !== 'string') return [];
-          if (curriculumUnits.some(unit => unit.id === x)) return [x];
-          // Backward-compatible migration from the original 18-topic demo.
-          if (TOPICS.includes(x as Topic)) {
-            const legacy = curriculumUnits.find(unit => unit.topics.includes(x as Topic));
-            return legacy ? [legacy.id] : [];
-          }
-          return [];
-        }),
-        attempts: Math.max(0, value.attempts),
-        correct: Math.max(0, value.correct),
-      };
-    }
-  } catch { /* 브라우저에서 저장소에 접근할 수 없어도 학습은 가능합니다. */ }
-  return { finished: [], attempts: 0, correct: 0 };
+    return parseProgress(JSON.parse(window.localStorage.getItem(storageKey) || 'null'));
+  } catch {
+    return parseProgress(null);
+  }
 }
 
 const phaseLabels: Record<Phase, string> = {
@@ -54,13 +39,15 @@ export default function App() {
   const [problem, setProblem] = useState<Problem>(() => createProblem('fraction'));
   const [selected, setSelected] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
-  const [progress, setProgress] = useState<Progress>(readProgress);
+  const [progress, setProgress] = useState<LearningProgress>(readProgress);
   const [explored, setExplored] = useState(false);
   const gradeInfo = grades.find(item => item.grade === grade)!;
   const currentInfo = gradeInfo.chapters.find(item => item.id === unitId) ?? gradeInfo.chapters[0];
   const right = selected === problem.answer;
   const explanations = solutionSteps(problem);
-  const completedCount = new Set(progress.finished).size;
+  const completedCount = masteryCount(progress);
+  const unitStatus = unitMastery(progress, unitId);
+  const topicStatus = progress.records[unitId]?.[topic];
 
   useEffect(() => {
     try { window.localStorage.setItem(storageKey, JSON.stringify(progress)); } catch { /* 저장 제한 시 무시 */ }
@@ -98,24 +85,16 @@ export default function App() {
   function checkAnswer() {
     if (selected === null || checked) return;
     setChecked(true);
-    setProgress(previous => ({
-      ...previous,
-      attempts: previous.attempts + 1,
-      correct: previous.correct + (selected === problem.answer ? 1 : 0),
-    }));
+    setProgress(previous => recordAnswer(previous, unitId, topic, selected === problem.answer));
   }
 
   function newQuestion() {
-    setProgress(previous => ({
-      ...previous,
-      finished: previous.finished.includes(unitId) ? previous.finished : [...previous.finished, unitId],
-    }));
-    const selectedIndex = currentInfo.topics.indexOf(topic);
-    const nextTopic = currentInfo.topics[(selectedIndex + 1) % currentInfo.topics.length];
+    const nextTopic = nextPracticeTopic(progress, unitId, topic);
     setTopic(nextTopic);
     setProblem(createProblem(nextTopic));
     setSelected(null);
     setChecked(false);
+    setExplored(false);
     setStep(0);
     setPhase('question');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -143,7 +122,7 @@ export default function App() {
       <nav className="chapter-list" aria-label={grade + '학년 수학 단원'}>
         {gradeInfo.chapters.map(chapter => {
           const selectedChapter = chapter.id === unitId;
-          const done = progress.finished.includes(chapter.id);
+          const done = unitMastery(progress,chapter.id).complete;
           return <div className="chapter-row-group" key={chapter.id}>
             {chapter.number === 1 && <div className="semester-heading">{chapter.semester}학기 · {grade}학년</div>}
             <button
@@ -182,10 +161,10 @@ export default function App() {
       </div>
       <header className="top-bar">
         <div className="breadcrumb">수학천재 <span>›</span> {grade}학년 <span>›</span> {currentInfo.semester}학기 <span>›</span> 개념 학습</div>
-        <div className="top-progress" title="71개 단원의 학습 완료 현황">
+        <div className="top-progress" title="각 개념 두 문제 연속 정답을 달성한 단원">
           <span className="progress-star" aria-hidden="true">★</span>
           <strong>{completedCount}/{TOTAL_UNITS}</strong>
-          <span>개념 체험 완료</span>
+          <span>단원 학습 달성</span>
         </div>
       </header>
 
@@ -253,9 +232,9 @@ export default function App() {
                 <button type="button" className="btn btn--primary" onClick={nextConcept}>{step === 2 ? '문제 풀러 가기 →' : '다음 단계 →'}</button>
               </div>
             </> : phase === 'question' ? <>
-              <div className="guide-eyebrow">CHALLENGE · 문제 풀기</div>
+              <div className="guide-eyebrow">CHALLENGE · 문제 풀기 · 단원 {unitStatus.mastered}/{unitStatus.total}개 개념 달성</div>
               <h3>{problem.prompt}</h3>
-              <p className="question-hint">알맞은 답을 하나 골라 보세요.</p>
+              <p className="question-hint">알맞은 답을 하나 골라 보세요. 같은 개념 2문제를 연속으로 맞히면 해당 개념을 달성해요.</p>
               <div className="choices" role="group" aria-label="문제의 정답 선택">
                 {problem.choices.map(choice => <button
                   type="button"
@@ -268,7 +247,9 @@ export default function App() {
               </div>
               {checked && <div className={'feedback ' + (right ? 'feedback--correct' : 'feedback--wrong')}>
                 <strong>{right ? '🎉 정답이에요!' : '🌱 조금 더 생각해 봐요!'}</strong>
-                <p>{right ? '아주 잘했어요. 풀이에서도 같은 원리를 찾아봐요.' : '괜찮아요. 어떤 부분을 놓쳤는지 단계별로 살펴봐요.'}</p>
+                <p>{right ? (topicStatus?.mastered ? '이 개념을 달성했어요! 다음 개념도 도전해 보세요.' :
+                  '잘했어요! 같은 개념을 한 번 더 연속해서 맞히면 달성해요.') :
+                  '이 문제는 아직 달성 전이에요. 그림을 움직여 보고 풀이에서 원리를 확인해요.'}</p>
               </div>}
               <div className="guide-actions">
                 <button type="button" className="btn btn--outline" onClick={() => { setPhase('concept'); setStep(0); }}>개념 다시 보기</button>
@@ -293,7 +274,7 @@ export default function App() {
 
         <div className="below-workspace">
           <div className="learning-tip"><span>🌈</span><div><strong>오늘의 수학 습관</strong><p>틀리는 것도 배움의 일부예요. 정답보다 ‘왜?’를 아는 것이 더 중요해요.</p></div></div>
-          <div className="learning-stats"><strong>{progress.attempts}</strong><span>도전한 문제</span><span className="stats-divider" /><strong>{progress.correct}</strong><span>맞힌 문제</span></div>
+          <div className="learning-stats"><strong>{progress.attempts}</strong><span>도전한 문제</span><span className="stats-divider" /><strong>{progress.correct}</strong><span>맞힌 문제</span><span className="stats-divider" /><strong>{unitStatus.mastered}/{unitStatus.total}</strong><span>이 단원의 개념 달성</span></div>
         </div>
       </> : <section className="coming-soon">
         <div className="coming-icon" aria-hidden="true">🚀</div>
