@@ -1041,3 +1041,60 @@
 .standard-studio--application .voxel-math small{display:none}
 .app-shell--question .voxel-floor-button,.standard-studio--concept .voxel-floor-button,
 .standard-studio--application .voxel-floor-button{padding:3px 6px;font-size:9px}
+
+
+/* Actually rotatable curved solids; students select planar bases or curved surfaces. */
+.lab-round-solids{width:100%;gap:8px}
+.round-solids-select{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:100%}
+.round-solids-select button{border:1px solid #cfdbf1;border-radius:9px;background:#fff;
+ color:#5b73af;padding:7px 10px;font-size:11px;font-weight:900;cursor:pointer;touch-action:manipulation}
+.round-solids-select button:hover{background:#eaf0ff}
+.round-solids-select button[aria-pressed=true]{background:#5e7bde;color:white;border-color:#5973cc}
+.round-solids-select button[aria-expanded=true]{background:#e2f6ec;color:#27846b;border-color:#b0dec9}
+.round-layout{display:grid;width:100%;grid-template-columns:minmax(0,1fr);gap:7px}
+.round-layout--net{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.round-solid-stage{width:min(100%,365px);height:auto;max-height:247px;justify-self:center;
+ border:1px solid #dfe6f9;border-radius:13px;background:#f8faff;
+ touch-action:none;cursor:grab;user-select:none}
+.round-solid-stage:active{cursor:grabbing}
+.round-solid-stage:focus-visible{outline:3px solid #5479d8}
+.round-solid-stage g[role=button]{cursor:pointer;outline:0}
+.round-solid-stage g[role=button]:focus-visible .round-surface-facet,
+.round-solid-stage g[role=button]:hover .round-surface-facet{
+ stroke:#d78e35;stroke-width:2.8;filter:brightness(1.06)}
+.round-net-panel{display:grid;min-width:0;justify-items:center;align-content:center;gap:6px;
+ padding:7px 5px;background:#f5f8ff;border:1px solid #dce5f9;border-radius:12px}
+.round-net-panel strong{font-size:11px;text-align:center;color:#5671ad}
+.round-net-svg{max-width:100%;width:min(300px,100%);height:auto;max-height:228px}
+.round-net-svg g[role=button]{cursor:pointer;outline:0}
+.round-net-svg g[role=button]:hover circle,.round-net-svg g[role=button]:hover rect,
+.round-net-svg g[role=button]:hover path{stroke:#ec8b2d;stroke-width:4}
+.round-net-svg g[role=button]:focus-visible{filter:brightness(1.1)}
+.round-net-none{font-size:11px;font-weight:850;color:#826aa7;line-height:1.6;
+ padding:14px;background:#f1edfb;border-radius:11px;max-width:230px;text-align:center}
+.round-discovery{display:grid;gap:5px;background:#eef4ff;border:1px solid #d7e4f9;
+ border-radius:11px;padding:9px 11px;text-align:center;color:#526eb5}
+.round-discovery strong{font-size:12px}
+.round-discovery p{margin:0;font-size:11px;line-height:1.5;color:#526aa8}
+.round-discovery span{font-size:10px;color:#7f91b6}
+@media(max-width:1050px){
+ .round-layout--net{grid-template-columns:minmax(0,1fr)}
+ .round-solid-stage{max-height:190px}
+ .round-net-svg{max-height:168px}
+}
+@media(max-width:700px){
+ .round-solids-select button{padding:5px 7px;font-size:10px}
+ .round-solid-stage{max-height:168px}
+ .round-discovery{padding:5px}
+ .round-discovery p{font-size:10px}
+}
+.app-shell--question .round-solid-stage,.standard-studio--concept .round-solid-stage,
+.standard-studio--application .round-solid-stage{max-height:120px}
+.app-shell--question .round-solids-select button,.standard-studio--concept .round-solids-select button,
+.standard-studio--application .round-solids-select button{padding:3px 5px;font-size:9px}
+.app-shell--question .round-discovery,.standard-studio--concept .round-discovery,
+.standard-studio--application .round-discovery{padding:4px;gap:2px}
+.app-shell--question .round-discovery p,.standard-studio--concept .round-discovery p,
+.standard-studio--application .round-discovery p{display:none}
+.app-shell--question .round-net-panel,.standard-studio--concept .round-net-panel,
+.standard-studio--application .round-net-panel{display:none}
