@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { LabProps } from './types';
 import { LabHint, LabTools, SmallControl, bound } from './types';
 import { blockGroupSize, initialBlockCount } from '../../interactions.ts';
+import { gcd } from '../../math.ts';
 
 export function BlocksLab({problem:p}:LabProps) {
   const [counted,setCounted]=useState<Set<number>>(()=>new Set());
@@ -127,15 +128,23 @@ export function EquationLab({problem:p}:LabProps) {
   const [pick,setPick]=useState<number|null>(null);
   const a=p.a,b=p.b;
   const isFactor=['factors','gcdlcm'].includes(p.topic);
+  const isCommon=p.topic==='gcdlcm';
+  const commonGcd=gcd(a,b);
+  const commonLcm=a*b/commonGcd;
+  const candidates=isCommon && p.mode==='lcm'?
+    [...new Set([a,b,a*2,b*2,a*3,b*3,commonLcm])].sort((x,y)=>x-y):
+    Array.from({length:Math.min(12,Math.max(6,isCommon?Math.min(a,b):a))},(_,i)=>i+1);
   let value: string;
-  if (p.topic==='mixedcalc') value=a+' + '+b+' × '+factor+' = '+(a+b*factor);
+  if (isCommon) value=a+'와 '+b+'의 '+(p.mode==='gcd'?'공약수':'공배수')+'를 찾아요';
+  else if(p.topic==='factors') value=a+'의 약수를 찾아요';
+  else if (p.topic==='mixedcalc') value=a+' + '+b+' × '+factor+' = '+(a+b*factor);
   else if(p.topic==='decimalmul') value=(a/10).toFixed(1)+' × '+(factor/10).toFixed(1)+' = '+(a*factor/100).toFixed(2);
   else if(p.topic==='decimaldiv') value=(a*factor/10).toFixed(1)+' ÷ '+factor+' = '+(a/10).toFixed(1);
   else value=a+' × '+factor+' = '+a*factor;
   return <div className="lab-body">
     <div className="lab-math-feedback lab-math-feedback--big"><strong>{value}</strong></div>
     {isFactor?<div className="lab-factor-tray" role="group" aria-label="어떤 수로 나누어떨어질까요?">
-      {Array.from({length:Math.min(12,Math.max(6,a))},(_,i)=>i+1).map(n=>
+      {candidates.map(n=>
         <button type="button" key={n} aria-pressed={pick===n}
           className={'lab-factor'+(pick===n?' lab-factor--picked':'')}
           onClick={()=>setPick(n)}>{n}</button>)}
@@ -143,13 +152,18 @@ export function EquationLab({problem:p}:LabProps) {
       {Array.from({length:Math.min(10,factor)},(_,i)=>
         <span key={i} className="lab-tens-board-cell" style={{animationDelay:i*35+'ms'}}>{a}</span>)}
     </div>}
-    {isFactor ? <LabHint>{pick===null?'숫자를 선택해 나누어떨어지는지 확인해 보세요.':
+    {isFactor ? <LabHint>{pick===null?'숫자를 선택해 두 수의 나눗셈 관계를 확인해 보세요.':
+      isCommon?(p.mode==='gcd'?
+        (a%pick===0&&b%pick===0?'✅ 두 수 모두 '+pick+'로 나누어떨어져요.':
+          '아직 공약수가 아니에요. 두 수를 모두 나눌 수 있어야 해요.'):
+        (pick%a===0&&pick%b===0?'✅ '+pick+'은 두 수의 공배수예요.':
+          '아직 공배수가 아니에요. 두 수의 배수인지 모두 확인해요.')):
       a%pick===0?'✅ '+a+' ÷ '+pick+' = '+a/pick+' · 나누어떨어져요!':
       '💡 '+a+' ÷ '+pick+'는 나머지 '+a%pick+'이므로 약수가 아니에요.'}</LabHint>
       :<LabHint>배수를 움직이면 묶음의 수와 식의 값이 실시간으로 변해요.</LabHint>}
     <LabTools>
-      <label className="lab-slider-label">곱하는 수 {factor}
-        <input type="range" min="1" max="10" value={factor} onChange={e=>setFactor(Number(e.target.value))}/></label>
+      {!isFactor&&<label className="lab-slider-label">곱하는 수 {factor}
+        <input type="range" min="1" max="10" value={factor} onChange={e=>setFactor(Number(e.target.value))}/></label>}
       <button className="lab-action" type="button" onClick={()=>{setFactor(Math.max(1,Math.min(10,p.b)));setPick(null);}}>↺ 처음</button>
     </LabTools>
   </div>;
