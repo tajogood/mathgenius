@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 const screens = [
   { name: 'small-phone', width: 360, height: 640 },
   { name: 'phone', width: 390, height: 844 },
+  { name: 'phone-landscape', width: 844, height: 390 },
+  { name: 'compact-landscape', width: 640, height: 360 },
   { name: 'tablet-portrait', width: 768, height: 1024 },
   { name: 'tablet-landscape', width: 1024, height: 768 },
   { name: 'desktop', width: 1440, height: 900 },
