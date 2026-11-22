@@ -1,4 +1,4 @@
-import { interactionForProblem, type LabKind } from '../interactions.ts';
+import { interactionForProblem, TOPIC_CHALLENGES, type LabKind } from '../interactions.ts';
 import type { Problem } from '../math.ts';
 import type { LabPhase } from './labs/types';
 import { BlocksLab, PlaceLab, ArraysLab, EquationLab } from './labs/CountingLabs';
@@ -66,7 +66,7 @@ export default function InteractiveLab({problem,phase,step,onEngage}:Interactive
     }}>
     <div className="lab-heading">
       <span className="lab-spark" aria-hidden="true">✦</span>
-      <div><strong>{title}</strong><span>{instructions}</span></div>
+      <div><strong>{title}</strong><span>{TOPIC_CHALLENGES[problem.topic] || instructions}</span></div>
       <span className="lab-interactive-tag">터치 가능</span>
     </div>
     <ActiveLab key={problem.topic+'|'+problem.prompt} problem={problem} phase={phase} step={step}/>
