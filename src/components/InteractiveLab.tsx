@@ -16,6 +16,7 @@ import { PolyhedronExplorerLab } from './labs/PolyhedronExplorerLab';
 import { UnitCubesLab } from './labs/UnitCubesLab';
 import { RoundSolidsExplorerLab } from './labs/RoundSolidsExplorerLab';
 import { ShapePlayLab, LinePlayLab } from './labs/ShapePlayLab';
+import { CirclePiLab } from './labs/CirclePiLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -76,7 +77,7 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'patterns':return <PatternsLab {...props}/>;
     case 'equations':return problem.topic==='decimalmul'?<DecimalMultiplyLab {...props}/>:problem.topic==='decimaldiv'?<DecimalDivisionLab {...props}/>:<EquationLab {...props}/>;
     case 'chance':return <ChanceLab {...props}/>;
-    case 'circle':return <CircleLab {...props}/>;
+    case 'circle':return <CirclePiLab {...props}/>;
   }
 }
 
@@ -86,6 +87,8 @@ export default function InteractiveLab({problem,phase,step,standardId,onEngage}:
     ['세모·네모·동그라미 탐험','도형을 직접 끌어 이동하고 주황 꼭짓점을 움직여 변과 꼭짓점을 찾아보세요'] :
     problem.topic==='lines'?
     ['직선·선분·반직선 직접 조작','선의 끝점을 직접 움직이면서 끝점과 뻗는 방향을 관찰해 보세요'] :
+    problem.topic==='circumference'||problem.topic==='circlearea'?
+    ['원주율 3.14 탐구실','원둘레를 따라 재고 줄자를 펼쳐 지름 3개와 남은 길이를 비교해 보세요'] :
     problem.topic==='decimaldiv'?
     ['같은 양을 고르게 나누는 소수 나눗셈','나누는 수를 바꾸어도 나누어지는 수는 그대로! 한 묶음의 크기를 비교해 보세요'] :
     problem.topic==='decimalmul' ?
