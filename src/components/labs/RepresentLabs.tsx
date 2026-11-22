@@ -93,6 +93,8 @@ export function NumberlineLab({problem:p}:LabProps) {
   const max=t==='range'?p.a+5:Math.max(reference+gap,Math.ceil(reference/gap)*gap+gap);
   const isDecimal=decimals;
   const initial=reference;
+  const comparator=['compare','decimalcompare'].includes(t) ? p.b/scale : null;
+  const operand=['decimaladd','decimalsub'].includes(t) ? p.b/scale : null;
   const [value,setValue]=useState(initial);
   const svgRef=useRef<SVGSVGElement>(null);
   const pos=(x:number)=>20+300*((x-min)/(max-min));
@@ -102,6 +104,9 @@ export function NumberlineLab({problem:p}:LabProps) {
     const ratio=(event.clientX-rect.left)/rect.width;
     change(min+bound((ratio*340-20)/300,0,1)*(max-min));
   };
+  const nextResult= t==='rounding'?Math.round(value/p.b)*p.b:
+    t==='roundup'?Math.ceil(value/p.b)*p.b:t==='rounddown'?Math.floor(value/p.b)*p.b:null;
+  const boundary=t==='range'?(p.mode==='이상'?value>=p.a:value>p.a):null;
   return <div className="lab-body">
     <div className="lab-hero-count"><strong>{displayNumber(value,isDecimal?2:0)}</strong><span> 수직선 위의 움직이는 점</span></div>
     <svg ref={svgRef} className="lab-numberline" viewBox="0 0 340 105" role="img"
@@ -113,12 +118,28 @@ export function NumberlineLab({problem:p}:LabProps) {
         <line x1={20+i*30} x2={20+i*30} y1="45" y2="59" stroke="#6176be" strokeWidth="2"/>
       </g>)}
       <circle cx={pos(reference)} cy="52" r="14" fill="#ffdb9e" opacity=".7" stroke="#eda753" strokeWidth="1.5"/>
+      {comparator!==null&&<g>
+        <circle cx={pos(comparator)} cy="52" r="9" fill="#eead68" stroke="#fff" strokeWidth="2"/>
+        <text x={pos(comparator)} y="15" fontSize="12" fill="#b2753a" textAnchor="middle">
+          비교 {displayNumber(comparator,isDecimal?2:0)}</text>
+      </g>}
       <circle cx={pos(value)} cy="52" r="10" fill="#526de1" stroke="#fff" strokeWidth="3"/>
       <text x={pos(value)} y="28" fontSize="17" fill="#5369d2" textAnchor="middle" fontWeight="900">{displayNumber(value,isDecimal?2:0)}</text>
       <text x="20" y="90" fontSize="13" fill="#7081aa" textAnchor="middle">{displayNumber(min,isDecimal?2:0)}</text>
       <text x="320" y="90" fontSize="13" fill="#7081aa" textAnchor="middle">{displayNumber(max,isDecimal?2:0)}</text>
     </svg>
-    <LabHint>파란 점을 드래그하거나 슬라이더를 움직여 보세요. 주황 원은 문제의 원래 수 {displayNumber(reference,isDecimal?2:0)}예요.</LabHint>
+    <div className="lab-math-feedback">
+      {comparator!==null?
+        <strong>{displayNumber(value,isDecimal?2:0)} {value===comparator?'=':value>comparator?'>':'<'} {displayNumber(comparator,isDecimal?2:0)}</strong>
+      :operand!==null?
+        <strong>{displayNumber(value,2)} {t==='decimaladd'?'+':'−'} {displayNumber(operand,2)} =
+          {displayNumber(t==='decimaladd'?value+operand:value-operand,2)}</strong>
+      :nextResult!==null?
+        <strong>{t==='rounding'?'반올림':t==='roundup'?'올림':'버림'} 결과 {nextResult}</strong>
+      :boundary!==null?<strong>현재 점은 범위에 {boundary?'포함돼요':'포함되지 않아요'}</strong>:
+        <strong>원래 수와 차이 {displayNumber(Math.abs(value-reference),isDecimal?2:0)}</strong>}
+    </div>
+    <LabHint>파란 점을 드래그하거나 슬라이더를 움직여 보세요. 연한 주황 원은 문제의 원래 수 {displayNumber(reference,isDecimal?2:0)}예요.</LabHint>
     <LabTools>
       <label className="lab-slider-label">점 움직이기
         <input type="range" min={min} max={max} step={isDecimal?0.01:1} value={value}
