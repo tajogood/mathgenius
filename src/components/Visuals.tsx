@@ -1,7 +1,8 @@
 import { useId } from 'react';
 import type { Problem, Topic } from '../math';
-import { lcm, percentage } from '../math';
+import { BASE_TOPICS, lcm, percentage } from '../math';
 import MoreVisuals from './MoreVisuals';
+import ExpandedVisuals from './ExpandedVisuals';
 
 type Props = {
   topic: Topic;
@@ -169,6 +170,8 @@ export default function Visuals({ topic, phase, step, problem, blue, onBlueChang
     {topic === 'carry' ? <CarryScene phase={phase} step={step} p={problem} />
       : topic === 'fraction' ? <FractionScene phase={phase} step={step} p={problem} />
       : topic === 'ratio' ? <RatioScene phase={phase} step={step} p={problem} blue={blue} onBlueChange={onBlueChange} />
-      : <MoreVisuals problem={problem} phase={phase} step={step} />}
+      : BASE_TOPICS.includes(topic as (typeof BASE_TOPICS)[number])
+        ? <MoreVisuals problem={problem} phase={phase} step={step} />
+        : <ExpandedVisuals problem={problem} phase={phase} step={step} />}
   </div>;
 }
