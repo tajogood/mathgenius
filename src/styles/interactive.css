@@ -1098,3 +1098,15 @@
 .standard-studio--application .round-discovery p{display:none}
 .app-shell--question .round-net-panel,.standard-studio--concept .round-net-panel,
 .standard-studio--application .round-net-panel{display:none}
+
+
+/* Touch-adjustable graph boundaries instead of slider-only charts. */
+.lab-pie[role="slider"]{position:relative;cursor:crosshair;touch-action:none;outline-offset:3px;}
+.lab-pie[role="slider"]:focus-visible{outline:3px solid #4b66ce;}
+.lab-pie-divider{position:absolute;top:50%;left:50%;width:15px;height:15px;
+ background:#fff;border:3px solid #5266c5;border-radius:50%;pointer-events:none;
+ z-index:2;box-shadow:0 2px 6px #34488450;}
+.lab-band{position:relative;touch-action:none;cursor:ew-resize;}
+.lab-band-divider{position:absolute;top:0;height:100%;width:5px;transform:translateX(-50%);
+ background:#fff;box-shadow:0 0 0 2px #4e6bcb,0 0 9px #4562b5;pointer-events:none;
+ border-radius:5px;z-index:3;}
