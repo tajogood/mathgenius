@@ -7,6 +7,7 @@ import { GeometryLab, AnglesLab, ClockLab, CircleLab, SolidsLab } from './labs/G
 import { ChartsLab, PatternsLab, ChanceLab } from './labs/DataLabs';
 import { AreaShapesLab,ProjectionLab,NetLab } from './labs/SpecialLabs';
 import { DecimalMultiplyLab } from './labs/DecimalMultiplyLab';
+import { SymmetryLab } from './labs/SymmetryLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -44,7 +45,7 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'placevalue':return <PlaceLab {...props}/>;
     case 'numberline':return <NumberlineLab {...props}/>;
     case 'fractions':return <FractionsLab {...props}/>;
-    case 'geometry':return <GeometryLab {...props}/>;
+    case 'geometry':return problem.topic==='symmetry'?<SymmetryLab {...props}/>:<GeometryLab {...props}/>;
     case 'angles':return <AnglesLab {...props}/>;
     case 'clock':return <ClockLab {...props}/>;
     case 'measures':return <MeasuresLab {...props}/>;
@@ -67,7 +68,9 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
 export default function InteractiveLab({problem,phase,step,standardId,onEngage}:InteractiveLabProps) {
   const kind=interactionForProblem(problem);
   const [title,instructions]=problem.topic==='decimalmul' ?
-    ['소수 100칸 곱셈 실험실','두 소수를 겹쳐서 곱셈의 크기를 직접 찾아보세요'] : LAB_LABELS[kind];
+    ['소수 100칸 곱셈 실험실','두 소수를 겹쳐서 곱셈의 크기를 직접 찾아보세요'] :
+    problem.topic==='symmetry'?
+    ['합동·선대칭·점대칭 실험실','도형을 직접 드래그하고 주황 손잡이로 회전시켜 보세요'] : LAB_LABELS[kind];
   return <div className={'interactive-lab interactive-lab--'+kind}
     onClickCapture={onEngage} onChangeCapture={onEngage}
     onPointerDownCapture={onEngage} onKeyDownCapture={event=>{
