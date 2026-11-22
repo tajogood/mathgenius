@@ -24,7 +24,7 @@ Node.js 22 버전 권장.
 ```bash
 git clone https://github.com/tajogood/mathgenius.git
 cd mathgenius
-npm install
+npm install --legacy-peer-deps
 npm run dev
 ```
 
