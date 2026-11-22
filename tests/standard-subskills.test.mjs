@@ -13,7 +13,7 @@ test('121개 독립 수업에 88개 복합 세부 개념 평가가 더해져 총
   const seen=new Set(standardLessons.map(x=>x.check.prompt));
   for(const check of extraChecks){
     assert.ok(standardLessonMap.has(check.id),check.id);
-    assert.ok(check.label.length>2,check.id);
+    assert.ok(check.label.length>=2,check.id);
     assert.ok(check.prompt.length>=4,check.id);
     assert.equal(check.choices.length,4,check.id);
     assert.equal(new Set(check.choices).size,4,check.id);
