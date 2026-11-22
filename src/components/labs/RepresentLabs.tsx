@@ -32,54 +32,100 @@ function fractionInputs(p:LabProps['problem']) {
   const secondD=t==='samefraction'?p.c??p.b:p.d??p.b;
   return {firstN,firstD,secondN,secondD,two};
 }
+function reducedFraction(n:number,d:number):string {
+  if(d===0) return '계산 불가';
+  const g=gcd(Math.abs(n),Math.abs(d));
+  return (n/g)+'/'+(d/g);
+}
+
 export function FractionsLab({problem:p,phase,step}:LabProps) {
   const {firstN,firstD,secondN,secondD,two}=fractionInputs(p);
   const [factor,setFactor]=useState(1);
   const [left,setLeft]=useState(firstN);
   const [right,setRight]=useState(secondN);
+  const [notice,setNotice]=useState('');
   const totalDen=firstD*factor;
   const fixedLeft=firstN/firstD;
   const fractionValue=left/totalDen;
-  const same=two && Math.abs(fractionValue-right/secondD)<1e-9;
+  const rhsValue=right/secondD;
+  const same=two && Math.abs(fractionValue-rhsValue)<1e-9;
+  const maxFactor=Math.max(1,Math.min(6,Math.floor(36/firstD)));
+  const multiply=p.topic==='fractionmul';
+  const divide=p.topic==='fractiondiv';
+  const add=p.topic==='fraction'||p.topic==='samefraction'&&p.mode!=='subtract';
+  const subtract=p.topic==='fractionsub'||p.topic==='samefraction'&&p.mode==='subtract';
+  const compare=p.topic==='fractioncompare';
+  const operation=multiply?'×':divide?'÷':add?'+':subtract?'−':compare?'?':'';
+  const calculated=two?(multiply?reducedFraction(left*right,totalDen*secondD):
+    divide?(right===0?'0으로 나눌 수 없어요':reducedFraction(left*secondD,totalDen*right)):
+    add?reducedFraction(left*secondD+right*totalDen,totalDen*secondD):
+    subtract?reducedFraction(left*secondD-right*totalDen,totalDen*secondD):
+    compare?Math.abs(fractionValue-rhsValue)<1e-9?'=':fractionValue>rhsValue?'>':'<':
+    ''):reducedFraction(left,totalDen);
   useEffect(()=>{
     if(phase==='concept'&&step===1&&two){
-      const next=Math.max(1,Math.min(6,lcm(firstD,secondD)/firstD));
-      setFactor(next);setLeft(firstN*next);
+      const next=Math.min(maxFactor,Math.max(1,lcm(firstD,secondD)/firstD));
+      setFactor(next);setLeft(firstN*next);setNotice('');
     }
-  },[phase,step,two,firstN,firstD,secondD]);
+  },[phase,step,two,firstN,firstD,secondD,maxFactor]);
   const changeFactor=(next:number)=>{
-    setFactor(next);
-    setLeft(Math.round(left*next/factor));
+    const desired=Math.max(1,Math.min(maxFactor,next));
+    const newNumerator=left*desired/factor;
+    if(!Number.isInteger(newNumerator)){
+      setNotice('지금 색칠한 양을 이 칸 수로는 정확히 나눌 수 없어요. 먼저 색칠한 칸을 조정하거나 원래 분수로 돌아가 보세요.');
+      return;
+    }
+    setFactor(desired);setLeft(newNumerator);setNotice('');
   };
+  const updateLeft=(n:number)=>{setLeft(n);setNotice('');};
+  const updateRight=(n:number)=>{setRight(n);setNotice('');};
+  const reset=()=>{setFactor(1);setLeft(firstN);setRight(secondN);setNotice('');};
   return <div className="lab-body">
     <div className="lab-hero-count">
       <strong>{left}/{totalDen}</strong><span> = {displayNumber(fractionValue,3)} 전체</span>
     </div>
     <div className="lab-fractions">
       <div className="lab-whole-ruler"><span>전체 길이는 언제나 같아요 = 1</span></div>
-      <PieceBar n={left} d={totalDen} title="첫 번째 분수 · 눌러 색칠해 보세요" color="blue"
-        onChange={setLeft}/>
+      <PieceBar n={left} d={totalDen} title="첫 번째 분수 · 눌러 색칠해 보세요"
+        color="blue" onChange={updateLeft}/>
       {two&&<PieceBar n={right} d={secondD} title="두 번째 분수 · 눌러 색칠해 보세요"
-        color="amber" onChange={setRight}/>}
+        color="amber" onChange={updateRight}/>}
     </div>
-    {two ? <div className="lab-math-feedback">
-      <span>{left}/{totalDen} 와 {right}/{secondD}</span>
-      <strong>{same?'같은 크기예요!':fractionValue>right/secondD?'파란색이 더 커요':'주황색이 더 커요'}</strong>
-    </div> : <div className="lab-math-feedback">
-      <span>색칠된 부분</span><strong>{left}/{totalDen} ({displayNumber(fractionValue*100,1)}%)</strong>
+    {multiply&&<div className="lab-fraction-area" role="img"
+      aria-label={'첫 번째 분수 '+left+'/'+totalDen+'와 두 번째 분수 '+right+'/'+secondD+'를 곱할 때 겹치는 부분'}>
+      <div className="lab-fraction-area-grid" style={{gridTemplateColumns:'repeat('+totalDen+',minmax(0,1fr))'}}>
+        {Array.from({length:totalDen*secondD},(_,i)=>{
+          const x=i%totalDen, y=Math.floor(i/totalDen);
+          const xSelected=x<left,ySelected=y<right;
+          return <span key={i} className={
+            'lab-fraction-area-cell'+(xSelected&&ySelected?' lab-fraction-area-cell--overlap':
+            xSelected?' lab-fraction-area-cell--blue':ySelected?' lab-fraction-area-cell--amber':'')}/>;
+        })}
+      </div>
+      <small>파란 세로 부분 × 주황 가로 부분 = 겹친 부분</small>
     </div>}
+    {two?<div className="lab-math-feedback">
+      <span>{left}/{totalDen} {operation} {right}/{secondD}</span>
+      <strong>{compare?'비교 결과: '+calculated:
+        operation?'= '+calculated:
+        same?'같은 크기예요!':fractionValue>rhsValue?'파란색이 더 커요':'주황색이 더 커요'}</strong>
+    </div>:<div className="lab-math-feedback">
+      <span>색칠된 부분</span>
+      <strong>{left}/{totalDen} ({displayNumber(fractionValue*100,1)}%)</strong>
+      {p.topic==='reduce'&&<span>기약분수 {calculated}</span>}
+    </div>}
+    {notice&&<LabHint>{notice}</LabHint>}
     <LabTools>
-      <SmallControl label="등분을 더 잘게" value={factor} min={1} max={Math.min(6,Math.floor(36/firstD))}
-        change={changeFactor}/>
+      <SmallControl label="등분을 더 잘게" value={factor} min={1} max={maxFactor} change={changeFactor}/>
       <button type="button" className="lab-action" onClick={()=>{
-        const next=two?Math.min(6,Math.max(1,lcm(firstD,secondD)/firstD)):Math.min(6,factor+1);
-        changeFactor(next);
+        const wanted=two?lcm(firstD,secondD)/firstD:factor+1;
+        changeFactor(wanted);
       }}>같은 크기로 나누기</button>
-      <button type="button" className="lab-action" onClick={()=>{setFactor(1);setLeft(firstN);setRight(secondN);}}>
-        ↺ 원래 분수</button>
+      <button type="button" className="lab-action" onClick={reset}>↺ 원래 분수</button>
     </LabTools>
-    <LabHint>칸을 누르면 색칠된 양이 변합니다. 위아래 막대의 <b>전체 길이는 똑같고</b> 점선은 등분을 나타내요.
-      {fixedLeft===left/totalDen?' 지금은 원래 크기를 유지하고 있어요.':' 지금은 원래 분수와 다른 크기예요.'}</LabHint>
+    <LabHint>막대의 전체 길이는 같고 점선은 등분을 뜻해요. 칸을 터치해 분자 수를 바꿔 보세요.
+      {fixedLeft===fractionValue?' 분수를 더 잘게 나눠도 같은 크기예요.':' 지금은 원래 분수와 다른 크기예요.'}
+      {multiply?' 두 방향이 겹치는 칸이 분수 곱셈의 크기예요.':''}</LabHint>
   </div>;
 }
 
