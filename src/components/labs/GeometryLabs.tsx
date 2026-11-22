@@ -67,7 +67,7 @@ export function GeometryLab({problem:p}:LabProps) {
         <circle cx="170" cy="105" r="68" fill="#c1d0ff" stroke="#6b7dde" strokeWidth="4"/>
         <path d="M170 105 L170 37" stroke="#ecad65" strokeWidth="5"/>
         <circle cx="170" cy="105" r="5" fill="#5063be"/>
-      </g>:isLine?<g>
+      </g>:isLine?<g transform={rotate}>
         <path d="M55 105 H288" stroke="#6177de" strokeWidth="6" strokeLinecap="round"/>
         {(p.a!==0)&&<circle cx="55" cy="105" r="8" fill="#f6b566"/>}
         {(p.a===1)&&<circle cx="288" cy="105" r="8" fill="#f6b566"/>}
