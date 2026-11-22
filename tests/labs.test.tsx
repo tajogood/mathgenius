@@ -5,6 +5,7 @@ import { BlocksLab, PlaceLab, ArraysLab, EquationLab } from '../src/components/l
 import { FractionsLab, NumberlineLab, RatiosLab } from '../src/components/labs/RepresentLabs.tsx';
 import { GeometryLab, AnglesLab, ClockLab, SolidsLab } from '../src/components/labs/GeometryLabs.tsx';
 import { ChartsLab, PatternsLab, ChanceLab } from '../src/components/labs/DataLabs.tsx';
+import { AreaShapesLab,ProjectionLab,NetLab } from '../src/components/labs/SpecialLabs.tsx';
 
 afterEach(cleanup);
 const problem = (topic:Topic,a:number,b:number,c?:number,d?:number):Problem=>
@@ -187,4 +188,34 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
     fireEvent.click(row);
     expect(row.getAttribute('aria-pressed')).toBe('true');
   });
+  it('성취기준 6수03-14는 사다리꼴의 넓이와 네 도형 넓이를 직접 조작하게 한다',()=>{
+    render(<AreaShapesLab {...props(problem('area',8,6))}/>);
+    const buttons=screen.getByRole('group',{name:'넓이 구할 도형 선택'});
+    expect(buttons.querySelectorAll('button').length).toBe(4);
+    fireEvent.click(screen.getByRole('button',{name:'사다리꼴'}));
+    expect(screen.getByText('넓이 36cm²')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'윗변 늘리기'}));
+    expect(screen.getByText('넓이 39cm²')).toBeTruthy();
+  });
+
+  it('성취기준 6수03-10은 블록을 실제로 쌓고 위 앞 옆을 각각 변화시킨다',()=>{
+    render(<ProjectionLab {...props(problem('solidviews',3,2))}/>);
+    const first=screen.getByRole('button',{name:/1행 1열 높이/});
+    const before=first.getAttribute('aria-label');
+    fireEvent.click(first);
+    expect(first.getAttribute('aria-label')).not.toBe(before);
+    expect(screen.getByRole('img',{name:/앞에서 본 각 열 최대 높이/})).toBeTruthy();
+    expect(screen.getByRole('img',{name:/오른쪽에서 본 각 줄 최대 높이/})).toBeTruthy();
+  });
+
+  it('각기둥과 원기둥의 전개도를 접고 펼칠 수 있다',()=>{
+    const p=problem('curvedsolids',0,0);
+    const {rerender}=render(<NetLab {...props(p)} standardId="6수03-08"/>);
+    expect(screen.getByText('원기둥')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:/접어 보기/}));
+    expect(screen.getByText('접힌 입체 모형')).toBeTruthy();
+    rerender(<NetLab {...props(p)} standardId="6수03-06"/>);
+    expect(screen.getByText('삼각기둥')).toBeTruthy();
+  });
+
 });
