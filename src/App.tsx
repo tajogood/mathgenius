@@ -3,6 +3,7 @@ import { grades, curriculumUnits, TOTAL_UNITS, type Chapter } from './curriculum
 import { standardsForChapter } from './standards';
 import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
 import Visuals from './components/Visuals';
+import { MathText } from './components/MathText.tsx';
 import StandardStudio from './components/StandardStudio.tsx';
 import { parseProgress, recordAnswer, unitMastery, masteryCount, nextPracticeTopic, type LearningProgress } from './progress.ts';
 import { diagnosticHint, conceptTipForTopic } from './feedback.ts';
@@ -246,7 +247,7 @@ export default function App() {
               <h3>차근차근 알아볼까요?</h3>
               <div className="guide-body">
                 <span className="guide-icon" aria-hidden="true">💡</span>
-                <p>{conceptGuidance[step]}</p>
+                <p><MathText text={conceptGuidance[step]}/></p>
               </div>
               <div className="guide-progress" role="img" aria-label={'개념 ' + String(step + 1) + '/3 단계'}>
                 {[0, 1, 2].map(i => <span key={i} className={i <= step ? 'guide-progress--filled' : ''} />)}
@@ -257,7 +258,7 @@ export default function App() {
               </div>
             </> : phase === 'question' ? <>
               <div className="guide-eyebrow">CHALLENGE · 문제 풀기 · 단원 {unitStatus.mastered}/{unitStatus.total}개 개념 달성</div>
-              <h3>{problem.prompt}</h3>
+              <h3><MathText text={problem.prompt}/></h3>
               <p className="question-hint">알맞은 답을 하나 골라 보세요. 같은 개념 2문제를 연속으로 맞히면 해당 개념을 달성해요.</p>
               <div className="choices" role="group" aria-label="문제의 정답 선택">
                 {problem.choices.map(choice => <button
@@ -267,13 +268,13 @@ export default function App() {
                   onClick={() => setSelected(choice)}
                   aria-pressed={selected === choice}
                   className={'choice' + (selected === choice ? ' choice--selected' : '') + (checked && choice === problem.answer ? ' choice--correct' : '') + (checked && selected === choice && !right ? ' choice--wrong' : '')}
-                >{choice}</button>)}
+                ><MathText text={choice}/></button>)}
               </div>
               {checked && <div className={'feedback ' + (right ? 'feedback--correct' : 'feedback--wrong')}>
                 <strong>{right ? '🎉 정답이에요!' : '🌱 조금 더 생각해 봐요!'}</strong>
                 <p>{right ? (topicStatus?.mastered ? '이 개념을 달성했어요! 다음 개념도 도전해 보세요.' :
                   '잘했어요! 같은 개념을 한 번 더 연속해서 맞히면 달성해요.') :
-                  diagnosticHint(problem, selected!)}</p>
+                  <MathText text={diagnosticHint(problem, selected!)}/>}</p>
               </div>}
               <div className="guide-actions">
                 <button type="button" className="btn btn--outline" onClick={() => { setPhase('concept'); setStep(0); }}>개념 다시 보기</button>
@@ -284,7 +285,7 @@ export default function App() {
             </> : <>
               <div className="guide-eyebrow">SOLUTION · 풀이 {step + 1} / 3</div>
               <h3>이렇게 생각하면 쉬워요!</h3>
-              <div className="guide-body guide-body--solution"><span className="guide-icon" aria-hidden="true">🔎</span><p>{explanations[step]}</p></div>
+              <div className="guide-body guide-body--solution"><span className="guide-icon" aria-hidden="true">🔎</span><p><MathText text={explanations[step]}/></p></div>
               <div className="guide-progress" role="img" aria-label={'풀이 ' + String(step + 1) + '/3 단계'}>
                 {[0, 1, 2].map(i => <span key={i} className={i <= step ? 'guide-progress--filled' : ''} />)}
               </div>
