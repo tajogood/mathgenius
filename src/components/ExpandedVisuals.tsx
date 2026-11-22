@@ -89,7 +89,7 @@ function AnglePolygon({ sides = 5, special }: { sides?: number; special?: string
 }
 
 function Geometry({ topic, a, b }: {topic:string;a:number;b:number}) {
-  if (topic==='circle' || topic==='circlearea') return <svg viewBox="0 0 320 180" className="expanded-geometry"
+  if (topic==='circle' || topic==='circlearea' || topic==='circumference') return <svg viewBox="0 0 320 180" className="expanded-geometry"
     role="img" aria-label="중심과 반지름과 지름이 있는 원">
     <circle cx="150" cy="90" r="70" fill="#e8eeff" stroke={BLUE} strokeWidth="4"/>
     <line x1="80" y1="90" x2="220" y2="90" stroke={GOLD} strokeWidth="4" strokeDasharray="6 4"/>
@@ -98,16 +98,29 @@ function Geometry({ topic, a, b }: {topic:string;a:number;b:number}) {
     <text x="157" y="50" fontSize="14" fill="#596ec8">반지름 {a}cm</text>
     <text x="150" y="112" textAnchor="middle" fontSize="12" fill="#b17b41">지름 = 2 × 반지름</text>
   </svg>;
-  if (topic==='shapes3d'||topic==='curvedsolids'||topic==='nets'||topic==='polyhedra') {
+  if (topic==='shapes3d'||topic==='curvedsolids'||topic==='nets'||topic==='polyhedra'||topic==='pyramid') {
     const name=topic==='shapes3d' ? ['직육면체','원기둥','구'][a%3]
       : topic==='curvedsolids' ? ['원기둥','원뿔','구'][a%3]
-      : topic==='polyhedra'?a+'각기둥':'직육면체';
+      : topic==='polyhedra'?a+'각기둥':topic==='pyramid'?a+'각뿔':'직육면체';
     if (topic==='nets') return <svg className="expanded-geometry" viewBox="0 0 330 200" role="img" aria-label="직육면체 전개도 여섯 면">
       {[[15,63],[85,63],[155,63],[225,63],[85,0],[85,126]].map(([x,y],i)=>
         <rect key={i} x={x} y={y} width="70" height="63" rx="2" fill={i%2?'#c6d2ff':'#a3b6f6'}
           stroke="#5b75d5" strokeWidth="2" strokeDasharray={i%2?'0':'4 3'}/>)}
       <text x="160" y="197" textAnchor="middle" fontSize="12" fill="#6072be">접으면 직육면체가 되는 전개도</text>
     </svg>;
+    if (topic==='pyramid') {
+      const points=Array.from({length:a},(_,i)=>{
+        const theta=2*Math.PI*i/a-Math.PI/2;
+        return [150+78*Math.cos(theta),135+30*Math.sin(theta)];
+      });
+      return <svg className="expanded-geometry" viewBox="0 0 310 190" role="img" aria-label={a+'각뿔'}>
+        <polygon points={points.map(p=>p.join(',')).join(' ')} fill="#cad8fa" stroke="#7085d6" strokeWidth="2"/>
+        {points.map((p,i)=><line key={i} x1={150} y1={26} x2={p[0]} y2={p[1]} stroke="#6077d9"
+          strokeWidth="2.8" strokeDasharray={i>Math.ceil(a/2)?'4 3':undefined}/>)}
+        <circle cx="150" cy="26" r="4" fill="#4e62bd"/>
+        <text x="150" y="183" textAnchor="middle" fontSize="12" fill="#566ab8">{a}각뿔</text>
+      </svg>;
+    }
     if (topic==='polyhedra') {
       const vertices=(cx:number,cy:number)=>Array.from({length:a},(_,i)=>{
         const theta=2*Math.PI*i/a-Math.PI/2;
@@ -136,8 +149,9 @@ function Geometry({ topic, a, b }: {topic:string;a:number;b:number}) {
       <text x="150" y="184" textAnchor="middle" fontSize="13" fontWeight="800" fill="#5265b4">{name}</text>
     </svg>;
   }
+  if (topic==='anglesum') return <AnglePolygon sides={a} />;
   if (topic==='triangletypes') {
-    const points=['150,23 80,160 220,160','150,20 80,160 220,160','75,160 75,28 225,160'][a%3];
+    const points=['150,28 75,158 225,158','150,26 105,163 195,163','75,160 75,28 225,160'][a%3];
     return <svg className="expanded-geometry" viewBox="0 0 300 190" role="img" aria-label={['정삼각형','이등변삼각형','직각삼각형'][a%3]}>
       <polygon points={points} fill="#b8c7ff" stroke="#667de3" strokeWidth="4"/>
       {a===2&&<path d="M75 140 H95 V160" stroke="#5269c7" strokeWidth="2" fill="none"/>}
@@ -187,6 +201,7 @@ export default function ExpandedVisuals({problem:p,phase,step}:Props) {
   const active=phase==='solution' || (phase==='concept' && step===2);
   const t=p.topic;
   const numeric=['longmultiply','longdivide','column3','mixedcalc','correspond','decimalsub',
+    'capacity','multiples','roundup','rounddown','gcdlcm','timecalc',
     'decimalmul','decimaldiv','rounding','factors','measureweight','measurelength','perimeter','surface',
     'proportionshare'];
   let body:React.ReactNode;
@@ -213,6 +228,25 @@ export default function ExpandedVisuals({problem:p,phase,step}:Props) {
         <Histogram values={t==='linegraph'?[p.a,p.c??p.a+p.b,p.c??p.a+p.b]:[p.a,p.b,p.c??2]} line={t==='linegraph'}/>}
       <Label>그래프의 크기와 수치를 비교하세요.</Label>
     </div>;
+  } else if(['bandgraph'].includes(t)) {
+    body=<div className="expanded-center">
+      <div className="expanded-equation">전체 100% 중 파란 부분은?</div>
+      <div className="expanded-band" role="img" aria-label={'파란색 '+p.a+'%, 주황색 '+p.b+'%의 띠그래프'}>
+        <span style={{width:p.a+'%',backgroundColor:BLUE}}>{p.a}%</span>
+        <span style={{width:p.b+'%',backgroundColor:GOLD}}>{p.b}%</span>
+      </div>
+      <Label>전체가 100%인 띠를 두 부분으로 나누었어요.</Label>
+    </div>;
+  } else if(['range','decimalcompare'].includes(t)) {
+    body=<div className="expanded-center">
+      <div className="expanded-equation">{p.prompt}</div>
+      <div className="expanded-sequence">
+        <span>{t==='decimalcompare'?(p.a/100).toFixed(2):p.a}</span>
+        <span>{active?p.answer:'?'}</span>
+        <span>{t==='decimalcompare'?(p.b/100).toFixed(2):p.a+1}</span>
+      </div>
+      <Label>{t==='range'?'●는 경계 포함, ○는 경계 제외라는 뜻이에요.':'소수점부터 자릿값을 맞춰요.'}</Label>
+    </div>;
   } else if(['patterns','rounding'].includes(t)) {
     body=<div className="expanded-center">
       <div className="expanded-equation">{p.prompt}</div>
@@ -223,12 +257,13 @@ export default function ExpandedVisuals({problem:p,phase,step}:Props) {
       </div>}
       <Label>{t==='patterns'?'화살표를 따라 다음 수를 찾아요.':'어느 자리에서 반올림하는지 살펴봐요.'}</Label>
     </div>;
-  } else if (['fractionmul','fractiondiv','samefraction','decimalintro','fractionintro','probability'].includes(t)) {
-    const twoFractions=['fractionmul','fractiondiv','samefraction'].includes(t);
-    const denominator=t==='fractionmul'||t==='fractiondiv'?p.b:t==='samefraction'?p.c!:t==='probability'?10:p.b;
-    const firstNumerator=p.a;
-    const otherDenom=t==='fractionmul'||t==='fractiondiv'?p.d!:denominator;
-    const otherNumerator=t==='fractionmul'||t==='fractiondiv'?p.c!:p.b;
+  } else if (['fractionmul','fractiondiv','samefraction','fractioncompare','fractionsub','naturalfraction',
+    'fractiontypes','decimalintro','fractionintro','probability'].includes(t)) {
+    const twoFractions=['fractionmul','fractiondiv','samefraction','fractioncompare','fractionsub'].includes(t);
+    const denominator=t==='samefraction'?p.c!:t==='probability'?10:p.b;
+    const firstNumerator=t==='fractiontypes'?p.c!:p.a;
+    const otherDenom=['fractionmul','fractiondiv','fractioncompare','fractionsub'].includes(t)?p.d!:denominator;
+    const otherNumerator=['fractionmul','fractiondiv','fractioncompare','fractionsub'].includes(t)?p.c!:p.b;
     body=<div className="expanded-center">
       <div className="expanded-equation">{p.prompt}</div>
       <div className="expanded-bars">
@@ -238,12 +273,12 @@ export default function ExpandedVisuals({problem:p,phase,step}:Props) {
       <Label>막대 전체 길이는 같고 점선으로 나눈 칸 수가 달라요.</Label>
     </div>;
   } else if(['shapes3d','curvedsolids','nets','polyhedra','circle','circlearea','lines',
-    'symmetry','quadtypes','triangletypes','polygons'].includes(t)) {
+    'symmetry','quadtypes','triangletypes','polygons','pyramid','circumference','anglesum'].includes(t)) {
     body=<div className="expanded-center">
       <Geometry topic={t} a={p.a} b={p.b} />
       <Label>{t==='circlearea'?'원을 작은 조각으로 나누면 넓이를 계산할 수 있어요.':'점·선·면의 특징을 살펴보세요.'}</Label>
     </div>;
-  } else if (t==='stacking') {
+  } else if (t==='stacking'||t==='solidviews') {
     body=<div className="expanded-center">
       <div className="expanded-stacks">
         {Array.from({length:p.c??2},(_,i)=><div className="expanded-stack-layer" key={i}>
