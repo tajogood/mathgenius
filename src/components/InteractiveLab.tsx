@@ -12,6 +12,7 @@ import { RectangleConceptLab } from './labs/RectangleConceptLab';
 import { SolidExplorerLab } from './labs/SolidExplorerLab';
 import { AverageBalanceLab } from './labs/AverageBalanceLab';
 import { PolyhedronExplorerLab } from './labs/PolyhedronExplorerLab';
+import { UnitCubesLab } from './labs/UnitCubesLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -58,6 +59,8 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'ratios':return <RatiosLab {...props}/>;
     case 'solids':
       if(problem.topic==='polyhedra'||problem.topic==='pyramid')return <PolyhedronExplorerLab {...props}/>;
+      if(problem.topic==='volume'||problem.topic==='stacking')return <UnitCubesLab {...props}/>;
+      if(problem.topic==='solidviews')return <ProjectionLab {...props}/>;
       if(problem.topic==='nets'||problem.topic==='surface'||
         (problem.topic==='shapes3d'&&problem.a===0))return <SolidExplorerLab {...props}/>;
       if(phase!=='question'){
@@ -85,7 +88,11 @@ export default function InteractiveLab({problem,phase,step,standardId,onEngage}:
     problem.topic==='average'?
     ['고르게 나누는 평균 실험실','사탕을 친구들에게 옮기며 전체 합은 그대로, 몫은 같게 만들어 보세요'] :
     problem.topic==='polyhedra'||problem.topic==='pyramid'?
-    ['손으로 돌리는 각기둥·각뿔 실험실','도형을 직접 회전하고 면·모서리·꼭짓점을 눌러 본 뒤 전개도와 연결해 보세요'] : LAB_LABELS[kind];
+    ['손으로 돌리는 각기둥·각뿔 실험실','도형을 직접 회전하고 면·모서리·꼭짓점을 눌러 본 뒤 전개도와 연결해 보세요'] :
+    problem.topic==='volume'||problem.topic==='stacking'?
+    ['1cm³ 쌓기나무 실험실','한 줄의 정육면체를 세고 한 층씩 쌓아 부피를 스스로 계산해 보세요'] :
+    problem.topic==='solidviews'?
+    ['세 방향에서 보는 쌓기나무','위에서 본 칸을 터치해 층을 쌓고 앞·옆 모양이 어떻게 바뀌는지 확인해 보세요'] : LAB_LABELS[kind];
   return <div className={'interactive-lab interactive-lab--'+kind}
     onClickCapture={onEngage} onChangeCapture={onEngage}
     onPointerDownCapture={onEngage} onKeyDownCapture={event=>{
