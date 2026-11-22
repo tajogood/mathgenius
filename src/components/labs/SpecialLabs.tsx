@@ -62,18 +62,23 @@ export function AreaShapesLab({problem:p}:LabProps){
 }
 
 export function ProjectionLab({problem:p}:LabProps){
-  const [blocks,setBlocks]=useState<number[]>(()=>Array.from({length:9},(_,i)=>
-    i<bound(p.a*p.b,1,9)?(i%3===0?2:1):0));
+  // Model the problem's actual footprint: never truncate a 5×4 grid to 3×3.
+  const cols=bound(p.a,2,5),rows=bound(p.b,2,4);
+  const [blocks,setBlocks]=useState<number[]>(()=>Array(cols*rows).fill(1));
   const value=blocks.reduce((sum,n)=>sum+n,0);
-  const front=[0,1,2].map(column=>Math.max(...[0,1,2].map(row=>blocks[row*3+column])));
-  const right=[0,1,2].map(row=>Math.max(...[0,1,2].map(column=>blocks[row*3+column])));
+  const front=Array.from({length:cols},(_,column)=>
+    Math.max(...Array.from({length:rows},(_,row)=>blocks[row*cols+column])));
+  const right=Array.from({length:rows},(_,row)=>
+    Math.max(...Array.from({length:cols},(_,column)=>blocks[row*cols+column])));
   const top=blocks.map(height=>height>0);
   return <div className="lab-body" data-testid="projection-experiment">
     <div className="lab-hero-count"><strong>{value}개</strong><span>쌓기나무 총 개수</span></div>
     <div className="lab-views">
-      <div><strong>위에서 보기</strong><div className="lab-projection-top" role="group" aria-label="위에서 본 3곱하기3 칸별 블록 높이">
+      <div><strong>위에서 보기</strong><div className="lab-projection-top" role="group"
+        aria-label={'위에서 본 '+rows+'행 '+cols+'열 칸별 블록 높이'}
+        style={{gridTemplateColumns:'repeat('+cols+',minmax(0,1fr))'}}> 
         {blocks.map((height,i)=><button type="button" key={i}
-          aria-label={(Math.floor(i/3)+1)+'행 '+(i%3+1)+'열 높이 '+height+', 터치해 쌓기'}
+          aria-label={(Math.floor(i/cols)+1)+'행 '+(i%cols+1)+'열 높이 '+height+', 터치해 쌓기'}
           className={top[i]?'lab-projection-top--filled':''}
           onClick={()=>setBlocks(prev=>prev.map((v,index)=>index===i?(v+1)%5:v))}>
           {height?height:'+'}</button>)}
@@ -88,8 +93,8 @@ export function ProjectionLab({problem:p}:LabProps){
       </div></div>
     </div>
     <LabTools>
-      <button type="button" className="lab-action" onClick={()=>setBlocks(Array(9).fill(0))}>모두 비우기</button>
-      <button type="button" className="lab-action" onClick={()=>setBlocks(Array(9).fill(1))}>1층 모두 채우기</button>
+      <button type="button" className="lab-action" onClick={()=>setBlocks(Array(cols*rows).fill(0))}>모두 비우기</button>
+      <button type="button" className="lab-action" onClick={()=>setBlocks(Array(cols*rows).fill(1))}>1층 모두 채우기</button>
     </LabTools>
     <LabHint>위에서 본 칸을 터치하면 해당 위치에 쌓기나무가 1개씩 추가돼요. 같은 위치에 몇 층이 있어도 위에서 볼 때는 한 칸이에요.</LabHint>
   </div>;
