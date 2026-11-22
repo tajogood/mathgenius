@@ -321,19 +321,23 @@ export default function App() {
         <button type="button" className="btn btn--primary" onClick={() => startTopic(grades[4].chapters[4])}>5학년 분수 학습 체험하기 →</button>
       </section>}
 
-      <section className="curriculum-standards" aria-label="2022 교육과정 단원 연계 성취기준">
-        <strong>📚 2022 개정 교육과정 연계</strong>
-        <div className="curriculum-standard-codes">
-          {standardsForChapter(unitId).map(item =>
-            <button type="button" key={item.id} title={item.band+' · 해당 성취기준 개별 수업 열기'}
-              onClick={()=>{setStudioId(item.id);setStudioOpen(true);}}>
-              {item.id} · 개별 수업
-            </button>)}
-        </div>
-        <small>단원과 관련된 국가 교육과정 성취기준 코드입니다. 모든 세부 학습 요소의 평가가 완료되었다는 뜻은 아닙니다.</small>
-      </section>
-      <footer className="page-footer">© 2026 수학천재 · 교육 콘텐츠 개발 초기 버전 · 학습 기록은 이 기기에만 저장됩니다.</footer>
       </>}
+      <footer className="page-footer" aria-label="수학천재 운영회사 정보">
+        <div className="footer-top">
+          <strong className="footer-brand">수학<span>천재</span> <small>MathGenius</small></strong>
+          <a href="https://larix.kr" target="_blank" rel="noopener noreferrer" className="footer-company-site">운영사 웹사이트 ↗</a>
+        </div>
+        <div className="footer-company-info">
+          <span><b>운영사</b> 주식회사 라릭 (Larix Inc.)</span>
+          <span><b>대표이사</b> 김영상</span>
+          <span><b>사업자등록번호</b> 336-88-03923</span>
+          <span className="footer-address"><b>사업장 주소</b> 경기도 성남시 분당구 미금일로 7, A동 102호(구미동, 힐스빌8차)</span>
+        </div>
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} Larix Inc. All rights reserved.</span>
+          <span>학습 기록은 이 기기에만 저장됩니다.</span>
+        </div>
+      </footer>
     </main>
   </div>;
 }
