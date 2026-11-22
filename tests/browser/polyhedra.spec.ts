@@ -8,6 +8,11 @@ async function openStandard(page:import('@playwright/test').Page,id:string){
  if(!await entry.isVisible())await page.locator('.studio-catalog-toggle').click();
  await entry.click();
  await expect(page.getByTestId('polyhedron-explorer')).toBeVisible();
+ // Random assessment generators may begin with any 3–6-sided solid.
+ // Pin the concept lesson to the triangular example before counting faces.
+ const slider=page.getByTestId('polyhedron-explorer').getByRole('slider',{name:'밑면 변 수'});
+ await slider.focus();
+ await slider.press('Home');
 }
 
 test('삼각기둥을 마우스로 실제 드래그하면 면의 꼭짓점 좌표가 바뀐다',async({page})=>{
