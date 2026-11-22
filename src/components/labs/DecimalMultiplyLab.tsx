@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { LabProps } from './types';
+import { Fraction } from '../MathText.tsx';
 import { LabHint, LabTools } from './types';
 
 /** 0.9 × 0.6 is 9 tenths × 6 tenths, not nine copied six times. */
@@ -37,7 +38,7 @@ export function DecimalMultiplyLab({problem:p}:LabProps) {
             onClick={()=>{setA(col+1);setB(row+1);}}
             title={'가로 '+((col+1)/10).toFixed(1)+', 세로 '+((row+1)/10).toFixed(1)} />)}
         </div>
-        <span className="lab-decimal-count" aria-live="polite">겹치는 칸 {a*b}개 = {a*b}/100 = {result}</span>
+        <span className="lab-decimal-count" aria-live="polite">겹치는 칸 {a*b}개 = <Fraction numerator={a*b} denominator={100}/> = {result}</span>
       </div>
       <div className="lab-decimal-explain">
         <div className="lab-decimal-explain-row"><b>① 파란 세로</b><span>{a}칸 ÷ 10 = {amount(a)}</span></div>
