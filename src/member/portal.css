@@ -73,3 +73,22 @@
 .member-modal button{padding:10px 22px;border:0;border-radius:9px;background:#5965dc;color:white}
 @media(max-width:850px){.member-hero{grid-template-columns:1fr;padding-top:55px}.member-hero-art{min-height:260px}.member-hero-tile{height:112px;font-size:39px}.member-hero-tile--three{font-size:28px}.member-features{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.member-landing{padding:15px}.member-navigation strong{font-size:22px}.member-navigation button{font-size:11px}.member-hero{gap:24px;padding:37px 5px}.member-hero h1{letter-spacing:-1px}.member-hero-copy>p{font-size:14px}.member-login-options{max-width:none}.member-features{grid-template-columns:1fr}.member-onboarding,.member-dashboard{margin:10px;padding:20px 15px;border-radius:15px}.member-dashboard-header h1{font-size:23px}.member-stat-grid{gap:7px}.member-stat-grid article{padding:14px 10px}.member-stat-grid b{font-size:22px}.member-stat-grid span{font-size:11px}.member-roles{gap:8px}.member-roles button{font-size:15px;padding:16px 8px}.member-panel{padding:16px}.member-inline-form{flex-direction:column}.member-mode-strip{justify-content:center}.member-homework-banner{flex-wrap:wrap}}
+
+
+.member-audience-section{padding:4px 0 44px}
+.member-section-heading{text-align:center;max-width:750px;margin:0 auto 26px}
+.member-section-heading small,.member-curriculum-teaser small{color:#626ed2;font-size:13px;font-weight:800}
+.member-section-heading h2,.member-curriculum-teaser h2{font-size:clamp(23px,2.6vw,32px);letter-spacing:-1.2px;margin:10px 0}
+.member-section-heading p,.member-curriculum-teaser p{color:#6e7b95;line-height:1.75}
+.member-audience-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.member-audience-grid a{display:flex;flex-direction:column;gap:10px;padding:25px;background:#fff;text-decoration:none;color:#2c3b64;border:1px solid #e3e7f2;border-radius:19px;transition:transform .15s ease,box-shadow .15s ease}
+.member-audience-grid a:hover{transform:translateY(-2px);box-shadow:0 12px 30px #6575ac25}
+.member-audience-grid a span{font-size:29px}.member-audience-grid a strong{font-size:18px}
+.member-audience-grid a p{margin:0;color:#73809a;font-size:14px;line-height:1.7;flex:1}
+.member-audience-grid a small{font-size:13px;color:#5c68cf;font-weight:850}
+.member-curriculum-teaser{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:50px;padding:28px 32px;border-radius:19px;background:#edf0ff}
+.member-curriculum-teaser>div{max-width:760px}
+.member-curriculum-teaser>a{flex:none;text-decoration:none;background:#5c68de;color:white;border-radius:11px;padding:12px 19px;font-size:14px;font-weight:800}
+.member-curriculum-teaser .member-disclaimer{font-size:12px;color:#7e89ac}
+@media(max-width:850px){.member-audience-grid{grid-template-columns:1fr 1fr}.member-curriculum-teaser{flex-direction:column;align-items:flex-start}}
+@media(max-width:600px){.member-audience-grid{grid-template-columns:1fr}.member-curriculum-teaser{padding:20px}.member-section-heading h2{font-size:23px}}
