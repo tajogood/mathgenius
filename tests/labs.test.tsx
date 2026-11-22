@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { Problem, Topic } from '../src/math.ts';
-import { BlocksLab, PlaceLab, ArraysLab } from '../src/components/labs/CountingLabs.tsx';
+import { BlocksLab, PlaceLab, ArraysLab, EquationLab } from '../src/components/labs/CountingLabs.tsx';
 import { FractionsLab, NumberlineLab, RatiosLab } from '../src/components/labs/RepresentLabs.tsx';
 import { GeometryLab, AnglesLab, ClockLab, SolidsLab } from '../src/components/labs/GeometryLabs.tsx';
 import { ChartsLab, PatternsLab, ChanceLab } from '../src/components/labs/DataLabs.tsx';
@@ -90,6 +90,29 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
     expect(screen.getByText(/2층 × 층당 6개 = 12개/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button',{name:'층 늘리기'}));
     expect(screen.getByText(/3층 × 층당 6개 = 18개/)).toBeTruthy();
+  });
+
+  it('꺾은선그래프의 자료값을 조절하면 점의 위치도 달라진다',()=>{
+    const p=problem('linegraph',4,3,7);
+    render(<ChartsLab {...props(p)}/>);
+    const sliders=screen.getAllByRole('slider');
+    fireEvent.change(sliders[1],{target:{value:'9'}});
+    expect(screen.getAllByText('9').length).toBeGreaterThan(0);
+  });
+
+  it('최대공약수 모형은 두 수 모두를 나누는 수만 공약수로 인정한다',()=>{
+    const p={...problem('gcdlcm',8,12),mode:'gcd'};
+    render(<EquationLab {...props(p)}/>);
+    fireEvent.click(screen.getByRole('button',{name:'4'}));
+    expect(screen.getByText(/두 수 모두 4로 나누어떨어져요/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'3'}));
+    expect(screen.getByText(/아직 공약수가 아니에요/)).toBeTruthy();
+  });
+
+  it('구 문제에서는 사각형 블록 대신 둥근 구를 보여 준다',()=>{
+    const p=problem('curvedsolids',2,0);
+    render(<SolidsLab {...props(p)}/>);
+    expect(screen.getByRole('img',{name:/sphere/})).toBeTruthy();
   });
 
   it('규칙의 간격을 조절하면 뒤의 숫자들이 바뀐다',()=>{
