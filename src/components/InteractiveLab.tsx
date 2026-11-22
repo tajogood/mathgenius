@@ -6,6 +6,7 @@ import { FractionsLab, NumberlineLab, RatiosLab, MeasuresLab } from './labs/Repr
 import { GeometryLab, AnglesLab, ClockLab, CircleLab, SolidsLab } from './labs/GeometryLabs';
 import { ChartsLab, PatternsLab, ChanceLab } from './labs/DataLabs';
 import { AreaShapesLab,ProjectionLab,NetLab } from './labs/SpecialLabs';
+import { DecimalMultiplyLab } from './labs/DecimalMultiplyLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -57,7 +58,7 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
       }
       return <SolidsLab {...props}/>;
     case 'patterns':return <PatternsLab {...props}/>;
-    case 'equations':return <EquationLab {...props}/>;
+    case 'equations':return problem.topic==='decimalmul'?<DecimalMultiplyLab {...props}/>:<EquationLab {...props}/>;
     case 'chance':return <ChanceLab {...props}/>;
     case 'circle':return <CircleLab {...props}/>;
   }
@@ -65,7 +66,8 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
 
 export default function InteractiveLab({problem,phase,step,standardId,onEngage}:InteractiveLabProps) {
   const kind=interactionForProblem(problem);
-  const [title,instructions]=LAB_LABELS[kind];
+  const [title,instructions]=problem.topic==='decimalmul' ?
+    ['소수 100칸 곱셈 실험실','두 소수를 겹쳐서 곱셈의 크기를 직접 찾아보세요'] : LAB_LABELS[kind];
   return <div className={'interactive-lab interactive-lab--'+kind}
     onClickCapture={onEngage} onChangeCapture={onEngage}
     onPointerDownCapture={onEngage} onKeyDownCapture={event=>{
