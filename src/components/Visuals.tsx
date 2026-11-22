@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import type { Problem, Topic } from '../math';
 import { lcm, percentage } from '../math';
+import MoreVisuals from './MoreVisuals';
 
 type Props = {
   topic: Topic;
@@ -167,6 +168,7 @@ export default function Visuals({ topic, phase, step, problem, blue, onBlueChang
     <div className="visual-corner visual-corner--right" aria-hidden="true" />
     {topic === 'carry' ? <CarryScene phase={phase} step={step} p={problem} />
       : topic === 'fraction' ? <FractionScene phase={phase} step={step} p={problem} />
-      : <RatioScene phase={phase} step={step} p={problem} blue={blue} onBlueChange={onBlueChange} />}
+      : topic === 'ratio' ? <RatioScene phase={phase} step={step} p={problem} blue={blue} onBlueChange={onBlueChange} />
+      : <MoreVisuals problem={problem} phase={phase} step={step} />}
   </div>;
 }
