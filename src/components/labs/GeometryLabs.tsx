@@ -9,22 +9,34 @@ function basePolygon(sides:number,r:number,cx:number,cy:number):string {
     return (cx+r*Math.cos(angle)).toFixed(1)+','+(cy+r*Math.sin(angle)).toFixed(1);
   }).join(' ');
 }
-const geometryTopics=['shapes','triangletypes','quadtypes','polygons','transform','symmetry','perimeter','lines','anglesum'];
 export function GeometryLab({problem:p}:LabProps) {
   const fixed=p.topic==='triangletypes'?3:p.topic==='quadtypes'||p.topic==='perimeter'?4:
     p.topic==='polygons'||p.topic==='anglesum'?p.a:p.topic==='shapes'?p.a===1?3:p.a>=2?4:6:4;
   const [sides,setSides]=useState(bound(fixed,3,9));
-  const [angle,setAngle]=useState(0);
-  const [flip,setFlip]=useState(false);
+  const [angle,setAngle]=useState(p.topic==='transform'&&p.a===2?90:0);
+  const [flip,setFlip]=useState(p.topic==='transform'&&p.a===1);
+  const [shift,setShift]=useState(p.topic==='transform'&&p.a===0?28:0);
   const [width,setWidth]=useState(p.topic==='perimeter'?p.a:5);
   const [height,setHeight]=useState(p.topic==='perimeter'?p.b:4);
   const [touched,setTouched]=useState(false);
   const rect=p.topic==='perimeter';
   const isLine=p.topic==='lines';
   const isCircle=p.topic==='shapes'&&p.a===0;
-  const rotate='rotate('+angle+' 170 105)'+(flip?' translate(340 0) scale(-1 1)':'');
-  const pts=rect?'0,0 '+(width*21)+',0 '+(width*21)+','+(height*21)+' 0,'+(height*21):
-    basePolygon(sides,Math.min(82,90),0,0);
+  const rotate='translate('+shift+' 0) rotate('+angle+' 170 105)'+(flip?' translate(340 0) scale(-1 1)':'');
+  const shapePoints=
+    p.topic==='shapes'&&p.a===2?'114,51 226,51 226,163 114,163':
+    p.topic==='shapes'&&p.a===3?'85,72 255,72 255,150 85,150':
+    p.topic==='triangletypes'&&p.a===0?'170,28 95,158 245,158':
+    p.topic==='triangletypes'&&p.a===1?'170,34 122,158 218,158':
+    p.topic==='triangletypes'&&p.a===2?'95,158 95,42 247,158':
+    p.topic==='quadtypes'?[
+      '114,51 226,51 226,163 114,163',
+      '85,72 255,72 255,150 85,150',
+      '110,66 245,66 215,154 80,154',
+      '120,66 220,66 260,154 80,154',
+    ][p.a] :
+    ['transform','symmetry'].includes(p.topic)?'105,56 205,56 205,93 152,93 152,157 105,157':
+    basePolygon(sides,75,170,105);
   const drag=(e:ReactPointerEvent<SVGSVGElement>)=>{
     if(!rect)return;
     const b=e.currentTarget.getBoundingClientRect();
@@ -61,12 +73,12 @@ export function GeometryLab({problem:p}:LabProps) {
         {(p.a===1)&&<circle cx="288" cy="105" r="8" fill="#f6b566"/>}
         {p.a!==1&&<path d="M273 94 L289 105 L273 116" stroke="#4d62c0" strokeWidth="4" fill="none"/>}
         {p.a===0&&<path d="M70 94 L54 105 L70 116" stroke="#4d62c0" strokeWidth="4" fill="none"/>}
-      </g>:<g transform={rotate}>
-        <polygon points={p.topic==='quadtypes'&&p.a===1?'90,61 250,61 250,151 90,151':
-          p.topic==='triangletypes'&&p.a===2?'90,62 90,153 250,153':
-          basePolygon(sides,75,170,105)}
-          fill="#b4c6ff" stroke="#5c75d8" strokeWidth="4" strokeLinejoin="round"/>
-        <circle cx="170" cy="105" r="4.5" fill="#3c55b9"/>
+      </g>:<g>
+        {p.topic==='transform'&&<polygon points={shapePoints} fill="#e1e5ef" stroke="#acb9d4" strokeWidth="2" />}
+        <g transform={rotate}>
+          <polygon points={shapePoints} fill="#b4c6ff" stroke="#5c75d8" strokeWidth="4" strokeLinejoin="round"/>
+          <circle cx="170" cy="105" r="4.5" fill="#3c55b9"/>
+        </g>
       </g>}
       {rect&&<text x="170" y="195" textAnchor="middle" fontSize="11" fill="#7083ae">
         주황 꼭짓점을 드래그해 크기를 변경하세요</text>}
@@ -74,6 +86,9 @@ export function GeometryLab({problem:p}:LabProps) {
     <div className="lab-math-feedback">
       <strong>{rect?'둘레 '+(2*(width+height))+'cm · 넓이 '+(width*height)+'cm²':
         isLine?'끝점을 확인해 보세요':isCircle?'원: 둥근 도형':
+        p.topic==='anglesum'?sides+'각형 · 내각의 합 '+((sides-2)*180)+'°':
+        p.topic==='transform'?'밀기 '+shift+'px · '+angle+'° 회전'+(flip?' · 뒤집음':''):
+        p.topic==='symmetry'?(p.a===0?'선대칭':'점대칭')+' 모양을 움직여 보세요':
         sides+'각형 · '+angle+'° 회전'+(flip?' · 뒤집음':'')}</strong>
     </div>
     <LabTools>
@@ -83,10 +98,12 @@ export function GeometryLab({problem:p}:LabProps) {
           <button type="button" className="lab-action" onClick={()=>{setAngle(a=>(a+45)%360);setTouched(true);}}>↻ 45° 회전</button>
           <button type="button" className="lab-action" aria-pressed={flip}
             onClick={()=>{setFlip(v=>!v);setTouched(true);}}>⇄ 좌우 뒤집기</button>
+          {p.topic==='transform'&&<button type="button" className="lab-action"
+            onClick={()=>{setShift(v=>v===0?32:0);setTouched(true);}}>→ 밀어 보기</button>}
           {['polygons','anglesum'].includes(p.topic)&&<SmallControl label="변의 수" value={sides}
             change={setSides} min={3} max={9}/>}
         </>}
-      <button type="button" className="lab-action" onClick={()=>{setAngle(0);setFlip(false);setSides(bound(fixed,3,9));setWidth(p.a);setHeight(p.b);setTouched(false);}}>
+      <button type="button" className="lab-action" onClick={()=>{setAngle(p.topic==='transform'&&p.a===2?90:0);setFlip(p.topic==='transform'&&p.a===1);setShift(p.topic==='transform'&&p.a===0?28:0);setSides(bound(fixed,3,9));setWidth(p.a);setHeight(p.b);setTouched(false);}}>
         ↺ 원래 도형</button>
     </LabTools>
     <LabHint>{rect?'꼭짓점을 손으로 드래그하거나 가로·세로를 바꾸면 둘레와 넓이가 즉시 변해요.':
