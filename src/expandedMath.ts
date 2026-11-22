@@ -10,6 +10,9 @@ export const EXTRA_TOPICS = [
   'fractionmul','symmetry','decimalmul','nets','average','probability',
   'fractiondiv','polyhedra','decimaldiv','circlegraph','surface','stacking',
   'circlearea','curvedsolids','decimalintro','decimalsub','perimeter','proportionshare',
+  'capacity','multiples','roundup','rounddown','fractioncompare','fractionsub',
+  'bandgraph','naturalfraction','circumference','anglesum','timecalc','decimalcompare',
+  'pyramid','range','gcdlcm','fractiontypes','solidviews',
 ] as const;
 export type ExtraTopic = typeof EXTRA_TOPICS[number];
 
@@ -45,6 +48,115 @@ function make(topic: ExtraTopic, a: number, b: number, answer: string, prompt: s
 /** Parameter values belong to the problem and are checked in automated tests. */
 export function createExpandedProblem(topic: ExtraTopic): Problem {
   switch(topic) {
+    case 'capacity': {
+      const a=r(1,5),b=r(1,9)*100, total=1000*a+b;
+      return make(topic,a,b,total+'mL',a+'L '+b+'mL를 mL로 바꾸면?',
+        ['1L는 1000mL예요.',a+'L는 '+(a*1000)+'mL예요.','여기에 '+b+'mL를 더하면 '+total+'mL예요.']);
+    }
+    case 'multiples': {
+      const a=r(2,9), b=r(2,8), target=a*b;
+      return make(topic,a,b,String(target),a+'의 배수는 다음 중 무엇일까요?',
+        ['배수는 어떤 수를 1배, 2배, 3배 하여 만든 수예요.',a+' × '+b+'를 계산해요.',target+'은 '+a+'의 배수예요.'],
+        [String(target+1),String(target-1),String(target+2),String(Math.max(1,target-2))].filter(x=>Number(x)%a!==0));
+    }
+    case 'roundup':
+    case 'rounddown': {
+      const a=r(112,987), b=choice([10,100] as const), up=topic==='roundup';
+      const value=(up?Math.ceil(a/b):Math.floor(a/b))*b;
+      return make(topic,a,b,String(value),a+'를 '+b+'의 자리까지 '+(up?'올림':'버림')+'하면?',
+        ['올림은 지정 자리 아래에 수가 있으면 올리고, 버림은 모두 버려요.',a+'를 '+b+' 단위의 범위로 나타내요.',
+          (up?'올림':'버림')+'한 값은 '+value+'예요.']);
+    }
+    case 'fractioncompare': {
+      const b=choice([3,4,5,6] as const),d=choice([4,5,6,8] as const);
+      const a=r(1,b-1),c=r(1,d-1);
+      const value=a*d-c*b,answer=value===0?'=':value>0?'>':'<';
+      return make(topic,a,b,answer,a+'/'+b+' □ '+c+'/'+d+' : 알맞은 기호는?',
+        ['분모가 다르면 같은 크기의 조각으로 통분해요.',a+'/'+b+'과 '+c+'/'+d+'를 같은 분모로 나타내요.',
+          '비교하면 '+a+'/'+b+' '+answer+' '+c+'/'+d+'이에요.'],['>','<','=','≈'],c,d);
+    }
+    case 'fractionsub': {
+      const b=choice([2,3,4] as const),d=b*choice([2,3] as const);
+      const a=r(1,b-1),c=r(1,Math.max(1,Math.min(d-1,a*(d/b)-1)));
+      const n=a*(d/b)-c,ans=fract(n,d);
+      return make(topic,a,b,ans,a+'/'+b+' − '+c+'/'+d+' = ?',
+        ['분모를 같게 만들어 빼요.',a+'/'+b+'을 '+a*(d/b)+'/'+d+'로 통분해요.',
+          a*(d/b)+'/'+d+' − '+c+'/'+d+' = '+ans+'이에요.'],[],c,d);
+    }
+    case 'bandgraph': {
+      const a=choice([10,20,30,40,50,60,70,80] as const),b=100-a;
+      return make(topic,a,b,a+'%','띠그래프에서 파란 부분은 전체의 몇 %일까요?',
+        ['띠그래프의 전체는 100%예요.','파란 구간의 양 끝을 눈금으로 읽어요.',
+          '파란색 부분은 '+a+'%예요.']);
+    }
+    case 'naturalfraction': {
+      const b=r(2,8),a=r(1,b-1),ans=fract(a,b);
+      return make(topic,a,b,ans,a+' ÷ '+b+'의 몫을 분수로 나타내면?',
+        ['자연수끼리 나누어떨어지지 않아도 분수로 나타낼 수 있어요.',
+          '나누어지는 수 '+a+'를 분자, 나누는 수 '+b+'를 분모로 써요.','몫은 '+ans+'이에요.']);
+    }
+    case 'circumference': {
+      const a=r(2,9),circ=(2*a*3.14).toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+      return make(topic,a,0,circ+'cm','반지름 '+a+'cm인 원의 원주는? (원주율 3.14)',
+        ['원의 둘레를 원주라고 해요.','원주 = 지름 × 원주율 = '+(2*a)+' × 3.14예요.',
+          '원주는 '+circ+'cm예요.']);
+    }
+    case 'anglesum': {
+      const a=choice([3,4] as const),value=(a-2)*180;
+      return make(topic,a,0,value+'°',a+'각형의 내각의 크기의 합은?',
+        ['삼각형 내각의 합은 180°예요.',a+'각형은 꼭짓점에서 삼각형 '+(a-2)+'개로 나눌 수 있어요.',
+          '내각의 합은 '+value+'°예요.']);
+    }
+    case 'timecalc': {
+      const a=r(1,3),b=r(10,35),c=r(10,20),ans=b+c;
+      return make(topic,a,b,ans+'분',b+'분과 '+c+'분을 더하면?',
+        ['시간 단위를 먼저 같게 맞춰요.',b+'분 + '+c+'분을 계산해요.',
+          '더한 시간은 '+ans+'분이에요.'],[],c);
+    }
+    case 'decimalcompare': {
+      const a=r(11,98),b=r(10,99),other=a===b?b+1:b;
+      const sign=a>other?'>':'<';
+      return make(topic,a,other,sign,(a/100).toFixed(2)+' □ '+(other/100).toFixed(2)+' : 알맞은 기호는?',
+        ['소수점을 맞춰서 각 자리의 숫자를 비교해요.','큰 자릿값부터 차례로 비교해요.',
+          (a/100).toFixed(2)+' '+sign+' '+(other/100).toFixed(2)+'이에요.'],['>','<','=','≈']);
+    }
+    case 'pyramid': {
+      const a=choice([3,4,5,6] as const),answer=String(a+1);
+      return make(topic,a,0,answer,'밑면이 '+a+'각형인 각뿔의 꼭짓점은 몇 개일까요?',
+        ['각뿔은 밑면 하나와 위쪽의 꼭짓점 하나가 있어요.','밑면에 꼭짓점이 '+a+'개 있어요.',
+          '위쪽 꼭짓점 하나를 더하면 '+answer+'개예요.']);
+    }
+    case 'range': {
+      const a=r(10,40),b=r(1,10),atBoundary=Math.random()>0.5,mode=atBoundary?'이상':'초과';
+      const correct=atBoundary?'포함':'포함하지 않음';
+      return make(topic,a,b,correct,a+' '+mode+'인 수의 범위에 '+a+'는 포함될까요?',
+        ['이상은 경계 수까지 포함하고, 초과는 포함하지 않아요.',a+' '+mode+'은 경계가 '+a+'인 범위예요.',
+          a+'는 '+(atBoundary?'포함돼요.':'포함되지 않아요.')],
+        ['포함','포함하지 않음','항상 작음','알 수 없음'],undefined,undefined,mode);
+    }
+    case 'gcdlcm': {
+      const n=r(2,7),m=r(2,6),a=n*2,b=m*2,max=r(0,1)===0;
+      const k=gcd(a,b),result=max?k:a*b/k;
+      return make(topic,a,b,String(result),a+'와 '+b+'의 '+(max?'최대공약수':'최소공배수')+'는?',
+        ['공약수는 두 수를 모두 나누는 수이고 공배수는 두 수가 공통으로 갖는 배수예요.',
+          max?'두 수의 공약수 중 가장 큰 수를 찾아요.':'두 수가 공통으로 갖는 배수 중 가장 작은 수를 찾아요.',
+          '정답은 '+result+'이에요.'],[],undefined,undefined,max?'gcd':'lcm');
+    }
+    case 'fractiontypes': {
+      const a=r(0,2),b=r(3,8),c=a===0?r(1,b-1):a===1?r(b,b+5):r(1,b-1);
+      const text=a===2?'1과 '+c+'/'+b:c+'/'+b;
+      const ans=['진분수','가분수','대분수'][a];
+      return make(topic,a,b,ans,text+'는 어떤 종류의 분수인가요?',
+        ['분자와 분모를 비교하거나 자연수가 있는지 살펴봐요.',
+          '진분수는 분자가 더 작고, 가분수는 분자가 크거나 같으며, 대분수는 자연수와 진분수가 합쳐진 수예요.',
+          '그래서 '+text+'는 '+ans+'예요.'],['진분수','가분수','대분수','단위분수'],c);
+    }
+    case 'solidviews': {
+      const a=r(2,5),b=r(2,4),c=r(2,4),ans=a*b;
+      return make(topic,a,b,String(ans),'가로 '+a+'개, 세로 '+b+'개로 나무를 쌓았다면 위에서 본 칸의 개수는?',
+        ['위에서 내려다보면 층의 높이보다 바닥의 칸 배치를 봐요.',
+          '가로 '+a+'칸, 세로 '+b+'칸이 보여요.','위에서 본 칸은 '+ans+'개예요.'],[],c);
+    }
     case 'count9': {
       const a=r(1,9);
       return make(topic,a,0,String(a),'그림에 있는 블록은 모두 몇 개일까요?',
