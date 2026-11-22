@@ -67,6 +67,7 @@ export default function App({initialGrade=5,initialUnitId,initialProgress,initia
   const [progress, setProgress] = useState<LearningProgress>(()=>initialProgress?
     parseProgress(initialProgress):readProgress());
   const lastActivityAt=useRef(Date.now());
+  const lastInteractionReportAt=useRef(0);
   const [explored, setExplored] = useState(false);
   const gradeInfo = grades.find(item => item.grade === grade)!;
   const currentInfo = gradeInfo.chapters.find(item => item.id === unitId) ?? gradeInfo.chapters[0];
@@ -305,7 +306,7 @@ export default function App({initialGrade=5,initialUnitId,initialProgress,initia
             <h3>{phase === 'concept' ? '직접 움직여 원리를 발견해요'
               : phase === 'question' ? '그림을 보면서 풀어 보세요'
               : '정답까지 가는 길을 살펴봐요'}</h3>
-            <Visuals phase={phase} step={step} problem={problem} onEngage={() => {setExplored(true);onLearningEvent?.({event_type:'lab_interaction',unit_id:unitId,topic});}} />
+            <Visuals phase={phase} step={step} problem={problem} onEngage={() => {setExplored(true);const now=Date.now();if(now-lastInteractionReportAt.current>=5000){lastInteractionReportAt.current=now;onLearningEvent?.({event_type:'lab_interaction',unit_id:unitId,topic});}}} />
             <div className="visual-caption"><span aria-hidden="true">✦</span> {explored ? '내 손으로 수학을 변화시켰어요! 다른 방법도 탐구해 보세요.' : '블록·선·도형을 클릭하거나 손가락으로 움직여 보세요.'}</div>
           </section>
 
