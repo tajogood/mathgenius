@@ -103,7 +103,7 @@ export default function StandardStudio({initialId,onExit}:Props){
         <label htmlFor="standard-band">학년군</label>
         <select id="standard-band" value={filter} onChange={e=>setFilter(e.target.value)}>
           <option value="all">전체 학년군 · 121개</option>
-          {sections.map(section=><option value={section.name} key={section.name}>
+          {sections.map(section=><option value={section.name.replace('군','')} key={section.name}>
             {section.name} · {section.lessons.length}개</option>)}
         </select>
         <nav className="studio-list" aria-label="성취기준 목록">
