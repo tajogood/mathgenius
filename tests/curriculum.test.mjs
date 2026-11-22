@@ -58,7 +58,7 @@ function verifyExpanded(p) {
     case 'stacking': return numeric(a*b*c);
     case 'circlearea': return String(Number((a*a*3.14).toFixed(2)))+'cm²';
     case 'perimeter': return 2*(a+b)+'cm';
-    case 'proportionshare': return a*c+'개';
+    case 'proportionshare': return a*(c/(a+b))+'개';
     case 'polyhedra': return numeric(a*2);
     case 'nets': return '6개';
     case 'probability': return fraction(a,10);
