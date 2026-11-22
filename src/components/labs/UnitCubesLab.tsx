@@ -1,11 +1,9 @@
-import {useRef,useState} from 'react';
-import type {PointerEvent as ReactPointerEvent} from 'react';
+import {useState} from 'react';
 import type {LabProps} from './types';
 import {LabHint,LabTools,SmallControl,bound} from './types';
 
 const point=(x:number,y:number,z:number)=>({x:170+(x-y)*18,y:182+(x+y)*9-z*19});
 const polygon=(corners:{x:number;y:number}[])=>corners.map(p=>p.x+','+p.y).join(' ');
-type CameraDrag={start:number;rotation:number};
 export function UnitCubesLab({problem:p}:LabProps){
  const initialWidth=bound(p.a,2,5),initialDepth=bound(p.b,2,5);
  const initialHeight=bound(p.c??3,2,5);
@@ -14,7 +12,6 @@ export function UnitCubesLab({problem:p}:LabProps){
  const [layers,setLayers]=useState(1);
  const [highlight,setHighlight]=useState<Set<number>>(()=>new Set());
  const [view,setView]=useState(0);
- const drag=useRef<CameraDrag|null>(null);
  const totalOne=width*depth,volume=totalOne*layers;
  const resetRows=()=>setHighlight(new Set());
  const setDimension=(axis:'width'|'depth',value:number)=>{
@@ -27,7 +24,6 @@ export function UnitCubesLab({problem:p}:LabProps){
    if(next.has(row))next.delete(row);else next.add(row);
    return next;
  });
- const rotationFactors=view%2===0?{a:1,b:1}:{a:-1,b:1};
  const P=(x:number,y:number,z:number)=>{
    if(view%2===0)return point(x,y,z);
    return point(width-x,y,z);
