@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { grades, lessonInfo } from './curriculum';
+import { grades, curriculumUnits, TOTAL_UNITS, type Chapter } from './curriculum';
 import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
 import Visuals from './components/Visuals';
 
 type Phase = 'concept' | 'question' | 'solution';
-type Progress = { finished: Topic[]; attempts: number; correct: number };
+type Progress = { finished: string[]; attempts: number; correct: number };
 const storageKey = 'mathgenius-progress-v1';
 
 function readProgress(): Progress {
@@ -12,7 +12,16 @@ function readProgress(): Progress {
     const value = JSON.parse(window.localStorage.getItem(storageKey) || 'null');
     if (value && Array.isArray(value.finished) && typeof value.attempts === 'number' && typeof value.correct === 'number') {
       return {
-        finished: value.finished.filter((x: unknown): x is Topic => TOPICS.includes(x as Topic)),
+        finished: value.finished.flatMap((x: unknown) => {
+          if (typeof x !== 'string') return [];
+          if (curriculumUnits.some(unit => unit.id === x)) return [x];
+          // Backward-compatible migration from the original 18-topic demo.
+          if (TOPICS.includes(x as Topic)) {
+            const legacy = curriculumUnits.find(unit => unit.topics.includes(x as Topic));
+            return legacy ? [legacy.id] : [];
+          }
+          return [];
+        }),
         attempts: Math.max(0, value.attempts),
         correct: Math.max(0, value.correct),
       };
@@ -26,7 +35,7 @@ const phaseLabels: Record<Phase, string> = {
   question: '문제 도전하기',
   solution: '풀이 확인하기',
 };
-const topicIcons: Record<Topic, string> = {
+const topicIcons: Partial<Record<Topic, string>> = {
   split: '🍎', addsub: '➕', shapes: '🔺',
   carry: '🧩', multiply: '✖️', clock: '🕒',
   divide: '🍬', fractionintro: '🍕', lengthtime: '📏',
@@ -37,7 +46,8 @@ const topicIcons: Record<Topic, string> = {
 
 export default function App() {
   const [grade, setGrade] = useState(5);
-  const [topic, setTopic] = useState<Topic | null>('fraction');
+  const [unitId, setUnitId] = useState('5-1-5');
+  const [topic, setTopic] = useState<Topic>('fraction');
   const [phase, setPhase] = useState<Phase>('concept');
   const [step, setStep] = useState(0);
   const [blue, setBlue] = useState(2);
@@ -46,7 +56,7 @@ export default function App() {
   const [checked, setChecked] = useState(false);
   const [progress, setProgress] = useState<Progress>(readProgress);
   const gradeInfo = grades.find(item => item.grade === grade)!;
-  const currentInfo = topic ? lessonInfo[topic] : null;
+  const currentInfo = gradeInfo.chapters.find(item => item.id === unitId) ?? gradeInfo.chapters[0];
   const right = selected === problem.answer;
   const explanations = solutionSteps(problem);
   const completedCount = new Set(progress.finished).size;
@@ -55,8 +65,10 @@ export default function App() {
     try { window.localStorage.setItem(storageKey, JSON.stringify(progress)); } catch { /* 저장 제한 시 무시 */ }
   }, [progress]);
 
-  function startTopic(nextTopic: Topic, nextGrade: number) {
-    setGrade(nextGrade);
+  function startTopic(unit: Chapter) {
+    const nextTopic = unit.topics[0];
+    setGrade(unit.grade);
+    setUnitId(unit.id);
     setTopic(nextTopic);
     setPhase('concept');
     setStep(0);
@@ -64,16 +76,12 @@ export default function App() {
     setProblem(createProblem(nextTopic));
     setSelected(null);
     setChecked(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function selectGrade(nextGrade: number) {
     const info = grades.find(item => item.grade === nextGrade)!;
-    const available = info.chapters[0]?.topic;
-    if (available) startTopic(available, nextGrade);
-    else {
-      setGrade(nextGrade);
-      setTopic(null);
-    }
+    startTopic(info.chapters[0]);
   }
 
   function nextConcept() {
@@ -81,6 +89,7 @@ export default function App() {
     else {
       setPhase('question');
       setStep(0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
@@ -95,16 +104,19 @@ export default function App() {
   }
 
   function newQuestion() {
-    if (!topic) return;
     setProgress(previous => ({
       ...previous,
-      finished: previous.finished.includes(topic) ? previous.finished : [...previous.finished, topic],
+      finished: previous.finished.includes(unitId) ? previous.finished : [...previous.finished, unitId],
     }));
-    setProblem(createProblem(topic));
+    const selectedIndex = currentInfo.topics.indexOf(topic);
+    const nextTopic = currentInfo.topics[(selectedIndex + 1) % currentInfo.topics.length];
+    setTopic(nextTopic);
+    setProblem(createProblem(nextTopic));
     setSelected(null);
     setChecked(false);
     setStep(0);
     setPhase('question');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   return <div className={"app-shell" + (phase === "question" && topic ? " app-shell--question" : "")}>
@@ -125,23 +137,24 @@ export default function App() {
         >{item.grade}<small>학년</small></button>)}
       </div>
 
-      <div className="sidebar-section-label"><span>{grade}학년 수학 단원</span><span>{gradeInfo.chapters.length}개</span></div>
+      <div className="sidebar-section-label"><span>{grade}학년 전체 단원</span><span>{gradeInfo.chapters.length}개</span></div>
       <nav className="chapter-list" aria-label={grade + '학년 수학 단원'}>
-        {gradeInfo.chapters.map((chapter, i) => {
-          const available = chapter.topic;
-          const selectedChapter = available === topic;
-          const done = progress.finished.includes(available);
-          return <button
-            key={chapter.title}
-            className={'chapter' + (selectedChapter ? ' chapter--active' : '')}
-            type="button"
-            onClick={() => startTopic(available, grade)}
-            aria-current={selectedChapter ? 'page' : undefined}
-          >
-            <span className="chapter-number">{String(i + 1).padStart(2, '0')}</span>
-            <span className="chapter-main"><strong>{chapter.title}</strong><small>{chapter.label}</small></span>
-            <span className="chapter-state">{done ? '✓' : '→'}</span>
-          </button>;
+        {gradeInfo.chapters.map(chapter => {
+          const selectedChapter = chapter.id === unitId;
+          const done = progress.finished.includes(chapter.id);
+          return <div className="chapter-row-group" key={chapter.id}>
+            {chapter.number === 1 && <div className="semester-heading">{chapter.semester}학기 · {grade}학년</div>}
+            <button
+              className={'chapter' + (selectedChapter ? ' chapter--active' : '')}
+              type="button"
+              onClick={() => startTopic(chapter)}
+              aria-current={selectedChapter ? 'page' : undefined}
+            >
+              <span className="chapter-number">{String(chapter.number).padStart(2, '0')}</span>
+              <span className="chapter-main"><strong>{chapter.title}</strong><small>{chapter.label}</small></span>
+              <span className="chapter-state">{done ? '✓' : '→'}</span>
+            </button>
+          </div>;
         })}
       </nav>
 
@@ -153,11 +166,23 @@ export default function App() {
     </aside>
 
     <main className="main">
+      <div className="mobile-unit-picker">
+        <label htmlFor="lesson-picker">{grade}학년 · 학습할 단원</label>
+        <select id="lesson-picker" value={unitId}
+          onChange={event => {
+            const selectedUnit = gradeInfo.chapters.find(item => item.id === event.target.value);
+            if (selectedUnit) startTopic(selectedUnit);
+          }}>
+          {gradeInfo.chapters.map(unit => <option key={unit.id} value={unit.id}>
+            {unit.semester}학기 {unit.number}. {unit.title}
+          </option>)}
+        </select>
+      </div>
       <header className="top-bar">
-        <div className="breadcrumb">수학천재 <span>›</span> {grade}학년 <span>›</span> {topic ? '개념 학습' : '단원 선택'}</div>
-        <div className="top-progress" title="18개 체험 단원의 학습 완료 현황">
+        <div className="breadcrumb">수학천재 <span>›</span> {grade}학년 <span>›</span> {currentInfo.semester}학기 <span>›</span> 개념 학습</div>
+        <div className="top-progress" title="71개 단원의 학습 완료 현황">
           <span className="progress-star" aria-hidden="true">★</span>
-          <strong>{completedCount}/{TOPICS.length}</strong>
+          <strong>{completedCount}/{TOTAL_UNITS}</strong>
           <span>개념 체험 완료</span>
         </div>
       </header>
@@ -166,7 +191,7 @@ export default function App() {
         <div className="welcome-text">
           <div className="eyebrow"><span className="eyebrow-dot" /> 생각이 자라는 수학 시간</div>
           <h1>{currentInfo ? currentInfo.title : grade + '학년 수학을 준비하고 있어요'}</h1>
-          <p>{currentInfo ? currentInfo.subtitle : '이 학년의 새로운 인터랙티브 수학 수업을 준비하고 있어요. 먼저 2, 5, 6학년 체험 단원을 둘러보세요.'}</p>
+          <p>{currentInfo ? currentInfo.subtitle : '이 학년의 수학 수업을 만나 보세요. 먼저 2, 5, 6학년 체험 단원을 둘러보세요.'}</p>
         </div>
         <div className="hero-illustration" aria-hidden="true">
           <span className="floating-figure figure-circle">½</span>
@@ -175,10 +200,10 @@ export default function App() {
         </div>
       </div>
 
-      {topic && currentInfo ? <>
+      {currentInfo ? <>
         <div className="lesson-heading">
           <div>
-            <span className="lesson-tag">{topicIcons[topic]} {currentInfo.tag}</span>
+            <span className="lesson-tag">{topicIcons[topic] ?? '🧠'} {currentInfo.tag}</span>
             <h2>오늘의 미션 <span>✨</span></h2>
           </div>
           <div className="lesson-level">LEVEL 01 <span>· 기초 개념</span></div>
@@ -190,7 +215,7 @@ export default function App() {
               key={id}
               className={'step-button' + (phase === id ? ' step-button--active' : '')}
               type="button"
-              onClick={() => { if (id !== 'solution' || checked) { setPhase(id); setStep(0); } }}
+              onClick={() => { if (id !== 'solution' || checked) { setPhase(id); setStep(0); window.scrollTo({top:0,behavior:'smooth'}); } }}
               disabled={id === 'solution' && !checked}
               aria-current={phase === id ? 'step' : undefined}
             >
@@ -273,7 +298,7 @@ export default function App() {
         <h2>{grade}학년 수업은 준비 중이에요</h2>
         <p>앞으로 이런 단원들을 그림으로 배우게 될 거예요.</p>
         <div className="coming-list">{gradeInfo.chapters.map(item => <span key={item.title}>{item.title}</span>)}</div>
-        <button type="button" className="btn btn--primary" onClick={() => startTopic('fraction', 5)}>5학년 분수 학습 체험하기 →</button>
+        <button type="button" className="btn btn--primary" onClick={() => startTopic(grades[4].chapters[4])}>5학년 분수 학습 체험하기 →</button>
       </section>}
 
       <footer className="page-footer">© 2026 수학천재 · 교육 콘텐츠 개발 초기 버전 · 학습 기록은 이 기기에만 저장됩니다.</footer>
