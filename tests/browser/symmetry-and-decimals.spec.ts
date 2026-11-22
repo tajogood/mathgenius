@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 async function openStandard(page: import('@playwright/test').Page,id:string) {
-  await page.goto('/');
+  await page.goto('/?guest=1');
   await page.getByRole('button',{name:/성취기준 121개 학습/}).click();
   await page.locator('#standard-search').fill(id);
   const entry=page.locator('.studio-lesson-link').filter({hasText:id});
