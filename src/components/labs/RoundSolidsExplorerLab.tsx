@@ -78,31 +78,31 @@ function RoundNet({shape,select,selected}:{
  </svg>;
  // Exact sector geometry: radius=slant height; arc length=base circumference.
  const angle=coneNetSectorAngle(1,2.02);
- const R=91,center={x:163,y:108};
- const start=-Math.PI/2-angle/2,end=-Math.PI/2+angle/2;
+ const R=91,center={x:163,y:80};
+ const start=Math.PI/2-angle/2,end=Math.PI/2+angle/2;
  const ax=center.x+R*Math.cos(start),ay=center.y+R*Math.sin(start);
  const bx=center.x+R*Math.cos(end),by=center.y+R*Math.sin(end);
  const path='M'+center.x+' '+center.y+'L'+ax+' '+ay+'A'+R+' '+R+' 0 0 1 '+bx+' '+by+'Z';
- return <svg viewBox="0 0 300 230" className="round-net-svg" role="group"
+ return <svg viewBox="0 0 300 260" className="round-net-svg" role="group"
    aria-label="원뿔 밑면 원 하나와 옆면 부채꼴 전개도">
    <g role="button" tabIndex={0} aria-label="원뿔의 부채꼴 옆면 선택"
      onClick={()=>select('curve')}
      onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select('curve');}}}>
       <path d={path} fill="#a6bdf3" stroke={selected==='curve'?'#eb953e':'#607acc'}
         strokeWidth={selected==='curve'?4:2.5}/>
-      <text x="163" y="45" fontSize="11" fontWeight="900"
+      <text x="163" y="129" fontSize="11" fontWeight="900"
         textAnchor="middle" fill="#5268b0" pointerEvents="none">부채꼴 옆면</text>
    </g>
    <g role="button" tabIndex={0} aria-label="원뿔의 원형 밑면 선택"
      onClick={()=>select('base')}
      onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select('base');}}}>
-     <circle cx="163" cy="173" r="31" fill="#f2d098"
+     <circle cx="163" cy="202" r="31" fill="#f2d098"
        stroke={selected==='base'?'#eb953e':'#8978c2'}
        strokeWidth={selected==='base'?4:2.5}/>
-     <text x="163" y="178" fontSize="11" fill="#826b9c"
+     <text x="163" y="207" fontSize="11" fill="#826b9c"
        textAnchor="middle" fontWeight="900" pointerEvents="none">밑면</text>
    </g>
-   <text x="150" y="220" textAnchor="middle" fontSize="10" fill="#7086b4">
+   <text x="150" y="252" textAnchor="middle" fontSize="10" fill="#7086b4">
      원 1개 + 부채꼴 옆면</text>
  </svg>;
 }
