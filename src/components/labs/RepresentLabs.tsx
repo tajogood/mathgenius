@@ -25,7 +25,7 @@ function PieceBar({n,d,color,onChange,title}:PieceBarProps) {
 
 function fractionInputs(p:LabProps['problem']) {
   const t=p.topic;
-  const firstN=t==='fractiontypes'?p.c??1:p.a;
+  const firstN=t==='fractiontypes'?(p.a===2?p.b+(p.c??1):p.c??1):p.a;
   const firstD=t==='samefraction'?p.c??p.b:t==='probability'?10:p.b;
   const two=['fraction','fractionmul','fractiondiv','fractioncompare','fractionsub','samefraction'].includes(t);
   const secondN=t==='samefraction'?p.b:p.c??0;
