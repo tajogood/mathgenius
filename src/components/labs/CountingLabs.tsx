@@ -67,7 +67,8 @@ export function PlaceLab({problem:p}:LabProps) {
       }).reverse()}
     </div>
     <div className="lab-math-feedback"><strong>{current} × {base.toLocaleString('ko-KR')}</strong>
-      <span>= {(current*base).toLocaleString('ko-KR')}</span></div>
+      <span>= {(current*base).toLocaleString('ko-KR')}</span>
+      {p.topic==='column3'&&<strong> · {practice} + {p.b} = {practice+p.b}</strong>}</div>
     <LabTools>
       <SmallControl label="선택한 자리" value={place} change={setPlace} min={0} max={digits.length-1}/>
       <button className="lab-action" type="button" onClick={()=>setPractice(x=>bound(x+base,0,max))}>선택 자리 +1</button>
@@ -102,7 +103,14 @@ export function ArraysLab({problem:p}:LabProps) {
         {Array.from({length:cols},(_,j)=><i key={j}/>)}
       </button>)}
     </div>
-    <LabHint>한 줄을 터치하면 색칠돼요. 선택한 {highlight.size}줄에는 {highlighted}개가 있어요.</LabHint>
+    {p.topic==='divremainder'&&<div className="lab-remainder">
+      <strong>남은 블록 {p.a % p.b}개</strong>
+      <div aria-label={'나머지 '+(p.a%p.b)+'개'}>
+        {Array.from({length:p.a%p.b},(_,i)=><span key={i}/>)}
+      </div>
+    </div>}
+    <LabHint>한 줄을 터치하면 색칠돼요. 선택한 {highlight.size}줄에는 {highlighted}개가 있어요.
+      {p.topic==='divremainder'?' 남은 블록은 나누는 수보다 적어야 해요.':''}</LabHint>
     <LabTools>
       <SmallControl label={isArea?'가로':'한 묶음'} value={cols} change={setCols} min={1} max={10}/>
       <SmallControl label={isArea?'세로':'묶음 수'} value={rows} change={v=>{setRows(v);setHighlight(new Set());}} min={1} max={8}/>
