@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { grades, lessonInfo } from './curriculum';
-import { createProblem, solutionSteps, type Problem, type Topic } from './math';
+import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
 import Visuals from './components/Visuals';
 
 type Phase = 'concept' | 'question' | 'solution';
@@ -12,7 +12,7 @@ function readProgress(): Progress {
     const value = JSON.parse(window.localStorage.getItem(storageKey) || 'null');
     if (value && Array.isArray(value.finished) && typeof value.attempts === 'number' && typeof value.correct === 'number') {
       return {
-        finished: value.finished.filter((x: unknown) => x === 'carry' || x === 'fraction' || x === 'ratio'),
+        finished: value.finished.filter((x: unknown): x is Topic => TOPICS.includes(x as Topic)),
         attempts: Math.max(0, value.attempts),
         correct: Math.max(0, value.correct),
       };
@@ -27,9 +27,12 @@ const phaseLabels: Record<Phase, string> = {
   solution: '풀이 확인하기',
 };
 const topicIcons: Record<Topic, string> = {
-  carry: '🧩',
-  fraction: '🍰',
-  ratio: '🔵',
+  split: '🍎', addsub: '➕', shapes: '🔺',
+  carry: '🧩', multiply: '✖️', clock: '🕒',
+  divide: '🍬', fractionintro: '🍕', lengthtime: '📏',
+  angles: '📐', transform: '🔄', decimaladd: '🔢',
+  fraction: '🍰', reduce: '🧮', area: '🟦',
+  ratio: '🔵', proportion: '⚖️', volume: '🧊',
 };
 
 export default function App() {
@@ -65,7 +68,7 @@ export default function App() {
 
   function selectGrade(nextGrade: number) {
     const info = grades.find(item => item.grade === nextGrade)!;
-    const available = info.chapters.find(item => item.topic)?.topic;
+    const available = info.chapters[0]?.topic;
     if (available) startTopic(available, nextGrade);
     else {
       setGrade(nextGrade);
@@ -104,7 +107,7 @@ export default function App() {
     setPhase('question');
   }
 
-  return <div className="app-shell">
+  return <div className={"app-shell" + (phase === "question" && topic ? " app-shell--question" : "")}>
     <aside className="sidebar">
       <div className="brand">
         <span className="brand-symbol" aria-hidden="true">✦</span>
@@ -126,19 +129,18 @@ export default function App() {
       <nav className="chapter-list" aria-label={grade + '학년 수학 단원'}>
         {gradeInfo.chapters.map((chapter, i) => {
           const available = chapter.topic;
-          const selectedChapter = Boolean(available && available === topic);
-          const done = available && progress.finished.includes(available);
+          const selectedChapter = available === topic;
+          const done = progress.finished.includes(available);
           return <button
             key={chapter.title}
-            className={'chapter' + (selectedChapter ? ' chapter--active' : '') + (!available ? ' chapter--unavailable' : '')}
+            className={'chapter' + (selectedChapter ? ' chapter--active' : '')}
             type="button"
-            onClick={() => { if (available) startTopic(available, grade); }}
-            disabled={!available}
+            onClick={() => startTopic(available, grade)}
             aria-current={selectedChapter ? 'page' : undefined}
           >
             <span className="chapter-number">{String(i + 1).padStart(2, '0')}</span>
             <span className="chapter-main"><strong>{chapter.title}</strong><small>{chapter.label}</small></span>
-            <span className="chapter-state">{done ? '✓' : available ? '→' : '준비 중'}</span>
+            <span className="chapter-state">{done ? '✓' : '→'}</span>
           </button>;
         })}
       </nav>
@@ -153,9 +155,9 @@ export default function App() {
     <main className="main">
       <header className="top-bar">
         <div className="breadcrumb">수학천재 <span>›</span> {grade}학년 <span>›</span> {topic ? '개념 학습' : '단원 선택'}</div>
-        <div className="top-progress" title="현재 체험 가능한 3개 단원의 완료 횟수 기준">
+        <div className="top-progress" title="18개 체험 단원의 학습 완료 현황">
           <span className="progress-star" aria-hidden="true">★</span>
-          <strong>{completedCount}/3</strong>
+          <strong>{completedCount}/{TOPICS.length}</strong>
           <span>개념 체험 완료</span>
         </div>
       </header>
