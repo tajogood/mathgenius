@@ -151,7 +151,7 @@ export function RectangleConceptLab({problem:p}:LabProps) {
         {areaDone&&<span className="rect-concept-done">✓ 전체 넓이 {width} × {height} = {total}cm²</span>}
       </div>
       <p>{areaDone?'모든 칸을 채웠어요! 1cm² 정사각형 '+total+'개가 직사각형 안에 들어가요.':
-        '넓이는 테두리의 길이가 아니라 <strong>안쪽을 채운 1cm² 칸의 개수</strong>예요.'}</p>
+        <>넓이는 테두리의 길이가 아니라 <strong>안쪽을 채운 1cm² 칸의 개수</strong>예요.</>}</p>
     </div>:<div className="rect-teaching" aria-live="polite" data-testid="rectangle-perimeter-equation">
       <div className="rect-teaching-lead">
         <strong>따라간 변 {edges.size} / 4개</strong><span>지금까지 {traced}cm</span>
@@ -167,7 +167,7 @@ export function RectangleConceptLab({problem:p}:LabProps) {
         </span>}
       </div>
       <p>{perimeterDone?'한 바퀴 돌았어요! 둘레는 바깥 경계를 따라 걸은 길이 '+perimeter+'cm예요.':
-        '둘레는 안쪽의 칸 수가 아니라 바깥쪽 <strong>네 변의 길이를 모두 더한 값</strong>이에요.'}</p>
+        <>둘레는 안쪽의 칸 수가 아니라 바깥쪽 <strong>네 변의 길이를 모두 더한 값</strong>이에요.</>}</p>
     </div>}
     <LabTools>
       <button type="button" className="lab-action rect-next-step" onClick={advance}>
