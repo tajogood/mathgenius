@@ -23,6 +23,28 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
     expect(tile.getAttribute('aria-pressed')).toBe('false');
   });
 
+  it('수 가르기는 블록을 옮길 때 남은 수를 즉시 계산한다',()=>{
+    render(<BlocksLab {...props(problem('split',7,3))}/>);
+    for(let i=1;i<=3;i++)fireEvent.click(screen.getByRole('button',{name:new RegExp(i+'번째 블록 옮기기')}));
+    expect(screen.getByText('4개 남음 · 옮긴 블록 3개')).toBeTruthy();
+    expect(screen.getByText(/7 = 3 \+ 4!/)).toBeTruthy();
+  });
+
+  it('뺄셈은 블록을 실제로 제거하고 남은 값을 표시한다',()=>{
+    const p={...problem('addsub',8,2),mode:'subtract'};
+    render(<BlocksLab {...props(p)}/>);
+    fireEvent.click(screen.getByRole('button',{name:/1번째 블록 빼기/}));
+    fireEvent.click(screen.getByRole('button',{name:/2번째 블록 빼기/}));
+    expect(screen.getByText('6개 남음 · 뺀 블록 2개')).toBeTruthy();
+  });
+
+  it('분류 학습에서는 파란색 블록만 따로 세어 준다',()=>{
+    render(<BlocksLab {...props(problem('classify',3,2))}/>);
+    fireEvent.click(screen.getByRole('button',{name:/1번째 블록 세기/}));
+    fireEvent.click(screen.getByRole('button',{name:/4번째 블록 세기/}));
+    expect(screen.getByText('1개 파란 블록 선택 · 주황 1개 선택')).toBeTruthy();
+  });
+
   it('10개 묶음은 실제 개수대로 더하고 마지막 3개 묶음도 반영한다',()=>{
     render(<BlocksLab {...props(problem('count100',23,0))}/>);
     fireEvent.click(screen.getByRole('button',{name:/1번째 10개 묶음/}));
