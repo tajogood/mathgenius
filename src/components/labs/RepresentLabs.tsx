@@ -4,12 +4,13 @@ import type { LabProps } from './types';
 import { LabHint, LabTools, SmallControl, bound } from './types';
 import { displayNumber } from '../../interactions.ts';
 import { gcd, lcm } from '../../math.ts';
+import { Fraction, MathText } from '../MathText.tsx';
 
 type PieceBarProps = { n:number; d:number; color:'blue'|'amber'; onChange:(value:number)=>void; title:string };
 function PieceBar({n,d,color,onChange,title}:PieceBarProps) {
   const rows=Math.max(1,Math.ceil(n/d));
   return <div className="lab-fraction-group">
-    <div className="lab-fraction-caption"><strong>{title}</strong><span>{n}/{d}</span></div>
+    <div className="lab-fraction-caption"><strong>{title}</strong><span><Fraction numerator={n} denominator={d}/></span></div>
     {Array.from({length:rows},(_,row)=>
       <div className="lab-fraction-row" role="group" key={row} style={{gridTemplateColumns:'repeat('+d+',minmax(0,1fr))'}}>
         {Array.from({length:d},(_,i)=>{
@@ -82,7 +83,7 @@ export function FractionsLab({problem:p,phase,step}:LabProps) {
   const reset=()=>{setFactor(1);setLeft(firstN);setRight(secondN);setNotice('');};
   return <div className="lab-body">
     <div className="lab-hero-count">
-      <strong>{left}/{totalDen}</strong><span> = {displayNumber(fractionValue,3)} 전체</span>
+      <strong><Fraction numerator={left} denominator={totalDen}/></strong><span> = {displayNumber(fractionValue,3)} 전체</span>
     </div>
     <div className="lab-fractions">
       <div className="lab-whole-ruler"><span>전체 길이는 언제나 같아요 = 1</span></div>
@@ -105,14 +106,14 @@ export function FractionsLab({problem:p,phase,step}:LabProps) {
       <small>파란 세로 부분 × 주황 가로 부분 = 겹친 부분</small>
     </div>}
     {two?<div className="lab-math-feedback">
-      <span>{left}/{totalDen} {operation} {right}/{secondD}</span>
-      <strong>{compare?'비교 결과: '+calculated:
+      <span className="math-expression"><Fraction numerator={left} denominator={totalDen}/> {operation} <Fraction numerator={right} denominator={secondD}/></span>
+      <strong><MathText text={compare?'비교 결과: '+calculated:
         operation?'= '+calculated:
-        same?'같은 크기예요!':fractionValue>rhsValue?'파란색이 더 커요':'주황색이 더 커요'}</strong>
+        same?'같은 크기예요!':fractionValue>rhsValue?'파란색이 더 커요':'주황색이 더 커요'}/></strong>
     </div>:<div className="lab-math-feedback">
       <span>색칠된 부분</span>
-      <strong>{left}/{totalDen} ({displayNumber(fractionValue*100,1)}%)</strong>
-      {p.topic==='reduce'&&<span>기약분수 {calculated}</span>}
+      <strong><Fraction numerator={left} denominator={totalDen}/> ({displayNumber(fractionValue*100,1)}%)</strong>
+      {p.topic==='reduce'&&<span>기약분수 <MathText text={calculated}/></span>}
     </div>}
     {notice&&<LabHint>{notice}</LabHint>}
     <LabTools>
