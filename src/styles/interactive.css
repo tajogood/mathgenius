@@ -274,3 +274,11 @@
  .app-shell--question .lab-solid-model {height:100px;}
  .app-shell--question .lab-solid-model svg {max-height:100px;}
 }
+
+/* Grade 4 line graphs: the circular points can be dragged, unlike passive bars. */
+.lab-linechart-svg {width:min(100%,400px);height:auto;max-height:165px;display:block;touch-action:none;}
+.lab-linechart-handle {cursor:grab;transition:r .15s,fill .15s;}
+.lab-linechart-handle:hover,.lab-linechart-handle:focus-visible {r:15;fill:#f0b76e;cursor:grab;}
+.lab-linechart-handle:active {cursor:grabbing;}
+@media(max-width:850px) {.app-shell--question .lab-linechart-svg{max-height:126px;}}
+@media(max-width:500px) {.app-shell--question .lab-linechart-svg{max-height:104px;}}
