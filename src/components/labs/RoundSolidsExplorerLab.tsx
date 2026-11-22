@@ -153,8 +153,8 @@ export function RoundSolidsExplorerLab({problem:p,standardId}:LabProps){
  };
  const onKey=(e:ReactKeyboardEvent<SVGSVGElement>)=>{
    if(e.target!==e.currentTarget)return;
-   if(e.key==='ArrowLeft'){e.preventDefault();setYaw(v=>v-15);}
-   if(e.key==='ArrowRight'){e.preventDefault();setYaw(v=>v+15);}
+   if(e.key==='ArrowLeft'){e.preventDefault();setYaw(v=>v-19);}
+   if(e.key==='ArrowRight'){e.preventDefault();setYaw(v=>v+19);}
    if(e.key==='ArrowUp'){e.preventDefault();setPitch(v=>bound(v+15,-72,72));}
    if(e.key==='ArrowDown'){e.preventDefault();setPitch(v=>bound(v-15,-72,72));}
  };
