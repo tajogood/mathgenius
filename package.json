@@ -10,11 +10,16 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:ui": "vitest run",
-    "test:viewport": "playwright test --config playwright.config.ts"
+    "test:viewport": "playwright test --config playwright.config.ts",
+    "android:init": "npm run build && npx cap add android",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android"
   },
   "dependencies": {
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/android": "^8.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",
@@ -26,6 +31,8 @@
     "@testing-library/react": "^16.3.0",
     "jsdom": "^27.2.0",
     "@testing-library/dom": "^10.4.1",
-    "@playwright/test": "^1.57.0"
+    "@playwright/test": "^1.57.0",
+    "vite-plugin-pwa": "^1.2.0",
+    "@capacitor/cli": "^8.0.0"
   }
 }
