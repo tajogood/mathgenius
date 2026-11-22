@@ -306,3 +306,31 @@
  .app-shell--question .lab-fraction-area-grid {height:45px;}
  .app-shell--question .lab-fraction-area small {display:none;}
 }
+
+/* Short landscape phones: keep the interactive teaching aid next to (not above) the quiz. */
+@media (orientation:landscape) and (max-height:530px) and (max-width:900px) {
+  .app-shell--question .main {padding:5px 10px;}
+  .app-shell--question .mobile-unit-picker,
+  .app-shell--question .top-bar,
+  .app-shell--question .visual-caption {display:none;}
+  .app-shell--question .step-nav {margin-bottom:6px;gap:4px;}
+  .app-shell--question .step-button {min-height:30px;padding:3px 5px;}
+  .app-shell--question .workspace {grid-template-columns:minmax(165px,.52fr) minmax(0,1fr);
+    gap:7px;align-items:start;}
+  .app-shell--question .visual-card {display:block;padding:6px;}
+  .app-shell--question .visual-canvas--interactive {height:calc(100dvh - 67px);min-height:0;
+    max-height:none;padding:5px;overflow:auto;}
+  .app-shell--question .guide-card {padding:8px 10px;min-height:0;}
+  .app-shell--question .guide-card h3 {font-size:clamp(12px,2.1vw,16px);line-height:1.3;margin:0 0 8px;}
+  .app-shell--question .guide-eyebrow,
+  .app-shell--question .question-hint {display:none;}
+  .app-shell--question .choices {gap:5px;margin:0 0 5px;}
+  .app-shell--question .choice {min-height:31px;padding:3px;font-size:14px;}
+  .app-shell--question .guide-actions {padding-top:4px;}
+  .app-shell--question .guide-actions .btn {min-height:32px;padding:5px 8px;font-size:11px;}
+  .app-shell--question .lab-heading,
+  .app-shell--question .lab-hint {display:none;}
+  .app-shell--question .lab-hero-count strong {font-size:17px;}
+  .app-shell--question .lab-hero-count span {font-size:9px;}
+  .app-shell--question .lab-body {gap:6px;}
+}
