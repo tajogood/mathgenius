@@ -14,6 +14,8 @@ SITE_URL=https://YOUR_REAL_DOMAIN/ npm run build
 
 서브폴더 배포라면 예: `SITE_URL=https://your-real-domain.com/math/` 로 지정하고, 호스팅의 기본 경로/정적 라우팅도 일치하게 설정하세요. 독립 도메인의 루트(`/`) 배포를 권장합니다.
 
+GitHub Actions를 통한 빌드에서는 저장소 **Settings → Secrets and variables → Actions → Variables**에 `SITE_URL`, `GOOGLE_SITE_VERIFICATION`, `NAVER_SITE_VERIFICATION` 변수를 등록하면 빌드 과정으로 자동 전달됩니다. 도메인과 인증값이 확정되기 전에는 비워 두세요. 실제 서비스 배포 플랫폼에서도 같은 환경변수를 설정해야 합니다.
+
 빌드 시 생성 결과:
 - `dist/index.html`: 검색로봇이 자바스크립트 없이 읽을 수 있는 랜딩 본문 + canonical/OG URL/JSON-LD + Google·네이버 인증 태그
 - `dist/for-parents/index.html`: 학부모용 가정학습·복습 소개
