@@ -9,6 +9,7 @@ export function BlocksLab({problem:p}:LabProps) {
   const split=p.topic==='split';
   const subtract=p.topic==='addsub' && p.mode==='subtract';
   const classify=p.topic==='classify';
+  const carrying=p.topic==='carry';
   const total=split||subtract ? p.a : initialBlockCount(p);
   const size=blockGroupSize(p);
   const sections=Math.ceil(total/size);
@@ -31,6 +32,10 @@ export function BlocksLab({problem:p}:LabProps) {
     caption='개 남음 · 뺀 블록 '+value+'개';
     hint=value===p.b?'✨ '+total+' − '+p.b+' = '+mainCount+'! 직접 뺄셈을 해냈어요.':
       p.b+'개를 터치해 빼 보세요. 남은 블록이 정답이에요.';
+  } else if(carrying){
+    caption='개 선택 · 10개 묶음 '+Math.floor(value/10)+'개';
+    hint=value>=10?'✨ 10개를 묶었어요! 남은 낱개 '+(value-10)+'개와 함께 계산해 보세요.':
+      '먼저 10개를 세어 하나의 묶음으로 만들어 보세요. '+p.a+' + '+p.b+'에서 10을 만들어 봐요.';
   } else if(classify){
     mainCount=blueSelected;
     caption='개 파란 블록 선택 · 주황 '+orangeSelected+'개 선택';
@@ -44,6 +49,10 @@ export function BlocksLab({problem:p}:LabProps) {
     <div className="lab-hero-count"><strong>{mainCount}</strong><span>{caption}</span>
       <div className="lab-count-meter"><span style={{width:(value/Math.max(1,total))*100+'%'}} /></div>
     </div>
+    {carrying&&<div className="lab-group-summary" aria-label="10개 묶음과 남은 낱개">
+      <span className="lab-group-summary--blue">10개 묶음 {Math.floor(value/10)}개</span>
+      <span className="lab-group-summary--amber">낱개 {value%10}개</span>
+    </div>}
     {(split||subtract)&&<div className="lab-group-summary">
       <span className="lab-group-summary--blue">남은 블록 {total-value}개</span>
       <span className="lab-group-summary--amber">{split?'옮긴 블록':'뺀 블록'} {value}개</span>
