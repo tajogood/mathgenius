@@ -1,5 +1,4 @@
 .member-root{min-height:100vh;background:#f7f8fd;color:#293650}
-.member-root button{font:inherit;cursor:pointer}
 .member-landing{max-width:1440px;margin:0 auto;padding:24px clamp(20px,5vw,74px)}
 .member-navigation{display:flex;justify-content:space-between;align-items:center;gap:24px}
 .member-navigation strong{font-size:27px;letter-spacing:-1.3px;color:#313b6f}
