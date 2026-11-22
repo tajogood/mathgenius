@@ -57,8 +57,9 @@ const titleForUnit=(id:string)=>curriculumUnits.find(unit=>unit.id===id)?.title 
 const gradeForUnit=(id:string)=>curriculumUnits.find(unit=>unit.id===id)?.grade ?? 5;
 
 export default function Portal() {
-  const [screen,setScreen]=useState<Screen>('landing');
-  const [loading,setLoading]=useState(Boolean(db));
+  const [screen,setScreen]=useState<Screen>(()=>
+    new URLSearchParams(window.location.search).get('guest')==='1'?'guest':'landing');
+  const [loading,setLoading]=useState(Boolean(db) && screen!=='guest');
   const [session,setSession]=useState<Session|null>(null);
   const [profile,setProfile]=useState<MemberProfile|null>(null);
   const [progress,setProgress]=useState<LearningProgress>(emptyProgress);
@@ -144,7 +145,7 @@ export default function Portal() {
     const {data:{subscription}}=db.auth.onAuthStateChange((_event,next)=>{
       if(!mounted)return;
       setSession(next);
-      if(!next){setProfile(null);setScreen('landing');setLoading(false);}
+      if(!next){setProfile(null);setScreen(old=>old==='guest'?'guest':'landing');setLoading(false);}
     });
     return ()=>{mounted=false;subscription.unsubscribe();};
   },[]);
@@ -443,7 +444,7 @@ export default function Portal() {
       </div>
       {activeAssignment&&<div className="member-homework-banner">
         숙제 단원: {titleForUnit(activeAssignment.unit_id)}
-        <button onClick={()=>void finishHomework()}>숙제 완료로 표시</button>
+        <button disabled={!unitMastery(progress,activeAssignment.unit_id).complete} onClick={()=>void finishHomework()}>{unitMastery(progress,activeAssignment.unit_id).complete?'숙제 완료 제출':'단원 개념을 모두 달성하면 제출할 수 있어요'}</button>
       </div>}
       <App key={profile.id+'|'+(lessonUnit??'free')} initialGrade={lessonUnit?gradeForUnit(lessonUnit):profile.grade??5}
         initialUnitId={lessonUnit??undefined} initialProgress={progress} initialStandardProgress={standardProgress} onStandardProgressChange={next=>void sendStandardProgress(next)} onProgressChange={next=>void sendProgress(next)}
