@@ -31,11 +31,11 @@ function expectedAnswer(p) {
 }
 
 test('18개 단원 모두 문제를 생성한다', () => {
-  assert.equal(TOPICS.length, 18);
-  assert.equal(new Set(TOPICS).size, 18);
+  assert.equal(BASE_TOPICS.length, 18);
+  assert.equal(new Set(BASE_TOPICS).size, 18);
 });
 
-for (const topic of TOPICS) {
+for (const topic of BASE_TOPICS) {
   test(topic + ': 문제, 보기, 답, 3단계 해설이 일치한다 (150회)', () => {
     for (let i = 0; i < 150; i++) {
       const p = createProblem(topic);
