@@ -5,6 +5,7 @@ import { extraChecksFor } from '../standards/extraChecks.ts';
 import { answerStandard,masteredStandards,readStandardProgress,STANDARD_STORAGE_KEY,type StandardProgress } from '../standards/progress.ts';
 import type { StandardAssessment } from '../standards/lessons.ts';
 import Visuals from './Visuals.tsx';
+import { MathText } from './MathText.tsx';
 
 type Mode='explore'|'concept'|'application'|'complete';
 type Props={initialId:string;onExit:()=>void};
@@ -158,7 +159,7 @@ export default function StandardStudio({initialId,onExit}:Props){
             {mode==='explore'?<>
               <div className="studio-card-step">개념 수업 {step+1}/3</div>
               <h3>{['무엇을 움직여 볼까요?','어떤 원리가 숨어 있나요?','내 말로 설명해 볼까요?'][step]}</h3>
-              <p className="studio-instruction">{sceneText[step]}</p>
+              <p className="studio-instruction"><MathText text={sceneText[step]}/></p>
               <div className="studio-actions">
                 <button className="btn btn--outline" type="button" onClick={()=>setStep(Math.max(0,step-1))}
                   disabled={step===0}>← 이전</button>
@@ -171,7 +172,7 @@ export default function StandardStudio({initialId,onExit}:Props){
               <div className="studio-card-step">{mode==='concept'?
                 '개념 확인 '+(checkpointIndex+1)+' / '+conceptChecks.length+' · '+conceptChecks[checkpointIndex].label:
                 '자동 생성 적용 문제'}</div>
-              <h3>{assessment.question}</h3>
+              <h3><MathText text={assessment.question}/></h3>
               <div className="studio-options" role="group" aria-label="성취기준 문제의 정답 선택">
                 {assessment.choices.map(value=><button type="button" key={value}
                   onClick={()=>setSelected(value)} disabled={checked}
@@ -179,12 +180,12 @@ export default function StandardStudio({initialId,onExit}:Props){
                   className={'studio-option'+(selected===value?' studio-option--selected':'')+
                     (checked&&value===assessment.answer?' studio-option--correct':'')+
                     (checked&&selected===value&&!passed?' studio-option--incorrect':'')}>
-                  {value}
+                  <MathText text={value}/>
                 </button>)}
               </div>
               {checked&&<div className={'studio-feedback'+(passed?' studio-feedback--correct':'')}>
                 <strong>{passed?'✔ 정답이에요':'다시 탐구해 봐요'}</strong>
-                <p>{passed?assessment.explanation:'선택한 답을 다시 살펴봐요. '+(mode==='concept'?lesson.explanation:lesson.principle)}</p>
+                <p><MathText text={passed?assessment.explanation:'선택한 답을 다시 살펴봐요. '+(mode==='concept'?lesson.explanation:lesson.principle)}/></p>
               </div>}
               <div className="studio-actions">
                 <button className="btn btn--outline" type="button" onClick={()=>{
