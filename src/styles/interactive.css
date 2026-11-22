@@ -282,3 +282,12 @@
 .lab-linechart-handle:active {cursor:grabbing;}
 @media(max-width:850px) {.app-shell--question .lab-linechart-svg{max-height:126px;}}
 @media(max-width:500px) {.app-shell--question .lab-linechart-svg{max-height:104px;}}
+
+/* Grouping and subtraction must visibly move cubes to a second set. */
+.lab-group-summary {display:flex;justify-content:center;flex-wrap:wrap;gap:8px;width:100%;}
+.lab-group-summary span {padding:6px 10px;border-radius:10px;font-size:11px;font-weight:900;border:1px solid transparent;}
+.lab-group-summary--blue {background:#e1e8ff;color:#526ac4;border-color:#c7d3ff!important;}
+.lab-group-summary--amber {background:#fff0d7;color:#bd8146;border-color:#f4dbb5!important;}
+.lab-count-tile--moved,.lab-count-tile--moved:hover {background:#f4bd7e;border-color:#e9a854;color:#fff;
+  transform:translateY(5px);box-shadow:0 4px 9px #daae73aa;}
+.lab-count-tile--moved .lab-count-mark {background:#dc914b;}
