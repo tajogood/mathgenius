@@ -66,24 +66,24 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
   it('분수 막대의 색칠을 바꾸고 등분 수를 2배 해도 같은 값을 유지한다',()=>{
     render(<FractionsLab {...props(problem('fractionintro',1,4))}/>);
     fireEvent.click(screen.getByRole('button',{name:/3번째 분수 칸/}));
-    expect(screen.getAllByText('3/4').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('math',{name:'4분의 3'}).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('button',{name:/등분을 더 잘게 늘리기/}));
-    expect(screen.getAllByText('6/8').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('math',{name:'8분의 6'}).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('button',{name:/원래 분수/}));
-    expect(screen.getAllByText('1/4').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('math',{name:'4분의 1'}).length).toBeGreaterThan(0);
   });
 
   it('분수 곱셈은 부분의 부분을 겹치는 격자로 보여 주고 곱셈 결과를 계산한다',()=>{
     render(<FractionsLab {...props(problem('fractionmul',1,2,1,4))}/>);
     expect(screen.getByRole('img',{name:/곱할 때 겹치는 부분/})).toBeTruthy();
-    expect(screen.getByText('= 1/8')).toBeTruthy();
+    expect(screen.getByRole('math',{name:'8분의 1'})).toBeTruthy();
     fireEvent.click(screen.getAllByRole('button',{name:/2번째 분수 칸/})[1]);
-    expect(screen.getByText('= 1/4')).toBeTruthy();
+    expect(screen.getAllByRole('math',{name:'4분의 1'})[0]).toBeTruthy();
   });
 
   it('분수 나눗셈에서 나누는 수를 0으로 바꾸면 계산을 막는다',()=>{
     render(<FractionsLab {...props(problem('fractiondiv',1,2,1,4))}/>);
-    expect(screen.getByText('= 2/1')).toBeTruthy();
+    expect(screen.getByRole('math',{name:'1분의 2'})).toBeTruthy();
     fireEvent.click(screen.getAllByRole('button',{name:/1번째 분수 칸/})[1]);
     expect(screen.getByText(/0으로 나눌 수 없어요/)).toBeTruthy();
   });
@@ -91,7 +91,7 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
   it('분수의 뺄셈은 두 막대의 현재 색칠 양으로 결과를 다시 계산한다',()=>{
     const p={...problem('samefraction',3,1,4),mode:'subtract'};
     render(<FractionsLab {...props(p)}/>);
-    expect(screen.getByText('= 1/2')).toBeTruthy();
+    expect(screen.getAllByRole('math',{name:'2분의 1'})[0]).toBeTruthy();
   });
 
   it('자릿값 카드를 선택하고 선택한 자리의 수를 1만큼 증가시킨다',()=>{
