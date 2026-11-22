@@ -1,6 +1,7 @@
 import { useEffect,useMemo,useState } from 'react';
 import { achievementStandards } from '../standards.ts';
-import { standardLessons, standardSections,standardAssessments,standardLessonMap } from '../standards/lessons.ts';
+import { standardLessons, standardSections,standardAssessments,standardLessonMap,rotateOptions } from '../standards/lessons.ts';
+import { extraChecksFor } from '../standards/extraChecks.ts';
 import { answerStandard,masteredStandards,readStandardProgress,STANDARD_STORAGE_KEY,type StandardProgress } from '../standards/progress.ts';
 import type { StandardAssessment } from '../standards/lessons.ts';
 import Visuals from './Visuals.tsx';
@@ -12,6 +13,7 @@ export default function StandardStudio({initialId,onExit}:Props){
   const [id,setId]=useState(()=>standardLessonMap.has(initialId)?initialId:standardLessons[0].id);
   const [mode,setMode]=useState<Mode>('explore');
   const [step,setStep]=useState(0);
+  const [checkpointIndex,setCheckpointIndex]=useState(0);
   const [selected,setSelected]=useState<string|null>(null);
   const [checked,setChecked]=useState(false);
   const [interacted,setInteracted]=useState(false);
@@ -22,7 +24,17 @@ export default function StandardStudio({initialId,onExit}:Props){
   const [records,setRecords]=useState<StandardProgress>(readStandardProgress);
   const lesson=standardLessonMap.get(id)!;
   const [concept,application]=useMemo(()=>standardAssessments(lesson),[lesson,round]);
-  const assessment:StandardAssessment=mode==='application'?application:concept;
+  const supplements=useMemo(()=>extraChecksFor(id),[id]);
+  const conceptChecks=useMemo(()=>[
+    {...concept,label:lesson.title},
+    ...supplements.map((item,i)=>({
+      kind:'concept' as const,label:item.label,question:item.prompt,
+      choices:rotateOptions(item.choices,(i+id.length)%4),
+      answer:item.answer,explanation:item.explanation,
+      visualProblem:concept.visualProblem,
+    })),
+  ],[concept,id,lesson,supplements]);
+  const assessment:StandardAssessment=mode==='application'?application:conceptChecks[checkpointIndex];
   const band=achievementStandards.find(entry=>entry.id===id)!.band;
   const passed=selected===assessment.answer;
   const total=masteredStandards(records);
@@ -32,7 +44,7 @@ export default function StandardStudio({initialId,onExit}:Props){
     '직접 '+lesson.title+' 교구를 움직이며 원리를 확인해 보세요. 조작한 결과를 말로 설명할 수 있다면 개념 문제에 도전해요.',
   ];
   const displayLesson=(nextId:string)=>{
-    setId(nextId);setMode('explore');setStep(0);setSelected(null);setChecked(false);
+    setId(nextId);setMode('explore');setStep(0);setCheckpointIndex(0);setSelected(null);setChecked(false);
     setInteracted(false);setRound(v=>v+1);setCatalogOpen(false);
     window.scrollTo?.({top:0,behavior:'instant'});
   };
@@ -52,8 +64,10 @@ export default function StandardStudio({initialId,onExit}:Props){
       return;
     }
     setSelected(null);setChecked(false);
-    if(mode==='concept')setMode('application');
-    else setMode('complete');
+    if(mode==='concept'){
+      if(checkpointIndex<conceptChecks.length-1)setCheckpointIndex(v=>v+1);
+      else setMode('application');
+    } else setMode('complete');
   };
   const sections=standardSections();
   const list=standardLessons.filter(l=>{
@@ -115,11 +129,14 @@ export default function StandardStudio({initialId,onExit}:Props){
             <span className={mode==='application'?'active':''}>3. 적용 평가</span>
             <span className={mode==='complete'?'active':''}>4. 완료</span>
           </div>
+          {supplements.length>0&&<div className="studio-subskills" aria-label="세부 개념 학습 항목">
+            <span>세부 확인:</span>{supplements.map(item=><span key={item.label}>{item.label}</span>)}
+          </div>}
         </div>
         {mode==='complete'?<div className="studio-complete">
           <span aria-hidden="true">🏅</span>
           <h3>{lesson.id} · 학습 확인 완료!</h3>
-          <p>교구를 체험하고 개념 확인 문제와 자동 생성 적용 문제를 모두 맞혔어요.</p>
+          <p>교구를 체험하고 {conceptChecks.length}개의 세부 개념 확인 문제와 자동 생성 적용 문제를 모두 맞혔어요.</p>
           <p className="studio-disclaimer">이는 두 문항의 앱 내 확인 결과이며 해당 성취기준의 모든 세부 기능을 평가했다는 뜻은 아니에요.</p>
           <div className="studio-actions">
             <button className="btn btn--outline" type="button" onClick={()=>displayLesson(id)}>다시 배우기</button>
@@ -151,7 +168,9 @@ export default function StandardStudio({initialId,onExit}:Props){
                 }}>{step===2?'개념 확인 시작 →':'다음 장면 →'}</button>
               </div>
             </>:<>
-              <div className="studio-card-step">{mode==='concept'?'개념 확인 문제':'자동 생성 적용 문제'}</div>
+              <div className="studio-card-step">{mode==='concept'?
+                '개념 확인 '+(checkpointIndex+1)+' / '+conceptChecks.length+' · '+conceptChecks[checkpointIndex].label:
+                '자동 생성 적용 문제'}</div>
               <h3>{assessment.question}</h3>
               <div className="studio-options" role="group" aria-label="성취기준 문제의 정답 선택">
                 {assessment.choices.map(value=><button type="button" key={value}
@@ -174,7 +193,9 @@ export default function StandardStudio({initialId,onExit}:Props){
                 <button className="btn btn--primary" type="button"
                   disabled={selected===null&&!checked}
                   onClick={checked?forward:answer}>
-                  {checked?(passed?mode==='concept'?'적용 문제로 →':'학습 결과 보기 →':'다시 도전 ↻'):'정답 확인'}
+                  {checked?(passed?mode==='concept'?
+                    checkpointIndex<conceptChecks.length-1?'다음 세부 개념 →':'적용 문제로 →':
+                    '학습 결과 보기 →':'다시 도전 ↻'):'정답 확인'}
                 </button>
               </div>
             </>}
