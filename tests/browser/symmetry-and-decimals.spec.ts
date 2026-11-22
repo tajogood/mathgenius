@@ -21,10 +21,11 @@ test('합동과 대칭의 도형을 마우스로 직접 끌어서 이동한다',
   await lab.getByRole('button',{name:'선대칭 거울'}).click();
   const wing=lab.locator('.lab-symmetry-draggable').first();
   const before=await wing.getAttribute('transform');
-  const box=await wing.locator('polygon').boundingBox();
+  // A visible circular marker is a guaranteed pointer hit target, unlike
+  // the group's empty bounding-box region or a concave polygon edge.
+  const box=await wing.locator('circle').first().boundingBox();
   expect(box).not.toBeNull();
-  // Point well inside the actual visible polygon, not at the group's empty center.
-  const x=box!.x+box!.width*0.65, y=box!.y+box!.height*0.30;
+  const x=box!.x+box!.width/2, y=box!.y+box!.height/2;
   await page.mouse.move(x,y);
   await page.mouse.down();
   await page.mouse.move(x-38,y-15,{steps:7});
