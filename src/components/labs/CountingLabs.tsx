@@ -6,43 +6,75 @@ import { gcd } from '../../math.ts';
 
 export function BlocksLab({problem:p}:LabProps) {
   const [counted,setCounted]=useState<Set<number>>(()=>new Set());
-  const total=initialBlockCount(p);
+  const split=p.topic==='split';
+  const subtract=p.topic==='addsub' && p.mode==='subtract';
+  const classify=p.topic==='classify';
+  const total=split||subtract ? p.a : initialBlockCount(p);
   const size=blockGroupSize(p);
   const sections=Math.ceil(total/size);
   const value=[...counted].reduce((sum,i)=>sum+Math.min(size,total-i*size),0);
-  const subtract=p.topic==='addsub'&&p.mode==='subtract';
+  const blueSelected=[...counted].filter(i=>i*size<p.a).length;
+  const orangeSelected=value-blueSelected;
   const toggle=(i:number)=>setCounted(prev=>{
     const next=new Set(prev);
-    if(next.has(i)) next.delete(i); else next.add(i);
+    if(next.has(i))next.delete(i);else next.add(i);
     return next;
   });
+  let mainCount=value, caption=' / '+total+'개를 세었어요', hint='';
+  if(split){
+    mainCount=total-value;
+    caption='개 남음 · 옮긴 블록 '+value+'개';
+    hint=value===p.b?'✨ '+total+' = '+p.b+' + '+mainCount+'! 수 가르기가 완성됐어요.':
+      p.b+'개를 주황 묶음으로 옮겨 보세요. 옮기는 만큼 파란 묶음이 줄어들어요.';
+  } else if(subtract){
+    mainCount=total-value;
+    caption='개 남음 · 뺀 블록 '+value+'개';
+    hint=value===p.b?'✨ '+total+' − '+p.b+' = '+mainCount+'! 직접 뺄셈을 해냈어요.':
+      p.b+'개를 터치해 빼 보세요. 남은 블록이 정답이에요.';
+  } else if(classify){
+    mainCount=blueSelected;
+    caption='개 파란 블록 선택 · 주황 '+orangeSelected+'개 선택';
+    hint='파란 블록만 눌러 세어 보세요. 분류 기준은 색깔이에요.';
+  } else{
+    hint=value===total?'✨ 전부 셌어요! 필요한 만큼 묶어서 세면 더 빨라져요.':
+      size===10?'10개 묶음을 누르면 10씩, 남은 낱개는 실제 개수만큼 세어요.':
+      '블록에 마우스를 올리거나 손가락으로 터치하면 색이 바뀌고 개수가 올라가요.';
+  }
   return <div className="lab-body lab-block-lab">
-    <div className="lab-hero-count"><strong>{value}</strong><span> / {total} {size===10?'개를 묶어 세기':'개를 세었어요'}</span>
+    <div className="lab-hero-count"><strong>{mainCount}</strong><span>{caption}</span>
       <div className="lab-count-meter"><span style={{width:(value/Math.max(1,total))*100+'%'}} /></div>
     </div>
-    <div className={'lab-block-tray'+(total>55?' lab-block-tray--dense':'')} role="group" aria-label="블록을 터치해 세어 보세요">
+    {(split||subtract)&&<div className="lab-group-summary">
+      <span className="lab-group-summary--blue">남은 블록 {total-value}개</span>
+      <span className="lab-group-summary--amber">{split?'옮긴 블록':'뺀 블록'} {value}개</span>
+    </div>}
+    <div className={'lab-block-tray'+(total>55?' lab-block-tray--dense':'')}
+      role="group" aria-label={split?'블록을 눌러 다른 묶음으로 옮겨 보세요':subtract?'블록을 눌러 빼 보세요':
+        classify?'같은 색 블록을 선택해 세어 보세요':'블록을 터치해 세어 보세요'}>
       {Array.from({length:sections},(_,i)=>{
         const amount=Math.min(size,total-i*size);
         const selected=counted.has(i);
-        return <button type="button" key={i} className={'lab-count-tile'+(selected?' lab-count-tile--on':'')+
-            (i*size>=p.a?' lab-count-tile--orange':'')}
+        const colored=(classify||p.topic==='carry'||(p.topic==='addsub'&&!subtract))&&i*size>=p.a;
+        return <button type="button" key={i}
+          className={'lab-count-tile'+(selected?' lab-count-tile--on':'')+
+            (colored?' lab-count-tile--orange':'')+
+            ((split||subtract)&&selected?' lab-count-tile--moved':'')}
           onClick={()=>toggle(i)} aria-pressed={selected}
-          aria-label={i+1+'번째 '+(size===10?amount+'개 묶음':'블록')+(selected?' 세기 취소':' 세기')}
-        >{size===10?<span className="lab-ten-dots">
-          {Array.from({length:amount},(_,j)=><i key={j}/>)}
-        </span>:<span className="lab-count-cube"/>}
-        {size===10&&<small>{amount}개</small>}
-        {selected&&<span className="lab-count-mark">{subtract?'−':'✓'}</span>}
+          aria-label={i+1+'번째 '+(size===10?amount+'개 묶음':'블록')+
+            (selected?(split?' 옮기기 취소':subtract?' 빼기 취소':' 세기 취소') :
+              split?' 옮기기':subtract?' 빼기':' 세기')}>
+          {size===10?<span className="lab-ten-dots">
+            {Array.from({length:amount},(_,j)=><i key={j}/>)}
+          </span>:<span className="lab-count-cube"/>}
+          {size===10&&<small>{amount}개</small>}
+          {selected&&<span className="lab-count-mark">{subtract?'−':split?'↗':'✓'}</span>}
         </button>;
       })}
     </div>
-    <LabHint>{value===total ? '✨ 전부 셌어요! 10개씩 묶어 세면 더 빨라져요.' :
-      subtract ? '빼고 싶은 블록을 터치하세요. 선택한 개수를 세어 보세요.' :
-      size===10?'10개 묶음을 누르면 10씩, 남은 낱개는 실제 개수만큼 더해져요.':
-      '블록에 마우스를 올리거나 손가락으로 톡! 터치하면 색이 바뀌고 개수가 올라가요.'}</LabHint>
+    <LabHint>{hint}</LabHint>
     <LabTools>
-      <button type="button" className="lab-action" onClick={()=>setCounted(new Set())}>↺ 처음부터 세기</button>
-      <span className="lab-mini-stat">{counted.size}개 {size===10?'묶음':'블록'} 선택</span>
+      <button type="button" className="lab-action" onClick={()=>setCounted(new Set())}>↺ 처음부터</button>
+      <span className="lab-mini-stat">{counted.size}개 {size===10?'묶음':'블록'} 조작</span>
     </LabTools>
   </div>;
 }
