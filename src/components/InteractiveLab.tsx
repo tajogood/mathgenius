@@ -5,6 +5,7 @@ import { BlocksLab, PlaceLab, ArraysLab, EquationLab } from './labs/CountingLabs
 import { FractionsLab, NumberlineLab, RatiosLab, MeasuresLab } from './labs/RepresentLabs';
 import { GeometryLab, AnglesLab, ClockLab, CircleLab, SolidsLab } from './labs/GeometryLabs';
 import { ChartsLab, PatternsLab, ChanceLab } from './labs/DataLabs';
+import { AreaShapesLab,ProjectionLab,NetLab } from './labs/SpecialLabs';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -47,9 +48,14 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'clock':return <ClockLab {...props}/>;
     case 'measures':return <MeasuresLab {...props}/>;
     case 'charts':return <ChartsLab {...props}/>;
-    case 'arrays':return <ArraysLab {...props}/>;
+    case 'arrays':return standardId==='6수03-14'&&phase!=='question'?<AreaShapesLab {...props}/>:<ArraysLab {...props}/>;
     case 'ratios':return <RatiosLab {...props}/>;
-    case 'solids':return <SolidsLab {...props}/>;
+    case 'solids':
+      if(phase!=='question'){
+        if(standardId==='6수03-10')return <ProjectionLab {...props}/>;
+        if(standardId==='6수03-06'||standardId==='6수03-08')return <NetLab {...props}/>;
+      }
+      return <SolidsLab {...props}/>;
     case 'patterns':return <PatternsLab {...props}/>;
     case 'equations':return <EquationLab {...props}/>;
     case 'chance':return <ChanceLab {...props}/>;
@@ -70,6 +76,6 @@ export default function InteractiveLab({problem,phase,step,standardId,onEngage}:
       <div><strong>{title}</strong><span>{TOPIC_CHALLENGES[problem.topic] || instructions}</span></div>
       <span className="lab-interactive-tag">터치 가능</span>
     </div>
-    <ActiveLab key={problem.topic+'|'+problem.prompt} problem={problem} phase={phase} step={step} standardId={standardId}/>
+    <ActiveLab key={standardId+'|'+problem.topic+'|'+problem.prompt} problem={problem} phase={phase} step={step} standardId={standardId}/>
   </div>;
 }
