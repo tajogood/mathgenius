@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { Problem, Topic } from '../math';
 import { lcm, percentage } from '../math';
 
@@ -53,25 +54,37 @@ function CarryScene({ phase, step, p }: { phase: Props['phase']; step: number; p
   </div>;
 }
 
+/**
+ * 분수 막대는 언제나 동일한 400 단위의 '전체 1'을 사용합니다.
+ * 색칠된 영역과 등분선은 별개 레이어로 그려 채워진 칸에서도 점선이 보입니다.
+ */
 function FractionBar({ n, d, color, label }: { n: number; d: number; color: 'blue' | 'orange' | 'mint'; label: string }) {
-  const w = 300 / d;
-  return <div className="fraction-tile">
-    <div className="fraction-label">{label}</div>
-    <svg viewBox="0 0 300 72" width="100%" role="img" aria-label={String(d) + '칸 중 ' + String(n) + '칸이 색칠된 분수 막대'}>
-      <rect x="1" y="1" width="298" height="70" rx="12" fill="#fff" />
-      {Array.from({ length: d }, (_, i) => (
-        <rect
-          key={i}
-          x={i * w + 1.7}
-          y={2}
-          width={w - 3.4}
-          height={68}
-          rx={d > 8 ? 2 : 5}
-          className={'fraction-piece ' + (i < n ? 'fraction-piece--' + color : 'fraction-piece--empty')}
-          style={{ animationDelay: String(i * 55) + 'ms' }}
-        />
-      ))}
-      <rect x="1" y="1" width="298" height="70" rx="12" stroke="#b6c4e7" strokeWidth="2" fill="none" />
+  const filledWidth = 396 * Math.min(Math.max(n / d, 0), 1);
+  const colors = { blue: '#6c88ef', orange: '#f5ac61', mint: '#4ec6a5' };
+  // 하나의 렌더링 트리 안에서 서로 다른 분수 막대가 clip-path를 공유하지 않도록 합니다.
+  const clipId = useId();
+
+  return <div className="fraction-row">
+    <div className="fraction-row-header">
+      <span className="fraction-row-name"><span className={'fraction-key fraction-key--' + color} />{label}</span>
+      <span className="fraction-row-count">{d}등분 <strong>{n}/{d}</strong></span>
+    </div>
+    <svg className="fraction-bar" viewBox="0 0 400 56" preserveAspectRatio="none"
+      role="img" aria-label={'같은 크기의 전체를 ' + d + '칸으로 나누고 그 중 ' + n + '칸을 색칠한 ' + n + '/' + d + ' 분수 막대'}>
+      <defs>
+        <clipPath id={clipId}><rect x="2" y="2" width="396" height="52" rx="10" /></clipPath>
+      </defs>
+      <g clipPath={'url(#' + clipId + ')'}>
+        <rect x="2" y="2" width="396" height="52" fill="#fff" />
+        <rect className="fraction-fill" x="2" y="2" width={filledWidth} height="52" fill={colors[color]} />
+        {Array.from({ length: d - 1 }, (_, i) => {
+          const x = 2 + ((i + 1) * 396) / d;
+          return <line key={i} x1={x} x2={x} y1="3" y2="53"
+            stroke="#4a5884" strokeWidth="1.8" strokeDasharray="5 4" opacity=".76" />;
+        })}
+      </g>
+      <rect x="2" y="2" width="396" height="52" rx="10" stroke="#a8b8d9" strokeWidth="2.4" fill="none" />
+      <path d="M2 54 V56 M398 54 V56" fill="none" stroke="#7083af" strokeWidth="2" />
     </svg>
   </div>;
 }
@@ -83,21 +96,39 @@ function FractionScene({ phase, step, p }: { phase: Props['phase']; step: number
   const right = c * (common / d);
   const total = left + right;
   const effectiveStep = phase === 'question' ? 0 : step;
-  return <div className="scene-inner scene-inner--fraction" key={'fraction-' + String(effectiveStep) + '-' + String(a) + '-' + String(b) + '-' + String(c) + '-' + String(d)}>
+  const converted = effectiveStep >= 1;
+  const leftN = converted ? left : a;
+  const leftD = converted ? common : b;
+  const rightN = converted ? right : c;
+  const rightD = converted ? common : d;
+
+  return <div className="scene-inner scene-inner--fraction"
+    key={'fraction-' + effectiveStep + '-' + a + '-' + b + '-' + c + '-' + d}>
     <div className="math-equation">
-      {effectiveStep === 0 ? String(a) + '/' + String(b) + ' + ' + String(c) + '/' + String(d)
-        : effectiveStep === 1 ? String(left) + '/' + String(common) + ' + ' + String(right) + '/' + String(common)
-        : String(total) + '/' + String(common)}
+      {effectiveStep === 0 ? a + '/' + b + ' + ' + c + '/' + d
+        : effectiveStep === 1 ? left + '/' + common + ' + ' + right + '/' + common
+        : total + '/' + common}
     </div>
-    {effectiveStep < 2 ? <div className="fraction-parts">
-      <FractionBar n={effectiveStep === 0 ? a : left} d={effectiveStep === 0 ? b : common} color="blue" label={effectiveStep === 0 ? '첫 번째 분수' : '첫 번째 분수 · 통분'} />
-      <strong className="operator">+</strong>
-      <FractionBar n={effectiveStep === 0 ? c : right} d={effectiveStep === 0 ? d : common} color="orange" label={effectiveStep === 0 ? '두 번째 분수' : '두 번째 분수 · 통분'} />
-    </div> : <div className="fraction-result">
-      <FractionBar n={total} d={common} color="mint" label="같은 크기의 조각을 합쳤어요" />
-      <span className="fraction-result-text">= {p.topic === 'fraction' && phase !== 'concept' ? p.answer : '3/4'}</span>
-    </div>}
-    <p className="scene-note">{effectiveStep === 0 ? '막대의 칸 크기를 비교해 보세요.' : effectiveStep === 1 ? '이제 두 막대의 한 칸 크기가 같아요.' : '같은 크기의 칸끼리 더하면 돼요!'}</p>
+    <div className="fraction-comparison">
+      <div className="fraction-whole">
+        <span className="fraction-whole-line" aria-hidden="true" />
+        <span className="fraction-whole-label">전체 길이는 항상 같아요 = 1</span>
+      </div>
+      <div className="fraction-rows">
+        {effectiveStep < 2 ? <>
+          <FractionBar n={leftN} d={leftD} color="blue" label="첫 번째 분수" />
+          <FractionBar n={rightN} d={rightD} color="orange" label="두 번째 분수" />
+        </> : <FractionBar n={total} d={common} color="mint" label="두 분수를 더한 결과" />}
+      </div>
+      <p className="fraction-teaching-point">
+        {effectiveStep === 0 ? '똑같은 길이의 막대를 나누는 칸 수만 달라요.'
+          : effectiveStep === 1 ? '같은 크기로 나누었어요! 점선을 따라 칸 수를 세어 보세요.'
+          : '같은 크기의 칸끼리 합쳐서 ' + total + '/' + common + '이 되었어요.'}
+      </p>
+    </div>
+    {effectiveStep === 2 && <p className="fraction-result-text">
+      {phase === 'concept' ? '3/4' : p.answer}
+    </p>}
   </div>;
 }
 
