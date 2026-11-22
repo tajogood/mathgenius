@@ -106,15 +106,16 @@ function RoundNet({shape,select,selected}:{
      원 1개 + 부채꼴 옆면</text>
  </svg>;
 }
-export function RoundSolidsExplorerLab({problem:p}:LabProps){
- const initial:RoundSolid=p.topic==='shapes3d'&&p.a===2?'sphere':
+export function RoundSolidsExplorerLab({problem:p,standardId}:LabProps){
+ const initial:RoundSolid=standardId==='6수03-08'?'cylinder':
+    p.topic==='shapes3d'&&p.a===2?'sphere':
     p.topic==='curvedsolids'&&p.a===1?'cone':
     p.topic==='curvedsolids'&&p.a===2?'sphere':'cylinder';
  const [shape,setShape]=useState<RoundSolid>(initial);
  const [yaw,setYaw]=useState(-25),[pitch,setPitch]=useState(24);
  const [radius,setRadius]=useState(3);
  const [selected,setSelected]=useState<RoundPart>('curve');
- const [netOpen,setNetOpen]=useState(false);
+ const [netOpen,setNetOpen]=useState(standardId==='6수03-08');
  const drag=useRef<{x:number;y:number;yaw:number;pitch:number;moved:boolean}|null>(null);
  const skip=useRef(false);
  const model=useMemo(()=>meshFor(shape,radius/3),[shape,radius]);
