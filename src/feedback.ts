@@ -1,5 +1,5 @@
-import type { Problem } from './math.ts';
-import { interactionForProblem, type LabKind } from './interactions.ts';
+import type { Problem, Topic } from './math.ts';
+import { interactionForProblem, interactionForTopic, type LabKind } from './interactions.ts';
 
 const LAB_HINTS: Record<LabKind,string> = {
   blocks:'블록을 터치할 때마다 세는 수가 하나씩 변하는지 확인해 보세요. 빼는 문제는 남은 블록을 세어요.',
@@ -55,6 +55,11 @@ export function diagnosticHint(problem:Problem,selected:string):string {
   if(selected===problem.answer) return '정답이에요. 같은 개념을 다른 문제에도 적용해 보세요.';
   const topicHint=OVERRIDES[problem.topic]??LAB_HINTS[interactionForProblem(problem)];
   return '선택한 답 '+selected+'을 다시 살펴봐요. '+topicHint;
+}
+
+/** This principle is safe to display before a new practice problem: no generated answers are exposed. */
+export function conceptTipForTopic(topic:Topic):string {
+  return OVERRIDES[topic]??LAB_HINTS[interactionForTopic[topic]];
 }
 
 export function diagnosticCoverage():number {
