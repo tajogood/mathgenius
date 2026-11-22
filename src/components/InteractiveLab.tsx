@@ -11,6 +11,7 @@ import { SymmetryLab } from './labs/SymmetryLab';
 import { RectangleConceptLab } from './labs/RectangleConceptLab';
 import { SolidExplorerLab } from './labs/SolidExplorerLab';
 import { AverageBalanceLab } from './labs/AverageBalanceLab';
+import { PolyhedronExplorerLab } from './labs/PolyhedronExplorerLab';
 
 export type InteractiveLabProps = {
   problem: Problem;
@@ -56,6 +57,7 @@ function ActiveLab({problem,phase,step,standardId}:InteractiveLabProps) {
     case 'arrays':return standardId==='6수03-14'&&phase!=='question'?<AreaShapesLab {...props}/>:problem.topic==='area'?<RectangleConceptLab {...props}/>:<ArraysLab {...props}/>;
     case 'ratios':return <RatiosLab {...props}/>;
     case 'solids':
+      if(problem.topic==='polyhedra'||problem.topic==='pyramid')return <PolyhedronExplorerLab {...props}/>;
       if(problem.topic==='nets'||problem.topic==='surface'||
         (problem.topic==='shapes3d'&&problem.a===0))return <SolidExplorerLab {...props}/>;
       if(phase!=='question'){
@@ -81,7 +83,9 @@ export default function InteractiveLab({problem,phase,step,standardId,onEngage}:
     problem.topic==='nets'||problem.topic==='surface'||(problem.topic==='shapes3d'&&problem.a===0)?
     ['손으로 돌리는 입체도형 실험실','직육면체를 직접 360도 회전하고 면·모서리·꼭짓점을 눌러 보세요'] :
     problem.topic==='average'?
-    ['고르게 나누는 평균 실험실','사탕을 친구들에게 옮기며 전체 합은 그대로, 몫은 같게 만들어 보세요'] : LAB_LABELS[kind];
+    ['고르게 나누는 평균 실험실','사탕을 친구들에게 옮기며 전체 합은 그대로, 몫은 같게 만들어 보세요'] :
+    problem.topic==='polyhedra'||problem.topic==='pyramid'?
+    ['손으로 돌리는 각기둥·각뿔 실험실','도형을 직접 회전하고 면·모서리·꼭짓점을 눌러 본 뒤 전개도와 연결해 보세요'] : LAB_LABELS[kind];
   return <div className={'interactive-lab interactive-lab--'+kind}
     onClickCapture={onEngage} onChangeCapture={onEngage}
     onPointerDownCapture={onEngage} onKeyDownCapture={event=>{
