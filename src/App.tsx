@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { grades, curriculumUnits, TOTAL_UNITS, type Chapter } from './curriculum';
+import { standardsForChapter } from './standards';
 import { createProblem, solutionSteps, TOPICS, type Problem, type Topic } from './math';
 import Visuals from './components/Visuals';
 
@@ -301,6 +302,16 @@ export default function App() {
         <button type="button" className="btn btn--primary" onClick={() => startTopic(grades[4].chapters[4])}>5학년 분수 학습 체험하기 →</button>
       </section>}
 
+      <section className="curriculum-standards" aria-label="2022 교육과정 단원 연계 성취기준">
+        <strong>📚 2022 개정 교육과정 연계</strong>
+        <div className="curriculum-standard-codes">
+          {standardsForChapter(unitId).map(item =>
+            <span key={item.id} title={item.band + ' · 연계 코드 (세부 학습 완료를 뜻하지 않음)'}>
+              {item.id}
+            </span>)}
+        </div>
+        <small>단원과 관련된 국가 교육과정 성취기준 코드입니다. 모든 세부 학습 요소의 평가가 완료되었다는 뜻은 아닙니다.</small>
+      </section>
       <footer className="page-footer">© 2026 수학천재 · 교육 콘텐츠 개발 초기 버전 · 학습 기록은 이 기기에만 저장됩니다.</footer>
     </main>
   </div>;
