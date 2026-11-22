@@ -55,7 +55,15 @@ export default function App() {
   const completedCount = masteryCount(progress);
   const unitStatus = unitMastery(progress, unitId);
   const topicStatus = progress.records[unitId]?.[topic];
-  const conceptGuidance = topic==='average' ? [
+  const conceptGuidance = topic==='shapes' ? [
+    '세모·네모·동그라미를 골라 보세요. 도형 안쪽을 직접 끌어 움직이며 생김새를 살펴봐요.',
+    '도형의 곧은 변과 주황색 꼭짓점을 하나씩 눌러 세어 보세요. 삼각형은 3개씩, 사각형은 4개씩이에요.',
+    '주황색 꼭짓점을 끌어 모양을 바꿔도 변과 꼭짓점의 개수가 그대로인지 확인해 보세요. 45° 같은 각도 재기는 4학년에서 배워요.',
+  ] as const : topic==='circumference' ? [
+    '원둘레를 따라 줄자로 한 바퀴 재어 보세요. 둥근 테두리의 길이를 원주라고 해요.',
+    '잰 줄자를 펼쳐 지름을 세 번 이어 붙인 길이와 비교해 보세요. 지름 세 개보다 조금 더 길어요.',
+    '원주를 지름으로 나누면 크기가 다른 원도 약 3.14예요. 이를 원주율이라고 하고 π(파이)는 원주율을 나타내는 기호예요.',
+  ] as const : topic==='average' ? [
     '세 친구의 사탕을 모두 합쳐 보세요. '+problem.a+'개, '+problem.b+'개, '+(problem.c??3)+'개를 합한 총 '+(problem.a+problem.b+(problem.c??3))+'개를 고르게 나눠 볼 거예요.',
     '많은 친구의 사탕을 하나 선택해 적은 친구에게 옮겨 주세요. 사탕을 옮겨도 전체 합계는 그대로예요. ▶ 사탕 한 개 고르게 옮기기 버튼으로도 체험할 수 있어요.',
     '모두 비슷해지면 남은 사탕까지 똑같이 나눠 보세요. 전체 '+(problem.a+problem.b+(problem.c??3))+'개를 3명에게 나눈 수가 평균이에요. 3으로 나누어떨어지지 않으면 사탕을 세 조각으로 나눠 줄 수도 있어요.',
