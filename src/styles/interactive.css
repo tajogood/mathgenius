@@ -937,3 +937,65 @@
 @media(prefers-reduced-motion:reduce){
  .average-candy,.average-share-candy {animation:none!important;transition:none!important;}
 }
+
+
+/* N-gonal solids are real projected polygons, not detached 2D shapes. */
+.lab-polyhedron{width:100%;gap:8px;min-width:0}
+.poly-choice,.poly-focus,.poly-turn-buttons{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;width:100%}
+.poly-choice button,.poly-focus button,.poly-turn-buttons button{cursor:pointer;border:1px solid #cfdbf1;border-radius:9px;background:#fff;color:#5673ae;font-size:11px;font-weight:900;padding:7px 10px;touch-action:manipulation}
+.poly-choice button:hover,.poly-focus button:hover,.poly-turn-buttons button:hover{background:#e6ecff}
+.poly-choice button[aria-pressed=true],.poly-focus button[aria-pressed=true]{background:#627ee0;color:#fff;border-color:#627ee0}
+.poly-choice button[aria-expanded=true]{background:#e9f8ee;color:#298569;border-color:#a4d8c5}
+.poly-focus button{flex:1 1 80px}
+.poly-layout{width:100%;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);gap:5px;align-items:center}
+.poly-layout--net{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.poly-view{display:grid;min-width:0;width:100%;justify-items:center;gap:2px}
+.poly-viewport{display:block;width:min(100%,430px);height:auto;max-height:258px;touch-action:none;cursor:grab;user-select:none;border:1px solid #e0e8fa;border-radius:12px;background:#f7f9ff}
+.poly-viewport:active{cursor:grabbing}
+.poly-viewport:focus-visible{outline:3px solid #657ddd;outline-offset:2px}
+.poly-viewport g[role=button]{cursor:pointer;outline:0}
+.poly-viewport g[role=button]:hover .poly-face-polygon,.poly-viewport g[role=button]:focus-visible .poly-face-polygon{stroke:#ed9e4c;stroke-width:4;filter:brightness(1.1)}
+.poly-net-panel{min-width:0;width:100%;display:grid;justify-items:center;gap:6px;background:#f7f9ff;border:1px solid #e0e8f8;border-radius:12px;padding:7px 3px}
+.poly-net-panel strong{color:#556fb0;font-size:10px;text-align:center}
+.poly-net-panel small{font-size:9px;line-height:1.5;color:#8b9abb;text-align:center}
+.polyhedron-net{width:min(100%,335px);height:auto;max-height:250px;touch-action:manipulation}
+.polyhedron-net g[role=button]{cursor:pointer;outline:0}
+.polyhedron-net g[role=button]:focus-visible polygon,.polyhedron-net g[role=button]:focus-visible rect{filter:brightness(1.15);stroke:#e98c28;stroke-width:5}
+.poly-info{width:100%;border-radius:12px;border:1px solid #d8e3f9;background:#f0f5ff;padding:9px 11px;display:grid;gap:6px;text-align:center;color:#5670b2}
+.poly-info>strong{font-size:13px}
+.poly-info p{margin:0;font-size:11px;line-height:1.5;color:#6b7ca6}
+.poly-info small{font-size:10px;color:#527b95}
+.poly-count-row{width:100%;display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap}
+.poly-count-row span{background:#fff;border:1px solid #d6e0f4;border-radius:8px;padding:6px;font-size:11px}
+.poly-count-row b{color:#3e5fbd}
+.poly-turn-buttons button{padding:5px 8px;font-size:10px;background:#f3f6ff}
+.lab-polyhedron .lab-tools{justify-content:center;gap:6px}
+@media(max-width:960px){
+ .poly-layout--net{grid-template-columns:minmax(0,1fr)}
+ .poly-viewport{max-height:220px;width:min(100%,355px)}
+ .polyhedron-net{max-height:190px}
+ .poly-choice button{padding:6px 8px;font-size:10px}
+ .poly-info>strong{font-size:11px}
+}
+@media(max-width:700px){
+ .poly-viewport{max-height:184px}
+ .poly-turn-buttons button{padding:3px 7px;font-size:9px}
+ .poly-focus button{font-size:10px;padding:4px}
+ .poly-count-row span{padding:4px;font-size:10px}
+ .poly-info{padding:6px}
+ .poly-info p{font-size:10px}
+ .poly-net-panel{padding:4px 2px}
+ .polyhedron-net{max-height:170px}
+}
+.app-shell--question .poly-viewport,.standard-studio--concept .poly-viewport,.standard-studio--application .poly-viewport{max-height:135px}
+.app-shell--question .poly-info,.standard-studio--concept .poly-info,.standard-studio--application .poly-info{gap:2px;padding:4px}
+.app-shell--question .poly-info p,.standard-studio--concept .poly-info p,.standard-studio--application .poly-info p{display:none}
+.app-shell--question .poly-turn-buttons,.standard-studio--concept .poly-turn-buttons,.standard-studio--application .poly-turn-buttons{display:none}
+.app-shell--question .poly-count-row span,.standard-studio--concept .poly-count-row span,.standard-studio--application .poly-count-row span{font-size:9px;padding:3px}
+.app-shell--question .poly-choice button,.standard-studio--concept .poly-choice button,.standard-studio--application .poly-choice button{font-size:9px;padding:3px 5px}
+.app-shell--question .poly-focus button,.standard-studio--concept .poly-focus button,.standard-studio--application .poly-focus button{font-size:9px;padding:3px}
+.app-shell--question .poly-net-panel,.standard-studio--concept .poly-net-panel,.standard-studio--application .poly-net-panel{display:none}
+@media(max-height:700px){
+ .app-shell--question .poly-viewport,.standard-studio--concept .poly-viewport{max-height:105px}
+ .app-shell--question .poly-info small{display:none}
+}
