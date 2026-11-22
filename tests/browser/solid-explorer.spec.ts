@@ -27,7 +27,7 @@ test('직육면체를 실제 마우스로 끌면 연결된 6개 면이 함께 �
  await page.mouse.up();
  const after=await model.evaluate((el)=>el.getAttribute('style'));
  expect(after).not.toBe(before);
- await expect(lab.getByText('모서리 12개')).toBeVisible();
+ await expect(lab.getByRole('button',{name:'모서리 12개'})).toBeVisible();
 });
 
 test('입체 모형의 면을 누르면 선택 표시와 실제 면적이 바뀐다',async({page})=>{
@@ -59,6 +59,7 @@ test('휴대폰에서도 3D 모형을 손으로 드래그해 돌릴 수 있고 �
  const model=lab.locator('.solid-cuboid');
  const before=await model.evaluate(el=>el.getAttribute('style'));
  const stage=page.getByTestId('solid-rotate-stage');
+ await stage.scrollIntoViewIfNeeded();
  const b=await stage.boundingBox();
  expect(b).not.toBeNull();
  await page.mouse.move(b!.x+b!.width/2,b!.y+b!.height/2);
