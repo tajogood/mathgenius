@@ -14,9 +14,9 @@ describe('초등 교과서형 분수 표기',()=>{
   });
   it('문제·선택지·풀이의 여러 분수와 대분수 텍스트를 변환한다',()=>{
     const {container}=render(<MathText text="2/5 × 2/2 = 2/5, 2와 1/3은 대분수예요."/>);
-    expect(screen.getAllByRole('math',{name:'5분의 2'})).toHaveLength(2);
-    expect(screen.getByRole('math',{name:'2분의 2'})).toBeTruthy();
-    expect(screen.getByRole('math',{name:'3분의 1'})).toBeTruthy();
+    expect(screen.getAllByRole('math',{name:/^5분의 2$/})).toHaveLength(2);
+    expect(screen.getByRole('math',{name:/^2분의 2$/})).toBeTruthy();
+    expect(screen.getByRole('math',{name:/^3분의 1$/})).toBeTruthy();
     expect(container.textContent).not.toContain('/');
   });
   it('분수 아닌 소수·시각·숫자는 있는 그대로 유지한다',()=>{
