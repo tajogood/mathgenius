@@ -1,4 +1,6 @@
-export const TOPICS = [
+import { EXTRA_TOPICS, createExpandedProblem, type ExtraTopic } from './expandedMath';
+
+export const BASE_TOPICS = [
   'split', 'addsub', 'shapes',
   'carry', 'multiply', 'clock',
   'divide', 'fractionintro', 'lengthtime',
@@ -6,6 +8,7 @@ export const TOPICS = [
   'fraction', 'reduce', 'area',
   'ratio', 'proportion', 'volume',
 ] as const;
+export const TOPICS = [...BASE_TOPICS, ...EXTRA_TOPICS] as const;
 
 export type Topic = (typeof TOPICS)[number];
 
@@ -19,6 +22,7 @@ export type Problem = {
   prompt: string;
   answer: string;
   choices: string[];
+  steps?: [string, string, string];
 };
 
 export function gcd(a: number, b: number): number {
@@ -193,9 +197,11 @@ export function createProblem(topic: Topic): Problem {
         answer: total + 'cm³', choices: numericChoices(total, 'cm³') };
     }
   }
+  return createExpandedProblem(topic as ExtraTopic);
 }
 
 export function solutionSteps(p: Problem): string[] {
+  if (p.steps) return p.steps;
   const { a, b, c, d } = p;
   switch (p.topic) {
     case 'split':
@@ -283,4 +289,5 @@ export function solutionSteps(p: Problem): string[] {
       '밑면에 1cm³ 정육면체가 ' + a + ' × ' + b + '개, 그런 층이 ' + c + '개예요.',
       '부피 = 가로 × 세로 × 높이 = ' + p.answer + '예요.'];
   }
+  return ['문제를 읽고 주어진 조건을 찾습니다.', '그림과 수를 대응시켜 계산합니다.', '답을 검산합니다.'];
 }
