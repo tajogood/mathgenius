@@ -109,7 +109,8 @@ export function displayNumber(n: number, digits = 1): string {
   return Number(n.toFixed(digits)).toLocaleString('ko-KR');
 }
 export function initialBlockCount(p: Problem): number {
-  if (p.topic === 'classify') return p.a;
+  if (p.topic === 'classify') return p.a + p.b;
+  if (p.topic === 'split') return p.a;
   if (['split','addsub','carry'].includes(p.topic)) return p.a + (p.topic === 'addsub' && p.mode === 'subtract' ? 0 : p.b);
   return p.a;
 }
