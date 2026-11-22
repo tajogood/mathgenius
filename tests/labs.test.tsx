@@ -41,7 +41,154 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
   it('받아올림 덧셈에서 10개를 선택하면 십 묶음 1개를 표시한다',()=>{
     render(<BlocksLab {...props(problem('carry',8,5))}/>);
     for(let i=1;i<=10;i++)fireEvent.click(screen.getByRole('button',{
-      name:new RegExp(i+'번째 블록 세기')
+      name:new RegExp('^'+i+'번째 블록 세기
+    }));
+    expect(screen.getByText('10개 묶음 1개')).toBeTruthy();
+    expect(screen.getByText('낱개 0개')).toBeTruthy();
+    expect(screen.getByText(/10개를 묶었어요/)).toBeTruthy();
+  });
+
+  it('분류 학습에서는 파란색 블록만 따로 세어 준다',()=>{
+    render(<BlocksLab {...props(problem('classify',3,2))}/>);
+    fireEvent.click(screen.getByRole('button',{name:/1번째 블록 세기/}));
+    fireEvent.click(screen.getByRole('button',{name:/4번째 블록 세기/}));
+    expect(screen.getByText(/개 파란 블록 선택 · 주황 1개 선택/)).toBeTruthy();
+  });
+
+  it('10개 묶음은 실제 개수대로 더하고 마지막 3개 묶음도 반영한다',()=>{
+    render(<BlocksLab {...props(problem('count100',23,0))}/>);
+    fireEvent.click(screen.getByRole('button',{name:/1번째 10개 묶음/}));
+    fireEvent.click(screen.getByRole('button',{name:/3번째 3개 묶음/}));
+    expect(screen.getByText('13')).toBeTruthy();
+  });
+
+  it('분수 막대의 색칠을 바꾸고 등분 수를 2배 해도 같은 값을 유지한다',()=>{
+    render(<FractionsLab {...props(problem('fractionintro',1,4))}/>);
+    fireEvent.click(screen.getByRole('button',{name:/3번째 분수 칸/}));
+    expect(screen.getAllByText('3/4').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button',{name:/등분을 더 잘게 늘리기/}));
+    expect(screen.getAllByText('6/8').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button',{name:/원래 분수/}));
+    expect(screen.getAllByText('1/4').length).toBeGreaterThan(0);
+  });
+
+  it('분수 곱셈은 부분의 부분을 겹치는 격자로 보여 주고 곱셈 결과를 계산한다',()=>{
+    render(<FractionsLab {...props(problem('fractionmul',1,2,1,4))}/>);
+    expect(screen.getByRole('img',{name:/곱할 때 겹치는 부분/})).toBeTruthy();
+    expect(screen.getByText('= 1/8')).toBeTruthy();
+    fireEvent.click(screen.getAllByRole('button',{name:/2번째 분수 칸/})[1]);
+    expect(screen.getByText('= 1/4')).toBeTruthy();
+  });
+
+  it('분수 나눗셈에서 나누는 수를 0으로 바꾸면 계산을 막는다',()=>{
+    render(<FractionsLab {...props(problem('fractiondiv',1,2,1,4))}/>);
+    expect(screen.getByText('= 2/1')).toBeTruthy();
+    fireEvent.click(screen.getAllByRole('button',{name:/1번째 분수 칸/})[1]);
+    expect(screen.getByText(/0으로 나눌 수 없어요/)).toBeTruthy();
+  });
+
+  it('분수의 뺄셈은 두 막대의 현재 색칠 양으로 결과를 다시 계산한다',()=>{
+    const p={...problem('samefraction',3,1,4),mode:'subtract'};
+    render(<FractionsLab {...props(p)}/>);
+    expect(screen.getByText('= 1/2')).toBeTruthy();
+  });
+
+  it('자릿값 카드를 선택하고 선택한 자리의 수를 1만큼 증가시킨다',()=>{
+    render(<PlaceLab {...props(problem('place3',524,1))}/>);
+    fireEvent.click(screen.getByRole('button',{name:/십의 자리/}));
+    fireEvent.click(screen.getByRole('button',{name:/선택 자리 \+1/}));
+    expect(screen.getByText('534')).toBeTruthy();
+  });
+
+  it('직사각형의 가로를 바꾸면 둘레와 넓이가 같이 바뀐다',()=>{
+    render(<GeometryLab {...props(problem('perimeter',4,3))}/>);
+    expect(screen.getByText(/둘레 14cm · 넓이 12cm²/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'가로 늘리기'}));
+    expect(screen.getByText(/둘레 16cm · 넓이 15cm²/)).toBeTruthy();
+  });
+
+  it('각도기를 슬라이더로 움직여 90도 직각을 만든다',()=>{
+    render(<AnglesLab {...props(problem('angles',60,0))}/>);
+    fireEvent.change(screen.getByRole('slider',{name:/각도/}),{target:{value:'90'}});
+    expect(screen.getByText(/직각이에요/)).toBeTruthy();
+  });
+
+  it('시계의 시침을 변경하면 읽는 시각도 바뀐다',()=>{
+    render(<ClockLab {...props(problem('clock',3,30))}/>);
+    fireEvent.click(screen.getByRole('button',{name:'시 늘리기'}));
+    expect(screen.getByText('4시 30분')).toBeTruthy();
+  });
+
+  it('원래 비율에서 구슬을 하나 더하면 퍼센트가 변한다',()=>{
+    render(<RatiosLab {...props(problem('ratio',2,3))}/>);
+    expect(screen.getByText('40%')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'파란 구슬 늘리기'}));
+    expect(screen.getByText('50%')).toBeTruthy();
+  });
+
+  it('막대를 클릭해 그래프 높이를 조절한다',()=>{
+    render(<ChartsLab {...props(problem('bargraph',4,3,2))}/>);
+    fireEvent.click(screen.getByRole('button',{name:/그래프 1번 값을 한 칸 올리기/}));
+    expect(screen.getAllByText('5').length).toBeGreaterThan(0);
+  });
+
+  it('수직선의 값을 슬라이더로 움직이면 숫자가 변한다',()=>{
+    render(<NumberlineLab {...props(problem('compare',4,7))}/>);
+    fireEvent.change(screen.getByRole('slider',{name:/점 움직이기/}),{target:{value:'8'}});
+    expect(screen.getByText(/8 > 7/)).toBeTruthy();
+  });
+
+  it('쌓기나무를 한 층 더하면 표시된 개수가 증가한다',()=>{
+    render(<SolidsLab {...props(problem('stacking',3,2,2))}/>);
+    expect(screen.getByText(/2층 × 층당 6개 = 12개/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'층 늘리기'}));
+    expect(screen.getByText(/3층 × 층당 6개 = 18개/)).toBeTruthy();
+  });
+
+  it('꺾은선그래프의 자료값을 조절하면 점의 위치도 달라진다',()=>{
+    const p=problem('linegraph',4,3,7);
+    render(<ChartsLab {...props(p)}/>);
+    const sliders=screen.getAllByRole('slider');
+    fireEvent.change(sliders[1],{target:{value:'9'}});
+    expect(screen.getAllByText('9').length).toBeGreaterThan(0);
+  });
+
+  it('최대공약수 모형은 두 수 모두를 나누는 수만 공약수로 인정한다',()=>{
+    const p={...problem('gcdlcm',8,12),mode:'gcd'};
+    render(<EquationLab {...props(p)}/>);
+    fireEvent.click(screen.getByRole('button',{name:'4'}));
+    expect(screen.getByText(/두 수 모두 4로 나누어떨어져요/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'3'}));
+    expect(screen.getByText(/아직 공약수가 아니에요/)).toBeTruthy();
+  });
+
+  it('구 문제에서는 사각형 블록 대신 둥근 구를 보여 준다',()=>{
+    const p=problem('curvedsolids',2,0);
+    render(<SolidsLab {...props(p)}/>);
+    expect(screen.getByRole('img',{name:/sphere/})).toBeTruthy();
+  });
+
+  it('규칙의 간격을 조절하면 뒤의 숫자들이 바뀐다',()=>{
+    render(<PatternsLab {...props(problem('patterns',2,3))}/>);
+    fireEvent.click(screen.getByRole('button',{name:'늘어나는 수 늘리기'}));
+    expect(screen.getAllByText('14').length).toBeGreaterThan(0);
+  });
+
+  it('확률 실험에서 공의 색을 직접 바꾸면 비율도 변한다',()=>{
+    render(<ChanceLab {...props(problem('probability',2,3))}/>);
+    expect(screen.getByText('40%')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:/1번째 공, 파란색/}));
+    expect(screen.getByText('20%')).toBeTruthy();
+  });
+
+  it('나눗셈 묶음을 탭하면 선택한 줄이 강조된다',()=>{
+    render(<ArraysLab {...props(problem('divide',3,4))}/>);
+    const row=screen.getByRole('button',{name:/1번째 줄 4개 선택/});
+    fireEvent.click(row);
+    expect(row.getAttribute('aria-pressed')).toBe('true');
+  });
+});
+)
     }));
     expect(screen.getByText('10개 묶음 1개')).toBeTruthy();
     expect(screen.getByText('낱개 0개')).toBeTruthy();
