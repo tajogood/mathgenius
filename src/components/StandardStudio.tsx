@@ -17,6 +17,7 @@ export default function StandardStudio({initialId,onExit}:Props){
   const [interacted,setInteracted]=useState(false);
   const [search,setSearch]=useState('');
   const [filter,setFilter]=useState('all');
+  const [catalogOpen,setCatalogOpen]=useState(false);
   const [round,setRound]=useState(0);
   const [records,setRecords]=useState<StandardProgress>(readStandardProgress);
   const lesson=standardLessonMap.get(id)!;
@@ -32,7 +33,7 @@ export default function StandardStudio({initialId,onExit}:Props){
   ];
   const displayLesson=(nextId:string)=>{
     setId(nextId);setMode('explore');setStep(0);setSelected(null);setChecked(false);
-    setInteracted(false);setRound(v=>v+1);
+    setInteracted(false);setRound(v=>v+1);setCatalogOpen(false);
     window.scrollTo?.({top:0,behavior:'instant'});
   };
   useEffect(()=>{try{localStorage.setItem(STANDARD_STORAGE_KEY,JSON.stringify(records));}catch{/* offline restricted storage */}},[records]);
@@ -78,8 +79,11 @@ export default function StandardStudio({initialId,onExit}:Props){
     </div>
 
     <div className="studio-layout">
-      <div className="studio-catalog">
-        <label htmlFor="standard-search">학습할 성취기준 찾기</label>
+      <div className={'studio-catalog'+(catalogOpen?' studio-catalog--open':'')}>
+        <div className="studio-catalog-top"><label htmlFor="standard-search">학습할 성취기준 찾기</label>
+          <button type="button" onClick={()=>setCatalogOpen(v=>!v)} aria-expanded={catalogOpen}
+            className="studio-catalog-toggle">{catalogOpen?'목록 접기':'121개 목록 보기'}</button>
+        </div>
         <input id="standard-search" value={search} onChange={e=>setSearch(e.target.value)}
           placeholder="예: 6수01-09, 분수 곱셈" />
         <label htmlFor="standard-band">학년군</label>
