@@ -95,7 +95,7 @@ describe('학생이 조작하면 실제 수학 모형의 값과 그림이 변한
   it('규칙의 간격을 조절하면 뒤의 숫자들이 바뀐다',()=>{
     render(<PatternsLab {...props(problem('patterns',2,3))}/>);
     fireEvent.click(screen.getByRole('button',{name:'늘어나는 수 늘리기'}));
-    expect(screen.getByText('14')).toBeTruthy();
+    expect(screen.getAllByText('14').length).toBeGreaterThan(0);
   });
 
   it('확률 실험에서 공의 색을 직접 바꾸면 비율도 변한다',()=>{
