@@ -167,7 +167,7 @@ export function AverageBalanceLab({problem:p}:LabProps){
           <b>{name}</b>
           <div className="average-share-candies" aria-label={name+' '+share.whole+'개'+(fractional?'와 3분의 '+share.remainder+'개':'')}>
             {Array.from({length:share.whole},(_,j)=><i key={j} className={'average-share-candy average-candy--'+i}/>)}
-            {fractional&&<span className="average-piece" style={{'--share-portion':share.remainder/3} as CSSProperties}>
+            {fractional&&<span className="average-piece" style={{'--share-pct':(share.remainder/3*100)+'%'} as CSSProperties}>
               <Fraction numerator={share.remainder} denominator={3}/></span>}
           </div>
           <span>{share.whole}{fractional&&<> + <Fraction numerator={share.remainder} denominator={3}/></>}개</span>
