@@ -27,8 +27,12 @@ function PolygonNet({kind,sides,select,selected}:{
  const n=sides;
  if(kind==='prism'){
    const unit=270/n, start=(334-unit*n)/2;
-   const top=attachedPolygon(start,115,unit,n,'above');
-   const bottom=attachedPolygon(start+unit*(n-1),179,unit,n,'below');
+   // Side length equals the base-polygon edge; strip height preserves
+   // the prism's 1.66:side-length ratio (not a fake flat drawing).
+   const stripHeight=unit*1.66/(2*Math.sin(Math.PI/n));
+   const stripTop=110,stripBottom=stripTop+stripHeight;
+   const top=attachedPolygon(start,stripTop,unit,n,'above');
+   const bottom=attachedPolygon(start+unit*(n-1),stripBottom,unit,n,'below');
    return <svg className="polyhedron-net" viewBox="0 0 334 305"
       role="group" aria-label={n+'각기둥의 두 밑면과 '+n+'개 옆면을 연결한 전개도'}>
      {Array.from({length:n},(_,i)=><g key={i} role="button" tabIndex={0}
@@ -36,11 +40,11 @@ function PolygonNet({kind,sides,select,selected}:{
        aria-pressed={selected==='side-'+i}
        onClick={()=>select('side-'+i)}
        onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select('side-'+i);}}}>
-       <rect x={start+unit*i} y="115" width={unit} height="64"
+       <rect x={start+unit*i} y={stripTop} width={unit} height={stripHeight}
          fill={COLORS[i%COLORS.length]} fillOpacity=".9"
          stroke={selected==='side-'+i?'#f59d3b':'#657fce'}
          strokeWidth={selected==='side-'+i?4:2}/>
-       <text x={start+unit*(i+.5)} y="152" textAnchor="middle" fontSize={n<=5?12:9}
+       <text x={start+unit*(i+.5)} y={stripTop+stripHeight/2+4} textAnchor="middle" fontSize={n<=5?12:9}
          fontWeight="800" fill="#395293" pointerEvents="none">{i+1}</text>
      </g>)}
      {[
@@ -62,7 +66,7 @@ function PolygonNet({kind,sides,select,selected}:{
       같은 다각형 밑면 2개 + 옆면 {n}개</text>
    </svg>;
  }
- const radius=54,cx=167,cy=148;
+ const radius=44,cx=167,cy=148;
  const base=Array.from({length:n},(_,i)=>({
    x:cx+radius*Math.cos(2*Math.PI*i/n-Math.PI/2),
    y:cy+radius*Math.sin(2*Math.PI*i/n-Math.PI/2),depth:0
@@ -72,7 +76,11 @@ function PolygonNet({kind,sides,select,selected}:{
    {base.map((point,i)=>{
      const next=base[(i+1)%n],mx=(point.x+next.x)/2,my=(point.y+next.y)/2;
      const vx=mx-cx,vy=my-cy,dist=Math.hypot(vx,vy)||1;
-     const tip={x:mx+vx/dist*52,y:my+vy/dist*52};
+     // Slant height of each unfolded triangular face comes from the
+     // pyramid's actual 1.86-unit altitude and polygon apothem.
+     const altitude=1.86*radius,apothem=radius*Math.cos(Math.PI/n);
+     const slantHeight=Math.hypot(altitude,apothem);
+     const tip={x:mx+vx/dist*slantHeight,y:my+vy/dist*slantHeight};
      const id='side-'+i;
      return <g key={id} role="button" tabIndex={0} aria-pressed={selected===id}
        aria-label={'전개도의 '+(i+1)+'번째 삼각형 옆면 선택'}
