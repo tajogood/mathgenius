@@ -1243,3 +1243,65 @@
 .standard-studio--application .shape-play-explain {padding:4px;gap:2px;}
 .app-shell--question .shape-play-explain small,.standard-studio--concept .shape-play-explain small,
 .standard-studio--application .shape-play-explain small{display:none;}
+
+
+/* Grade-6 pi concept: measure a real circumference and unroll it into
+   three diameter-length chunks plus a 0.14-diameter remainder. */
+.lab-pi {width:100%;min-width:0;gap:9px;}
+.pi-intro {display:grid;gap:3px;text-align:center;padding:9px 11px;border:1px solid #dae7fb;
+ background:#eff5ff;border-radius:11px;color:#536fba;}
+.pi-intro strong {font-size:12px;}
+.pi-intro span {font-size:10px;line-height:1.5;color:#748ab4;}
+.pi-switch {display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.pi-switch button {flex:1 1 125px;cursor:pointer;background:#fff;border:1px solid #ccd9ef;
+ border-radius:9px;padding:7px 9px;font-size:11px;font-weight:900;color:#5c72ad;}
+.pi-switch button[aria-pressed=true] {background:#607bdb;color:#fff;border-color:#556dc7;}
+.pi-switch button:hover {filter:brightness(.97);}
+.pi-circle-svg {display:block;width:min(100%,350px);height:auto;max-height:244px;
+ touch-action:none;user-select:none;justify-self:center;border:1px solid #e1e8f8;
+ border-radius:11px;background:#f6f9ff;}
+.pi-radius-handle {cursor:grab;touch-action:none;}
+.pi-radius-handle:hover {fill:#ed9639;stroke:#ffe4b8;stroke-width:5;}
+.pi-stats {display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.pi-stats span {font-size:10px;color:#7485b3;border-radius:8px;border:1px solid #dbe5fa;
+ background:#fff;padding:6px 8px;}
+.pi-stats strong {color:#4c67ba;font-size:12px;}
+.pi-progress {width:100%;display:flex;align-items:center;justify-content:center;
+ gap:7px;flex-wrap:wrap;color:#5972b1;}
+.pi-progress label {font-size:11px;font-weight:900;}
+.pi-progress input {flex:1 1 135px;min-width:80px;accent-color:#ecaa62;}
+.pi-reveal {display:grid;gap:7px;justify-items:center;text-align:center;}
+.pi-unroll {width:100%;display:grid;justify-items:center;gap:9px;border:1px solid #e6d0ac;
+ background:#fffaf2;padding:11px 8px;border-radius:11px;}
+.pi-unroll > strong {font-size:12px;color:#936c3d;}
+.pi-diameter-track {display:flex;height:26px;max-width:100%;border:2px solid #deb982;
+ overflow:hidden;border-radius:6px;background:#fff;}
+.pi-diameter-track > span {font-size:9px;display:grid;place-items:center;border-right:1px solid #fff;
+ background:#87a1e6;color:#fff;font-weight:900;white-space:nowrap;}
+.pi-diameter-track > span:nth-child(2) {background:#6384d9;}
+.pi-diameter-track > span:nth-child(3) {background:#7392d5;}
+.pi-diameter-track > i {background:#f1a959;min-width:3px;}
+.pi-equation {padding:6px 10px;border-radius:8px;background:#fff;color:#536bb9;font-size:12px;}
+.pi-unroll p {margin:0;font-size:10px;line-height:1.6;color:#856d56;max-width:450px;}
+.pi-concept-summary {width:100%;display:grid;gap:5px;padding:9px 11px;text-align:center;
+ border:1px solid #d4e4f8;background:#edf4ff;border-radius:11px;}
+.pi-concept-summary strong {color:#4a65b5;font-size:12px;}
+.pi-concept-summary span {font-weight:900;font-size:16px;color:#526fbd;}
+.pi-concept-summary small {font-size:10px;color:#7b8eaf;}
+@media(max-width:700px) {
+ .pi-circle-svg {max-height:174px;}
+ .pi-intro,.pi-concept-summary {padding:6px;}
+ .pi-stats span {font-size:9px;padding:4px;}
+ .pi-switch button {font-size:10px;padding:5px;}
+}
+.app-shell--question .pi-intro,.standard-studio--concept .pi-intro,
+.standard-studio--application .pi-intro,.app-shell--question .pi-reveal,
+.standard-studio--concept .pi-reveal,.standard-studio--application .pi-reveal{display:none;}
+.app-shell--question .pi-circle-svg,.standard-studio--concept .pi-circle-svg,
+.standard-studio--application .pi-circle-svg {max-height:125px;}
+.app-shell--question .pi-stats span,.standard-studio--concept .pi-stats span,
+.standard-studio--application .pi-stats span{padding:2px 5px;font-size:9px;}
+.app-shell--question .pi-concept-summary,.standard-studio--concept .pi-concept-summary,
+.standard-studio--application .pi-concept-summary {padding:4px;gap:3px;}
+.app-shell--question .pi-concept-summary small,.standard-studio--concept .pi-concept-summary small,
+.standard-studio--application .pi-concept-summary small{display:none;}
