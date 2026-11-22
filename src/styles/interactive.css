@@ -869,7 +869,7 @@
  align-items:center;gap:3px;font-size:12px;color:#429579;font-weight:900;}
 .average-piece::before {content:'';display:inline-block;width:20px;height:15px;
  border:1px solid #65b49a;border-radius:4px;background:linear-gradient(to right,
- #68c7a5 calc(var(--share-portion)*100%),#e7f7f0 0);}
+ #68c7a5 var(--share-pct),#e7f7f0 0);}
 .average-presets {display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;width:100%;}
 .average-presets>span {color:#7b8eaf;font-size:10px;font-weight:850;}
 .average-presets button {font-size:10px;font-weight:850;color:#5a73b3;border:1px solid #cfdef7;
