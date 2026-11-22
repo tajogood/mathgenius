@@ -330,7 +330,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid #97a8ff; outline-
 
 /* 문제를 풀 때는 과한 장식을 줄여서 그림·문제·답안을 먼저 보여줍니다. */
 .app-shell--question .welcome, .app-shell--question .lesson-heading,
-.app-shell--question .below-workspace, .app-shell--question .page-footer { display: none; }
+.app-shell--question .below-workspace { display: none; }
 .app-shell--question .top-bar { padding-bottom: 12px; }
 .app-shell--question .step-nav { margin-bottom: 12px; }
 .app-shell--question .visual-card { padding: 16px; }
@@ -581,3 +581,90 @@ button:focus-visible, input:focus-visible { outline: 3px solid #97a8ff; outline-
 }
 .curriculum-standards small { font-size: 10px; color: #94a0b9; line-height: 1.6; }
 .app-shell--question .curriculum-standards { display: none; }
+
+
+
+/* Company information belongs at the actual end of both the grade and standards workspace. */
+.page-footer {
+  display: grid;
+  gap: 12px;
+  margin-top: 30px;
+  padding: 24px 24px 20px;
+  border-top: 1px solid #e0e5f0;
+  background: #fff;
+  border-radius: 14px;
+  color: #69758e;
+  font-size: 11px;
+  line-height: 1.65;
+  text-align: left;
+}
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer-brand {
+  color: #344569;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -.6px;
+}
+.footer-brand > span { color: #596ee0; }
+.footer-brand > small {
+  color: #9aa8c5;
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: .2px;
+  margin-left: 4px;
+}
+.footer-company-site {
+  border: 1px solid #dfe5f6;
+  border-radius: 7px;
+  padding: 5px 9px;
+  color: #5670b8;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 800;
+}
+.footer-company-site:hover,
+.footer-company-site:focus-visible {
+  color: #3658b0;
+  background: #f1f5ff;
+  outline: 2px solid #a9b9ea;
+  outline-offset: 2px;
+}
+.footer-company-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 5px 20px;
+  color: #68748b;
+  font-size: 11px;
+}
+.footer-company-info > span { white-space: nowrap; }
+.footer-company-info > .footer-address { white-space: normal; flex-basis: 100%; }
+.footer-company-info b { color: #55637d; margin-right: 5px; font-weight: 850; }
+.footer-bottom {
+  border-top: 1px solid #eef1f7;
+  padding-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px 16px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: #9aa4b9;
+}
+@media (max-width: 700px) {
+  .page-footer { margin-top: 18px; padding: 17px 14px; gap: 10px; }
+  .footer-brand { font-size: 15px; }
+  .footer-company-info { gap: 5px 10px; font-size: 10px; }
+  .footer-company-info > span { white-space: normal; }
+  .footer-bottom { font-size: 9px; }
+}
+@media (max-width: 380px) {
+  .footer-company-info { display: grid; gap: 5px; }
+}
+/* Quiz controls retain viewport priority; footer remains below them, never overlaid. */
+.app-shell--question .page-footer { position: static; margin-top: 12px; padding-top: 12px; }
