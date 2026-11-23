@@ -332,3 +332,26 @@ grant execute on function public.admin_health_ping() to authenticated;
 
 -- Privileged fields remain outside browser update column grants.
 revoke update(account_status) on public.member_profiles from authenticated;
+
+
+-- Additional operating signals: verification queue and homework backlog.
+create or replace function public.admin_learning_by_grade(p_days integer default 7)
+returns table(grade smallint,students bigint,answers bigint,correct bigint,study_minutes bigint)
+language plpgsql stable security definer set search_path = ''
+as $$
+begin
+  if not public.is_site_admin() then raise exception '관리자 권한이 없습니다'; end if;
+  if p_days<1 or p_days>31 then raise exception '조회 기간은 1~31일입니다'; end if;
+  return query
+    select m.grade,count(distinct e.student_id)::bigint,
+      count(*) filter(where e.event_type in ('answer','standard_answer'))::bigint,
+      count(*) filter(where e.event_type in ('answer','standard_answer') and e.correct=true)::bigint,
+      (coalesce(sum(e.seconds) filter(where e.event_type='active_time'),0)/60)::bigint
+    from public.learning_events e
+    join public.member_profiles m on m.id=e.student_id
+    where e.occurred_at>=now()-make_interval(days=>p_days)
+      and m.role='student' and m.grade is not null
+    group by m.grade order by m.grade;
+end $$;
+revoke all on function public.admin_learning_by_grade(integer) from public,anon;
+grant execute on function public.admin_learning_by_grade(integer) to authenticated;
