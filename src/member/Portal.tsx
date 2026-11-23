@@ -229,7 +229,7 @@ export default function Portal() {
   // Authenticated-only presence: count unique members active within two minutes.
   // Do not ping for anonymous guests or inactive tabs (children's data minimization).
   useEffect(()=>{
-    if(!db || !session || !profile || profile.account_status==='suspended')return;
+    if(!db || !session || !profile || profile.account_status==='suspended' || screen==='guest')return;
     const ping=()=>{
       if(document.visibilityState==='visible')void db!.rpc('ping_member_presence');
     };
@@ -237,7 +237,7 @@ export default function Portal() {
     const handle=window.setInterval(ping,30000);
     document.addEventListener('visibilitychange',ping);
     return ()=>{window.clearInterval(handle);document.removeEventListener('visibilitychange',ping);};
-  },[session?.user.id,profile?.id,profile?.account_status]);
+  },[session?.user.id,profile?.id,profile?.account_status,screen]);
 
   async function oauth(provider:'google'|'kakao'): Promise<boolean> {
     if(!db){setMessage('로그인 서버를 준비 중입니다. 지금은 GUEST 체험을 이용할 수 있습니다.');return false;}
