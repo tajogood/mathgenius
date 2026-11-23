@@ -372,36 +372,6 @@ export default function Portal() {
     setMessage('PASS 인증 결과가 전달되지 않았습니다. 다시 인증해 주세요.');
   },[profile?.id,screen]);
 
-  async function requestParentFirstConsent(){
-    if(!db || !profile || profile.role!=='parent'||busy)return;
-    if(!guardianDeclared || !guardianConsentOk){
-      setMessage('법정대리인 관계와 개인정보 수집·이용 동의를 모두 선택해 주세요.');return;
-    }
-    if(guardianName.trim().length<2 || !newChildNickname.trim()){
-      setMessage('보호자 실명과 자녀 닉네임을 입력해 주세요.');return;
-    }
-    setBusy(true);setMessage('');
-    try{
-      const {data:request,error}=await db.rpc('request_guardian_preapproval',{
-        p_child_nickname:newChildNickname.trim(),p_child_grade:newChildGrade,
-        p_guardian_name:guardianName.trim(),p_relation:guardianRelation,
-        p_declared_guardian:guardianDeclared,p_accepted_consent:guardianConsentOk,
-      });
-      if(error)throw error;
-      if(!request?.request_id)throw new Error('동의 신청 요청번호를 발급하지 못했습니다.');
-      // The child code is only available after an operator verifies the guardian's reply.
-      setCreatedInvitation(null);
-      const {error:sendError}=await db.functions.invoke('send-guardian-consent',{
-        body:{request_id:request.request_id},
-      });
-      if(sendError)throw sendError;
-      setMessage('부모님의 이메일로 동의 내용을 전송했습니다. 이메일에 직접 답장하세요. 운영자의 확인이 완료되면 가입 승인 코드 발급 버튼이 열립니다.');
-      await loadParent(profile.id);
-    }catch(error){
-      setMessage(error instanceof Error?error.message:'자녀 가입 승인 요청에 실패했습니다.');
-      await loadParent(profile.id);
-    }finally{setBusy(false);}
-  }
   async function retryGuardianEmail(requestId:string){
     if(!db||!profile||profile.role!=='parent'||busy)return;
     setBusy(true);
