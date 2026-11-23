@@ -216,13 +216,14 @@ export default function Portal() {
     return ()=>{cancelled=true;};
   },[session?.user.id]);
 
-  async function oauth(provider:'google'|'kakao') {
-    if(!db){setMessage('로그인 서버를 준비 중입니다. 지금은 GUEST 체험을 이용할 수 있습니다.');return;}
+  async function oauth(provider:'google'|'kakao'): Promise<boolean> {
+    if(!db){setMessage('로그인 서버를 준비 중입니다. 지금은 GUEST 체험을 이용할 수 있습니다.');return false;}
     setMessage('');
     const {error}=await db.auth.signInWithOAuth({
       provider,options:{redirectTo:location.origin+location.pathname},
     });
     if(error)setMessage(error.message);
+    return !error;
   }
   async function beginMinorSignup(provider:'google'|'kakao'){
     if(!db)return;
@@ -237,7 +238,8 @@ export default function Portal() {
       setMessage('부모님 동의 확인이 아직 완료되지 않았거나 가입 승인 코드가 만료됐습니다.');return;
     }
     sessionStorage.setItem('mathgenius_minor_invite',code);
-    await oauth(provider);
+    const started=await oauth(provider);
+    if(!started)sessionStorage.removeItem('mathgenius_minor_invite');
   }
   async function signOut(){
     if(db)await db.auth.signOut();
