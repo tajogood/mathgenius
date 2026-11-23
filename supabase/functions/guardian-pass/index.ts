@@ -84,7 +84,7 @@ Deno.serve(async req=>{
     }
     return reply(200,{
       requestId,identityVerificationId:verificationId,storeId,channelKey,
-      redirectUrl:appOrigin+'/?guardian_pass=1',
+      redirectUrl:appOrigin+'/?guardian_pass=1&request_id='+encodeURIComponent(String(requestId)),
     });
   }
 
