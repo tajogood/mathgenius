@@ -106,3 +106,8 @@ grant execute on function public.finish_guardian_pass_enrollment(
 -- mechanism; only a verified request can rotate or consume the secret.
 -- The earlier "rotate_guardian_invite" and "claim_guardian_invite" already
 -- enforce status='verified' and no existing student account.
+
+-- After PASS becomes the preferred new-child signup route, a browser cannot
+-- create a new parent-first enrollment via the former email-only RPC.
+revoke execute on function public.request_guardian_preapproval(
+  text,integer,text,text,boolean,boolean) from authenticated;
