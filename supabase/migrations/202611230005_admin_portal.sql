@@ -182,6 +182,12 @@ begin
     'published_notices',(select count(*) from public.site_announcements
       where visibility='published' and starts_at<=now()
         and (ends_at is null or ends_at>now())),
+    'pending_guardian_consents',(select count(*) from public.guardian_consent_requests
+      where status in ('requested','sent')),
+    'approved_unclaimed_children',(select count(*) from public.guardian_consent_requests
+      where status='verified' and student_id is null),
+    'open_homework',(select count(*) from public.homework_assignments
+      where status='assigned'),
     'as_of',now()
   );
 end $$;
