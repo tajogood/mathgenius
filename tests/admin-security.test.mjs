@@ -57,7 +57,7 @@ test('presence describes authenticated members only, not anonymous children',()=
 });
 
 test('metrics are optional and never supplied from browser as network targets',()=>{
-  assert.match(edge,/db\.rpc/);
+  assert.match(edge,/adminClient\.rpc\('admin_health_ping'\)/);
   assert.match(edge,/adminClient\.rpc\('is_site_admin'\)/);
   assert.match(edge,/SERVER_METRICS_URL/);
   assert.match(edge,/metricsEndpoint\.startsWith\('https:\/\/'\)/);
