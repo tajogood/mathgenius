@@ -8,6 +8,12 @@
 alter table public.member_profiles
   add column if not exists account_status text not null default 'active'
     check (account_status in ('active','suspended'));
+-- Aggregated operational dashboards scan time windows across all students;
+-- the original index is student-first and does not cover this access pattern.
+create index if not exists learning_events_admin_time_idx
+  on public.learning_events(occurred_at desc,event_type);
+create index if not exists member_profiles_admin_created_idx
+  on public.member_profiles(created_at desc);
 
 create table if not exists public.site_admins (
   user_id uuid primary key references auth.users(id) on delete cascade,
