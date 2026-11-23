@@ -295,13 +295,14 @@ export default function Portal() {
         p_declared_guardian:guardianDeclared,p_accepted_consent:guardianConsentOk,
       });
       if(error)throw error;
-      if(!request?.request_id || !request?.invitation_code)throw new Error('가입 승인 코드를 발급하지 못했습니다.');
-      setCreatedInvitation({id:String(request.request_id),code:String(request.invitation_code)});
+      if(!request?.request_id)throw new Error('동의 신청 요청번호를 발급하지 못했습니다.');
+      // The child code is only available after an operator verifies the guardian's reply.
+      setCreatedInvitation(null);
       const {error:sendError}=await db.functions.invoke('send-guardian-consent',{
         body:{request_id:request.request_id},
       });
       if(sendError)throw sendError;
-      setMessage('부모님의 이메일로 동의 내용을 전송했습니다. 이메일에 직접 답장하고 회신 확인 후 자녀에게 승인 코드를 전달해 주세요.');
+      setMessage('부모님의 이메일로 동의 내용을 전송했습니다. 이메일에 직접 답장하세요. 운영자의 확인이 완료되면 가입 승인 코드 발급 버튼이 열립니다.');
       await loadParent(profile.id);
     }catch(error){
       setMessage(error instanceof Error?error.message:'자녀 가입 승인 요청에 실패했습니다.');
@@ -652,7 +653,7 @@ export default function Portal() {
               '동의 확인 요청 처리 중'}</p>
             {request.status==='requested'&&<button type="button" disabled={busy}
               onClick={()=>void retryGuardianEmail(request.id)}>동의 이메일 발송 다시 시도</button>}
-            {request.student_id===null&&<button type="button" disabled={busy}
+            {request.student_id===null&&request.status==='verified'&&<button type="button" disabled={busy}
               onClick={()=>void rotateGuardianInvite(request.id)}>자녀 가입 승인 코드 발급·재발급</button>}
             <button type="button" disabled={busy}
               onClick={()=>void withdrawParentFirstConsent(request.id)}>동의 철회</button>
