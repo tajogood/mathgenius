@@ -100,7 +100,7 @@ export default function AdminPanel(){
     let live=true;
     const check=async (s:Session|null)=>{
       if(!s){if(live){setSession(null);setAccess('login');}return;}
-      const {data,error:fail}=await db.rpc('is_site_admin');
+      const {data,error:fail}=await db!.rpc('is_site_admin');
       if(!live)return;
       setSession(s);
       setAccess(fail?'denied':data===true?'ready':'denied');
