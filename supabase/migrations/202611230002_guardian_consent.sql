@@ -196,3 +196,23 @@ revoke insert,update,delete on public.guardian_consent_requests from authenticat
 
 -- Prevent browser from fabricating registration timestamps and self-reported age
 -- after profile creation; parent-supplied verification is always separately locked.
+
+
+-- Stop student reads of prior learning data immediately on consent withdrawal.
+-- This replaces older policies that allowed students to SELECT their own records
+-- without checking their current active/minor status.
+drop policy if exists "snapshot read student or authorized parent" on public.learning_snapshots;
+create policy "snapshot read active student or authorized parent"
+  on public.learning_snapshots for select to authenticated using (
+    (student_id=(select auth.uid()) and public.student_is_active(student_id))
+    or public.can_access_child(student_id,(select auth.uid()))
+  );
+drop policy if exists "event read student or authorized parent" on public.learning_events;
+create policy "event read active student or authorized parent"
+  on public.learning_events for select to authenticated using (
+    (student_id=(select auth.uid()) and public.student_is_active(student_id))
+    or public.can_access_child(student_id,(select auth.uid()))
+  );
+
+-- Verified consent remains invalid if the parent/student link is removed.
+-- Only service roles may mutate verification fields.
