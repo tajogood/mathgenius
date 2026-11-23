@@ -16,6 +16,7 @@ export type MemberProfile = {
   grade: number | null;
   under_14: boolean;
   guardian_verified_at: string | null;
+  account_status: 'active' | 'suspended';
 };
 export type StudyEvent = {
   event_type: 'lesson_open' | 'concept_view' | 'lab_interaction' | 'answer' |
