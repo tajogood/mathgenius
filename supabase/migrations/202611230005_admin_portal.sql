@@ -161,6 +161,8 @@ returns jsonb language plpgsql stable security definer set search_path = ''
 as $$
 declare
   v_today date := (now() at time zone 'Asia/Seoul')::date;
+  v_start timestamptz := ((now() at time zone 'Asia/Seoul')::date::timestamp at time zone 'Asia/Seoul');
+  v_end timestamptz := v_start+interval '1 day';
 begin
   if not public.is_site_admin() then raise exception '관리자 권한이 없습니다'; end if;
   return jsonb_build_object(
@@ -170,21 +172,21 @@ begin
     'under14',(select count(*) from public.member_profiles where under_14),
     'suspended',(select count(*) from public.member_profiles where account_status='suspended'),
     'new_today',(select count(*) from public.member_profiles
-      where (created_at at time zone 'Asia/Seoul')::date=v_today),
+      where created_at>=v_start and created_at<v_end),
     'online_members',(select count(*) from public.member_presence p
       join public.member_profiles m on m.id=p.user_id
       where p.last_seen_at>now()-interval '2 minutes' and m.account_status='active'),
     'active_students_today',(select count(distinct e.student_id)
-      from public.learning_events e where (e.occurred_at at time zone 'Asia/Seoul')::date=v_today),
+      from public.learning_events e where e.occurred_at>=v_start and e.occurred_at<v_end),
     'answers_today',(select count(*) from public.learning_events e
       where e.event_type in ('answer','standard_answer')
-        and (e.occurred_at at time zone 'Asia/Seoul')::date=v_today),
+        and e.occurred_at>=v_start and e.occurred_at<v_end),
     'correct_today',(select count(*) from public.learning_events e
       where e.event_type in ('answer','standard_answer') and e.correct=true
-        and (e.occurred_at at time zone 'Asia/Seoul')::date=v_today),
+        and e.occurred_at>=v_start and e.occurred_at<v_end),
     'learning_seconds_today',(select coalesce(sum(seconds),0) from public.learning_events e
       where e.event_type='active_time'
-        and (e.occurred_at at time zone 'Asia/Seoul')::date=v_today),
+        and e.occurred_at>=v_start and e.occurred_at<v_end),
     'published_notices',(select count(*) from public.site_announcements
       where visibility='published' and starts_at<=now()
         and (ends_at is null or ends_at>now())),
