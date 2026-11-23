@@ -92,3 +92,15 @@
 .member-curriculum-teaser .member-disclaimer{font-size:12px;color:#7e89ac}
 @media(max-width:850px){.member-audience-grid{grid-template-columns:1fr 1fr}.member-curriculum-teaser{flex-direction:column;align-items:flex-start}}
 @media(max-width:600px){.member-audience-grid{grid-template-columns:1fr}.member-curriculum-teaser{padding:20px}.member-section-heading h2{font-size:23px}}
+
+
+.member-minor-join{background:#f4f5ff!important;border-color:#cdd6fa!important;color:#4858b8!important;font-size:13px!important}
+.member-parent-first label{display:block;margin:12px 0;font-size:14px;font-weight:700}
+.member-parent-first label>input:not([type=checkbox]),.member-parent-first label>select{width:100%;margin-top:6px}
+.member-parent-first label>input[type=checkbox],.member-guardian-consent label>input[type=checkbox]{width:auto;height:auto;margin-right:8px;vertical-align:middle}
+.member-guardian-request{margin-top:15px;padding:17px;border:1px solid #dee6fa;background:#fafbff;border-radius:13px}
+.member-guardian-request strong{display:block;color:#334175;font-size:16px}
+.member-guardian-request p{margin:9px 0;font-size:13px}
+.member-guardian-request button{margin-right:9px;margin-bottom:8px}
+.member-parent-first>.member-caution{margin:16px 0}
+.member-parent-first .member-code{overflow-wrap:anywhere;word-break:break-word}
