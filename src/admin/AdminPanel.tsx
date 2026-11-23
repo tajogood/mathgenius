@@ -129,7 +129,7 @@ export default function AdminPanel(){
   },[]);
   const refreshNotices=useCallback(async()=>{
     if(!db)return;
-    const {data,error:fail}=await db.from('site_announcements').select('*')
+    const {data,error:fail}=await db.from('site_announcements').select('id,title,body,audience,visibility,starts_at,ends_at,created_at,updated_at')
       .order('updated_at',{ascending:false}).limit(100);
     if(fail){setError(fail.message);return;}
     setNotices((data??[]) as Notice[]);
