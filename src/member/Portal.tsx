@@ -734,7 +734,7 @@ export default function Portal() {
                 (request.verification_method==='pass'?'PASS 인증 미완료 · 인증을 다시 신청하세요':'동의 이메일 발송 준비 중'):
               '동의 확인 요청 처리 중'}</p>
             {request.status==='requested'&&request.verification_method==='email'&&<button type="button" disabled={busy}
-              onClick={()=>void retryGuardianEmail(request.id)}>이메일 발송 다시 시도</button>
+              onClick={()=>void retryGuardianEmail(request.id)}>이메일 발송 다시 시도</button>}
             {request.student_id===null&&request.status==='verified'&&<button type="button" disabled={busy}
               onClick={()=>void rotateGuardianInvite(request.id)}>자녀 가입 승인 코드 발급·재발급</button>}
             <button type="button" disabled={busy}
