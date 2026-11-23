@@ -23,7 +23,13 @@ test('합동과 대칭의 도형을 마우스로 직접 끌어서 이동한다',
   const before=await wing.getAttribute('transform');
   // A visible circular marker is a guaranteed pointer hit target, unlike
   // the group's empty bounding-box region or a concave polygon edge.
-  const box=await wing.locator('circle').first().boundingBox();
+  const marker=wing.locator('circle').first();
+  // The lesson page is taller than the viewport. An SVG element's boundingBox()
+  // can be below the fold; raw page.mouse does NOT auto-scroll to it.
+  // Scroll the *actual pointer target* into view before reading screen coordinates.
+  await marker.scrollIntoViewIfNeeded();
+  await expect(marker).toBeInViewport({ratio:1});
+  const box=await marker.boundingBox();
   expect(box).not.toBeNull();
   const x=box!.x+box!.width/2, y=box!.y+box!.height/2;
   await page.mouse.move(x,y);
