@@ -11,7 +11,7 @@ import { recommendStudy } from './recommend.ts';
 import { CHILD_EXTRA, LEGAL_VERSION, PARENT_EXTRA, PRIVACY, TERMS } from './legal.ts';
 import './portal.css';
 
-type Screen = 'landing' | 'onboarding' | 'student' | 'parent' | 'pending' | 'lesson' | 'guest';
+type Screen = 'landing' | 'minor-invite' | 'onboarding' | 'student' | 'parent' | 'pending' | 'lesson' | 'guest';
 type ChildReport = {
   profile: MemberProfile;
   snapshot: LearningProgress;
@@ -24,8 +24,9 @@ type ChildReport = {
 };
 type LinkRow = { student_id: string; consent_verified_at: string | null };
 type ConsentRequest = {
-  id: string; student_id: string; status: 'requested'|'sent'|'verified'|'rejected'|'withdrawn';
+  id: string; student_id: string|null; status: 'requested'|'sent'|'verified'|'rejected'|'withdrawn';
   requested_at: string; sent_at: string|null; verified_at:string|null;
+  child_nickname:string|null; child_grade:number|null; invite_expires_at:string|null;
 };
 const yyyyMmDd = new Date().toISOString().slice(0, 10);
 
@@ -80,6 +81,10 @@ export default function Portal() {
   const [guardianRelation,setGuardianRelation]=useState<'mother'|'father'|'legal_guardian'>('mother');
   const [guardianDeclared,setGuardianDeclared]=useState(false);
   const [guardianConsentOk,setGuardianConsentOk]=useState(false);
+  const [newChildNickname,setNewChildNickname]=useState('');
+  const [newChildGrade,setNewChildGrade]=useState(1);
+  const [minorInvitationInput,setMinorInvitationInput]=useState('');
+  const [createdInvitation,setCreatedInvitation]=useState<{id:string;code:string}|null>(null);
   const [message,setMessage]=useState('');
   const [role,setRole]=useState<MemberRole>('student');
   const [nickname,setNickname]=useState('');
@@ -127,7 +132,7 @@ export default function Portal() {
     if(linksError){setMessage(linksError.message);return;}
     const connected=(links ?? []) as LinkRow[];
     const {data:requests,error:requestError}=await db.from('guardian_consent_requests')
-      .select('id,student_id,status,requested_at,sent_at,verified_at').eq('parent_id',parentId);
+      .select('id,student_id,status,requested_at,sent_at,verified_at,child_nickname,child_grade,invite_expires_at').eq('parent_id',parentId);
     if(requestError){setMessage('보호자 동의 요청 상태를 가져오지 못했습니다. '+requestError.message);}
     setGuardianRequests((requests??[]) as ConsentRequest[]);
     const ids=connected.map(link=>link.student_id);
@@ -179,7 +184,29 @@ export default function Portal() {
     db.from('member_profiles').select('*').eq('id',session.user.id).maybeSingle().then(async ({data,error})=>{
       if(cancelled)return;
       if(error){setMessage(error.message);setScreen('onboarding');setLoading(false);return;}
-      if(!data){setScreen('onboarding');setLoading(false);return;}
+      if(!data){
+        const approvalCode=sessionStorage.getItem('mathgenius_minor_invite');
+        if(approvalCode){
+          const {error:claimError}=await db!.rpc('claim_guardian_invite',{p_code:approvalCode});
+          sessionStorage.removeItem('mathgenius_minor_invite');
+          if(cancelled)return;
+          if(claimError){
+            setMessage('부모님 가입 승인 연결에 실패했습니다: '+claimError.message);
+            setScreen('onboarding');setLoading(false);return;
+          }
+          const {data:approved,error:reloadError}=await db!.from('member_profiles')
+            .select('*').eq('id',session.user.id).single();
+          if(!reloadError && approved){
+            const child=approved as MemberProfile;
+            setProfile(child);
+            await loadStudent(child);
+            if(!cancelled)setLoading(false);
+            return;
+          }
+          setMessage('가입 승인 후 학습 계정 조회에 실패했습니다.');
+        }
+        setScreen('onboarding');setLoading(false);return;
+      }
       const member=data as MemberProfile;
       setProfile(member);
       if(member.role==='parent'){await loadParent(member.id);if(!cancelled)setScreen('parent');}
@@ -197,6 +224,21 @@ export default function Portal() {
     });
     if(error)setMessage(error.message);
   }
+  async function beginMinorSignup(provider:'google'|'kakao'){
+    if(!db)return;
+    const code=minorInvitationInput.trim().toLowerCase();
+    if(!/^[0-9a-f]{32}$/.test(code)){
+      setMessage('부모님이 발급한 32자리 가입 승인 코드를 입력해 주세요.');return;
+    }
+    setBusy(true);setMessage('');
+    const {data,error}=await db.rpc('guardian_invite_is_approved',{p_code:code});
+    setBusy(false);
+    if(error || !data){
+      setMessage('부모님 동의 확인이 아직 완료되지 않았거나 가입 승인 코드가 만료됐습니다.');return;
+    }
+    sessionStorage.setItem('mathgenius_minor_invite',code);
+    await oauth(provider);
+  }
   async function signOut(){
     if(db)await db.auth.signOut();
     setProfile(null);setPairingCode('');setScreen('landing');
@@ -208,6 +250,10 @@ export default function Portal() {
     if(role==='student' && (!birthdate || birthdate>yyyyMmDd)){setMessage('생년월일을 확인해 주세요.');return;}
     setBusy(true);setMessage('');
     const young=role==='student' && isUnder14(birthdate);
+    if(young){
+      setBusy(false);setMessage('만 14세 미만 학생은 부모님이 먼저 법정대리인 동의 절차를 완료해야 합니다.');
+      setScreen('minor-invite');return;
+    }
     const {data,error}=await db.from('member_profiles').insert({
       id:session.user.id,role,nickname:nickname.trim(),grade:role==='student'?grade:null,
       under_14:young,terms_version:LEGAL_VERSION,
@@ -232,6 +278,52 @@ export default function Portal() {
     const {data,error}=await db.rpc('accept_pairing_code',{entered_code:enteredCode.trim()});
     setMessage(error?.message??String(data));
     if(!error && profile) {setEnteredCode('');await loadParent(profile.id);}
+  }
+  async function requestParentFirstConsent(){
+    if(!db || !profile || profile.role!=='parent'||busy)return;
+    if(!guardianDeclared || !guardianConsentOk){
+      setMessage('법정대리인 관계와 개인정보 수집·이용 동의를 모두 선택해 주세요.');return;
+    }
+    if(guardianName.trim().length<2 || !newChildNickname.trim()){
+      setMessage('보호자 실명과 자녀 닉네임을 입력해 주세요.');return;
+    }
+    setBusy(true);setMessage('');
+    try{
+      const {data:request,error}=await db.rpc('request_guardian_preapproval',{
+        p_child_nickname:newChildNickname.trim(),p_child_grade:newChildGrade,
+        p_guardian_name:guardianName.trim(),p_relation:guardianRelation,
+        p_declared_guardian:guardianDeclared,p_accepted_consent:guardianConsentOk,
+      });
+      if(error)throw error;
+      if(!request?.request_id || !request?.invitation_code)throw new Error('가입 승인 코드를 발급하지 못했습니다.');
+      setCreatedInvitation({id:String(request.request_id),code:String(request.invitation_code)});
+      const {error:sendError}=await db.functions.invoke('send-guardian-consent',{
+        body:{request_id:request.request_id},
+      });
+      if(sendError)throw sendError;
+      setMessage('부모님의 이메일로 동의 내용을 전송했습니다. 이메일에 직접 답장하고 회신 확인 후 자녀에게 승인 코드를 전달해 주세요.');
+      await loadParent(profile.id);
+    }catch(error){
+      setMessage(error instanceof Error?error.message:'자녀 가입 승인 요청에 실패했습니다.');
+    }finally{setBusy(false);}
+  }
+  async function rotateGuardianInvite(requestId:string){
+    if(!db||!profile||profile.role!=='parent'||busy)return;
+    setBusy(true);
+    const {data,error}=await db.rpc('rotate_guardian_invite',{p_request:requestId});
+    setBusy(false);
+    if(error){setMessage(error.message);return;}
+    setCreatedInvitation({id:requestId,code:String(data)});
+    setMessage('새 가입 승인 코드를 만들었습니다. 이전 코드는 사용할 수 없습니다.');
+  }
+  async function withdrawParentFirstConsent(requestId:string){
+    if(!db||!profile||profile.role!=='parent'||busy)return;
+    if(!window.confirm('이 법정대리인 동의를 철회할까요? 자녀의 회원 학습 기능이 제한됩니다.'))return;
+    setBusy(true);
+    const {error}=await db.rpc('withdraw_guardian_email_consent_request',{p_request:requestId});
+    setBusy(false);
+    setMessage(error?.message??'법정대리인 동의를 철회했습니다.');
+    if(!error)await loadParent(profile.id);
   }
   async function requestGuardianConsent(studentId:string){
     if(!db || !profile || profile.role!=='parent'||busy)return;
@@ -343,6 +435,9 @@ export default function Portal() {
             <button type="button" className="member-guest-button" onClick={()=>setScreen('guest')}>
               회원가입 없이 GUEST 체험하기 →
             </button>
+            <button type="button" className="member-minor-join" onClick={()=>setScreen('minor-invite')}>
+              만 14세 미만 자녀 가입하기 · 부모님 승인 코드 사용
+            </button>
             {!db&&<small>소셜 로그인은 인증 서버 설정 후 활성화됩니다. 체험 기능은 지금도 이용할 수 있어요.</small>}
           </div>
         </div>
@@ -397,6 +492,24 @@ export default function Portal() {
         <a href="https://larix.kr" target="_blank" rel="noreferrer">운영사 라릭</a>
       </footer>
     </div>}
+    {screen==='minor-invite'&&<main className="member-onboarding">
+      <button type="button" onClick={()=>setScreen('landing')}>← 처음으로</button>
+      <h1>만 14세 미만 학생 회원가입</h1>
+      <p>학생이 먼저 소셜 로그인하지 않습니다. 부모님이 학부모 계정으로 가입해서
+        법정대리인 동의 내용을 이메일로 받고 답장한 뒤, 운영자의 확인이 끝나면 자녀용 가입 승인 코드를 받습니다.</p>
+      <label>부모님이 발급한 가입 승인 코드
+        <input value={minorInvitationInput} maxLength={32}
+          onChange={e=>setMinorInvitationInput(e.target.value)}
+          aria-label="법정대리인 가입 승인 코드" placeholder="32자리 승인 코드"/></label>
+      <button type="button" disabled={busy} onClick={()=>void beginMinorSignup('google')}>
+        부모님 동의 완료 후 Google로 학생 계정 시작
+      </button>
+      <button type="button" disabled={busy} onClick={()=>void beginMinorSignup('kakao')}>
+        부모님 동의 완료 후 카카오로 학생 계정 시작
+      </button>
+      <p>부모님 승인이 끝나지 않았다면 먼저 부모님께 학부모 계정 가입과 자녀 가입 승인 요청을 부탁해 주세요.</p>
+      <button type="button" onClick={()=>setScreen('guest')}>로그인 없이 수학 체험</button>
+    </main>}
     {screen==='guest'&&<>
       <div className="member-mode-strip">GUEST 체험 중 · 이 기기에만 학습 기록 저장
         <button type="button" onClick={()=>setScreen('landing')}>첫 화면으로</button>
@@ -419,9 +532,9 @@ export default function Portal() {
         <label>생년월일 (만 14세 미만 여부 확인에만 사용하고 저장하지 않습니다)
           <input type="date" max={yyyyMmDd} value={birthdate} onChange={e=>setBirthdate(e.target.value)}/></label>
         {birthdate&&isUnder14(birthdate)&&<div className="member-caution">
-          만 14세 미만 학생은 회원가입 요청 후 보호자 동의를 받아야 합니다. 학생 연결 코드로 부모님 계정을 연결하고,
-          부모님에게 전송된 동의 안내 이메일에 부모님이 직접 답장한 뒤 운영자가 확인하면 회원 학습을 시작할 수 있습니다.
-          동의 확인 전에는 회원 학습기록을 서버에 저장하지 않습니다. GUEST 모드는 이용할 수 있어요.
+          만 14세 미만 학생은 이 화면에서 가입할 수 없습니다. 부모님이 먼저 회원가입 후
+          개인정보 이용에 동의한 이메일에 답장하여 승인을 받은 다음,
+          자녀가 승인 코드로 Google/카카오 학생 계정을 시작합니다.
         </div>}
       </>}
       <div className="member-consents">
@@ -438,7 +551,7 @@ export default function Portal() {
         <p>{(role==='parent'?PARENT_EXTRA:CHILD_EXTRA).join(' ')}</p>
       </div>
       <button type="button" className="member-primary" disabled={busy||!termsOk||!privacyOk} onClick={()=>void saveRegistration()}>
-        {busy?'가입 처리 중…':role==='student'&&isUnder14(birthdate)?'보호자 동의 신청 및 가입 대기':'회원가입 완료'}
+        {busy?'가입 처리 중…':role==='student'&&isUnder14(birthdate)?'부모님 승인 코드 입력 화면으로 이동':'회원가입 완료'}
       </button>
     </main>}
     {!loading&&screen==='pending'&&<main className="member-onboarding">
@@ -485,6 +598,57 @@ export default function Portal() {
     {!loading&&screen==='parent'&&profile&&<main className="member-dashboard">
       <header className="member-dashboard-header"><div><small>PARENT DASHBOARD</small><h1>{profile.nickname}님의 학습 관리</h1></div>
         <button onClick={()=>void signOut()}>로그아웃</button></header>
+      <section className="member-panel member-parent-first">
+        <h2>🛡️ 만 14세 미만 자녀 회원가입 승인</h2>
+        <p>학생이 소셜 로그인하기 전, 부모님이 먼저 법정대리인 동의를 완료합니다.
+          부모님 이메일로 전송된 동의 안내에 직접 답장하면 운영자가 확인합니다.</p>
+        <label>자녀 닉네임 (실명 불필요)
+          <input maxLength={40} value={newChildNickname} onChange={e=>setNewChildNickname(e.target.value)}
+            placeholder="예: 수학탐험가"/></label>
+        <label>자녀 학년<select value={newChildGrade} onChange={e=>setNewChildGrade(Number(e.target.value))}>
+          {grades.map(item=><option value={item.grade} key={item.grade}>{item.grade}학년</option>)}
+        </select></label>
+        <label>법정대리인 실명<input maxLength={80} value={guardianName} autoComplete="name"
+          onChange={e=>setGuardianName(e.target.value)} placeholder="부모님 실명"/></label>
+        <label>법정대리인 관계<select value={guardianRelation}
+          onChange={e=>setGuardianRelation(e.target.value as typeof guardianRelation)}>
+          <option value="mother">어머니</option><option value="father">아버지</option>
+          <option value="legal_guardian">그 외 법정대리인</option>
+        </select></label>
+        <label><input type="checkbox" checked={guardianDeclared} onChange={e=>setGuardianDeclared(e.target.checked)}/>
+          본인은 해당 학생의 법정대리인이며 개인정보 처리에 동의할 권한이 있습니다.</label>
+        <div className="member-caution">
+          <strong>아동 개인정보 처리 내용</strong>
+          <p>수집 항목: 학생 인증 식별자, 닉네임, 학년, 학습 진도·정오답·방문·교구 조작·학습 시간·숙제 및 동의 기록.</p>
+          <p>이용 목적: 개인별 개념 학습, 복습 추천, 부모님의 진도 조회 및 숙제 관리.</p>
+          <p>동의 거부·철회가 가능하며 거부 시 회원 학습 기록 서비스는 이용할 수 없습니다.
+            GUEST는 무료로 이용 가능합니다. 정식 보유기간과 자세한 방침은 출시 전 확정됩니다.</p>
+        </div>
+        <label><input type="checkbox" checked={guardianConsentOk} onChange={e=>setGuardianConsentOk(e.target.checked)}/>
+          법정대리인으로서 위 아동 개인정보 수집·이용 안내를 읽고 동의합니다.</label>
+        <button className="member-primary" type="button"
+          disabled={busy||!guardianDeclared||!guardianConsentOk||guardianName.trim().length<2||!newChildNickname.trim()}
+          onClick={()=>void requestParentFirstConsent()}>
+          {busy?'요청 처리 중…':'법정대리인 동의 이메일 발송 및 승인 신청'}
+        </button>
+        {guardianRequests.filter(request=>request.child_nickname && request.status!=='withdrawn').map(request=>
+          <div className="member-guardian-request" key={request.id}>
+            <strong>{request.child_nickname} · {request.child_grade}학년</strong>
+            <p>{request.status==='verified'?'법정대리인 회신 확인 완료 · 자녀에게 승인 코드를 전달하세요':
+              request.status==='sent'?'동의 이메일 발송됨 · 부모님 회신 확인 대기':
+              request.status==='requested'?'동의 이메일 발송 준비 중':
+              '동의 확인 요청 처리 중'}</p>
+            {request.student_id===null&&<button type="button" disabled={busy}
+              onClick={()=>void rotateGuardianInvite(request.id)}>자녀 가입 승인 코드 발급·재발급</button>}
+            <button type="button" disabled={busy}
+              onClick={()=>void withdrawParentFirstConsent(request.id)}>동의 철회</button>
+            {createdInvitation?.id===request.id&&
+              <p className="member-code" aria-label="자녀 가입 승인 코드">{createdInvitation.code}</p>}
+          </div>
+        )}
+        <p>자녀 승인 코드는 이메일 회신이 확인된 뒤 학생에게 전달하세요.
+          코드만 입력하고 동의가 확인되지 않은 경우 가입되지 않습니다.</p>
+      </section>
       <section className="member-panel"><h2>👨‍👩‍👧 학생 계정 연결</h2>
         <p>학생에게 받은 32자리 코드를 입력해 계정을 연결하세요. 만 14세 미만은 연결 후 보호자 개인정보 동의 이메일에 직접 회신해야 학습 기록을 확인할 수 있습니다.</p>
         <div className="member-inline-form"><input aria-label="학생 연결 코드" value={enteredCode} maxLength={32}
