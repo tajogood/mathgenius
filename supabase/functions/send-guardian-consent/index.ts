@@ -84,9 +84,10 @@ Deno.serve(async req=>{
     auth:{persistSession:false,autoRefreshToken:false},
   });
   const {data:record,error:readError}=await admin.from('guardian_consent_requests')
-    .select('id,parent_id,guardian_name,guardian_email,status,terms_version')
+    .select('id,parent_id,guardian_name,guardian_email,status,terms_version,verification_method')
     .eq('id',requestId).eq('parent_id',user.id).maybeSingle();
   if(readError || !record)return json(404,{error:'이 계정의 동의 요청을 찾을 수 없습니다.'});
+  if(record.verification_method!=='email')return json(409,{error:'이 요청은 PASS 휴대전화 인증으로 완료해야 합니다.'});
   if(record.status==='sent' || record.status==='verified')return json(200,{sent:true});
   if(record.status!=='requested')return json(409,{error:'현재 발송할 수 없는 요청입니다.'});
   if(record.terms_version!=='draft-2026-11-23')return json(409,{error:'동의 문서 버전이 일치하지 않습니다.'});
