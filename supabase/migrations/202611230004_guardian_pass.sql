@@ -111,3 +111,34 @@ grant execute on function public.finish_guardian_pass_enrollment(
 -- create a new parent-first enrollment via the former email-only RPC.
 revoke execute on function public.request_guardian_preapproval(
   text,integer,text,text,boolean,boolean) from authenticated;
+
+
+-- Do not let the older email confirmation RPC (or email send function)
+-- change PASS-only requests. This is database enforced.
+create or replace function public.prevent_guardian_pass_email_bypass()
+returns trigger language plpgsql set search_path = ''
+as $$
+begin
+  if old.verification_method='pass' then
+    if new.verification_method<>'pass' then
+      raise exception 'PASS 인증 방식은 변경할 수 없습니다';
+    end if;
+    if new.status='sent' then
+      raise exception 'PASS 인증 요청은 이메일 발송 상태로 바꿀 수 없습니다';
+    end if;
+    if old.status<>'verified' and new.status='verified'
+      and (new.pass_verified_at is null or
+        new.pass_identity_verification_id is null)
+    then
+      raise exception 'PASS 인증 결과 검증 없이 동의를 승인할 수 없습니다';
+    end if;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists enforce_guardian_pass_state on public.guardian_consent_requests;
+create trigger enforce_guardian_pass_state
+before update on public.guardian_consent_requests
+for each row execute function public.prevent_guardian_pass_email_bypass();
+
+revoke all on function public.prevent_guardian_pass_email_bypass() from public,anon,authenticated;
