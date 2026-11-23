@@ -8,6 +8,7 @@ import { emptyProgress, parseProgress, unitMastery, type LearningProgress } from
 import { normalizeStandardProgress, type StandardProgress } from '../standards/progress.ts';
 import { db, type Assignment, type MemberProfile, type MemberRole, type StudyEvent } from './client.ts';
 import { recommendStudy } from './recommend.ts';
+import { openGuardianPass, type PassStartResult } from './pass.ts';
 import { CHILD_EXTRA, LEGAL_VERSION, PARENT_EXTRA, PRIVACY, TERMS } from './legal.ts';
 import './portal.css';
 
@@ -27,6 +28,7 @@ type ConsentRequest = {
   id: string; student_id: string|null; status: 'requested'|'sent'|'verified'|'rejected'|'withdrawn';
   requested_at: string; sent_at: string|null; verified_at:string|null;
   child_nickname:string|null; child_grade:number|null; invite_expires_at:string|null;
+  verification_method:'email'|'pass';
 };
 const yyyyMmDd = new Date().toISOString().slice(0, 10);
 
@@ -132,7 +134,7 @@ export default function Portal() {
     if(linksError){setMessage(linksError.message);return;}
     const connected=(links ?? []) as LinkRow[];
     const {data:requests,error:requestError}=await db.from('guardian_consent_requests')
-      .select('id,student_id,status,requested_at,sent_at,verified_at,child_nickname,child_grade,invite_expires_at').eq('parent_id',parentId);
+      .select('id,student_id,status,requested_at,sent_at,verified_at,child_nickname,child_grade,invite_expires_at,verification_method').eq('parent_id',parentId);
     if(requestError){setMessage('보호자 동의 요청 상태를 가져오지 못했습니다. '+requestError.message);}
     setGuardianRequests((requests??[]) as ConsentRequest[]);
     const ids=connected.map(link=>link.student_id);
@@ -281,6 +283,79 @@ export default function Portal() {
     setMessage(error?.message??String(data));
     if(!error && profile) {setEnteredCode('');await loadParent(profile.id);}
   }
+  async function completeGuardianPass(requestId:string,identityVerificationId:string){
+    if(!db || !profile || profile.role!=='parent')return;
+    if(!/^[0-9a-f-]{36}$/i.test(requestId) || !/^guardian-pass-[0-9a-f-]{36}$/i.test(identityVerificationId)){
+      setMessage('PASS 인증 요청 정보를 확인할 수 없습니다. 다시 신청해 주세요.');return;
+    }
+    setBusy(true);setMessage('PASS 휴대전화 인증 결과를 서버에서 검증하고 있습니다.');
+    try{
+      const {data,error}=await db.functions.invoke('guardian-pass',{body:{
+        action:'complete',request_id:requestId,identity_verification_id:identityVerificationId,
+      }});
+      if(error)throw error;
+      if(!data?.verified)throw new Error(String(data?.error??'PASS 인증이 완료되지 않았습니다.'));
+      setMessage('PASS 휴대전화 본인확인과 법정대리인 동의가 등록됐습니다. 자녀 가입 승인 코드를 발급해 주세요.');
+      sessionStorage.removeItem('mathgenius_guardian_pass_attempt');
+      await loadParent(profile.id);
+    }catch(error){
+      setMessage(error instanceof Error?error.message:'PASS 인증 결과를 확인하지 못했습니다.');
+    }finally{setBusy(false);}
+  }
+
+  async function startGuardianPass(){
+    if(!db || !profile || profile.role!=='parent' || busy)return;
+    if(!guardianDeclared || !guardianConsentOk){
+      setMessage('법정대리인 관계 확인과 아동 개인정보 수집·이용 동의가 모두 필요합니다.');return;
+    }
+    if(guardianName.trim().length<2 || !newChildNickname.trim()){
+      setMessage('법정대리인 실명과 자녀 닉네임을 입력해 주세요.');return;
+    }
+    setBusy(true);setMessage('');
+    try{
+      const {data,error}=await db.functions.invoke('guardian-pass',{body:{
+        action:'start',child_nickname:newChildNickname.trim(),child_grade:newChildGrade,
+        guardian_name:guardianName.trim(),relation:guardianRelation,
+        declared_guardian:guardianDeclared,accepted_consent:guardianConsentOk,
+      }});
+      if(error)throw error;
+      if(!data?.requestId || !data?.identityVerificationId || !data?.channelKey || !data?.storeId)
+        throw new Error('PASS 인증 업체 설정을 확인해 주세요.');
+      const start=data as PassStartResult;
+      sessionStorage.setItem('mathgenius_guardian_pass_attempt',
+        JSON.stringify({requestId:start.requestId,identityVerificationId:start.identityVerificationId}));
+      const outcome=await openGuardianPass(start);
+      if(!outcome)return; // Mobile redirects back to our app; useEffect handles completion.
+      if(outcome.code){
+        setMessage('PASS 인증이 취소됐거나 실패했습니다. '+String(outcome.message??''));
+        sessionStorage.removeItem('mathgenius_guardian_pass_attempt');
+        return;
+      }
+      if(outcome.identityVerificationId && outcome.identityVerificationId!==start.identityVerificationId)
+        throw new Error('PASS 본인확인 요청번호가 일치하지 않습니다.');
+      await completeGuardianPass(start.requestId,start.identityVerificationId);
+    }catch(error){
+      setMessage(error instanceof Error?error.message:'PASS 본인확인 요청에 실패했습니다.');
+    }finally{setBusy(false);}
+  }
+  useEffect(()=>{
+    if(!profile || profile.role!=='parent' || screen!=='parent')return;
+    const search=new URLSearchParams(window.location.search);
+    if(search.get('guardian_pass')!=='1')return;
+    const requestId=search.get('request_id');
+    const verifyId=search.get('identityVerificationId');
+    const code=search.get('code');
+    // The callback query is untrusted. Only the trusted server can approve a
+    // known provider transaction belonging to this authenticated parent.
+    for(const key of ['guardian_pass','request_id','identityVerificationId','code','message','pgCode','pgMessage']){
+      search.delete(key);
+    }
+    window.history.replaceState({},'',window.location.pathname+(search.size?'?'+search.toString():''));
+    if(code){setMessage('PASS 인증이 완료되지 않았습니다. 취소 또는 오류: '+code);return;}
+    if(requestId && verifyId){void completeGuardianPass(requestId,verifyId);return;}
+    setMessage('PASS 인증 결과가 전달되지 않았습니다. 다시 인증해 주세요.');
+  },[profile?.id,screen]);
+
   async function requestParentFirstConsent(){
     if(!db || !profile || profile.role!=='parent'||busy)return;
     if(!guardianDeclared || !guardianConsentOk){
