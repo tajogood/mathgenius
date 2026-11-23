@@ -112,11 +112,22 @@ create index if not exists site_announcements_published_idx
   on public.site_announcements(visibility,starts_at desc);
 alter table public.site_announcements enable row level security;
 revoke all on public.site_announcements from anon,authenticated;
-grant select on public.site_announcements to anon,authenticated;
+grant select (id,title,body,audience,visibility,starts_at,ends_at,created_at,updated_at)
+  on public.site_announcements to anon,authenticated;
 create policy "active public announcements" on public.site_announcements
   for select to anon,authenticated using (
+    visibility='published' and audience='all' and starts_at<=now()
+      and (ends_at is null or ends_at>now())
+  );
+create policy "active targeted announcements" on public.site_announcements
+  for select to authenticated using (
     visibility='published' and starts_at<=now()
       and (ends_at is null or ends_at>now())
+      and exists (
+        select 1 from public.member_profiles p
+        where p.id=(select auth.uid()) and p.role=audience
+          and p.account_status='active'
+      )
   );
 create policy "all announcements for administrators" on public.site_announcements
   for select to authenticated using ((select public.is_site_admin()));
