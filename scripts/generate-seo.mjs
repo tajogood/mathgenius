@@ -228,6 +228,7 @@ function run(){
   } else {
     console.warn('[SEO] SITE_URL is missing: public pages built, canonical and sitemap skipped.');
   }
+  robots.push('Disallow: /admin/');
   writeFileSync(join(outDir,'robots.txt'),robots.join('\n')+'\n');
   console.log('[SEO] Static pages generated: '+(routes.length-1));
 }
