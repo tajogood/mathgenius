@@ -585,8 +585,8 @@ export default function Portal() {
     {screen==='minor-invite'&&<main className="member-onboarding">
       <button type="button" onClick={()=>setScreen('landing')}>← 처음으로</button>
       <h1>만 14세 미만 학생 회원가입</h1>
-      <p>학생이 먼저 소셜 로그인하지 않습니다. 부모님이 학부모 계정으로 가입해서
-        법정대리인 동의 내용을 이메일로 받고 답장한 뒤, 운영자의 확인이 끝나면 자녀용 가입 승인 코드를 받습니다.</p>
+      <p>학생이 먼저 소셜 로그인하지 않습니다. 부모님이 학부모 계정에서 아동 개인정보 처리에 동의하고
+        휴대전화 PASS 본인확인을 완료한 후 자녀 가입 승인 코드를 발급받습니다.</p>
       <label>부모님이 발급한 가입 승인 코드
         <input value={minorInvitationInput} maxLength={32}
           onChange={e=>setMinorInvitationInput(e.target.value)}
@@ -690,8 +690,8 @@ export default function Portal() {
         <button onClick={()=>void signOut()}>로그아웃</button></header>
       <section className="member-panel member-parent-first">
         <h2>🛡️ 만 14세 미만 자녀 회원가입 승인</h2>
-        <p>학생이 소셜 로그인하기 전, 부모님이 먼저 법정대리인 동의를 완료합니다.
-          부모님 이메일로 전송된 동의 안내에 직접 답장하면 운영자가 확인합니다.</p>
+        <p>학생이 로그인하기 전에 부모님이 아동 개인정보 처리 내용을 확인하고
+          본인 명의 휴대전화의 PASS 앱으로 본인확인합니다. PASS 인증 성공과 동의가 서버에 확인된 후 자녀 가입 승인 코드를 받을 수 있습니다.</p>
         <label>자녀 닉네임 (실명 불필요)
           <input maxLength={40} value={newChildNickname} onChange={e=>setNewChildNickname(e.target.value)}
             placeholder="예: 수학탐험가"/></label>
@@ -718,18 +718,23 @@ export default function Portal() {
           법정대리인으로서 위 아동 개인정보 수집·이용 안내를 읽고 동의합니다.</label>
         <button className="member-primary" type="button"
           disabled={busy||!guardianDeclared||!guardianConsentOk||guardianName.trim().length<2||!newChildNickname.trim()}
-          onClick={()=>void requestParentFirstConsent()}>
-          {busy?'요청 처리 중…':'법정대리인 동의 이메일 발송 및 승인 신청'}
+          onClick={()=>void startGuardianPass()}>
+          {busy?'본인확인 처리 중…':'PASS 휴대전화 본인확인 및 부모 동의 완료'}
         </button>
+        <p className="member-disclaimer">PASS는 법정대리인으로 동의한 분의 휴대전화 명의와 성명·연령을 확인합니다.
+          실제 친권·후견관계를 증명하는 가족관계 서류는 이 과정에서 조회하지 않습니다.
+          인증 결과의 성명은 위에 입력한 법정대리인 실명과 일치해야 합니다.</p>
         {guardianRequests.filter(request=>request.child_nickname && request.status!=='withdrawn').map(request=>
           <div className="member-guardian-request" key={request.id}>
             <strong>{request.child_nickname} · {request.child_grade}학년</strong>
-            <p>{request.status==='verified'?'법정대리인 회신 확인 완료 · 자녀에게 승인 코드를 전달하세요':
-              request.status==='sent'?'동의 이메일 발송됨 · 부모님 회신 확인 대기':
-              request.status==='requested'?'동의 이메일 발송 준비 중':
+            <p>{request.status==='verified'?
+                (request.verification_method==='pass'?'PASS 휴대전화 본인확인 및 동의 완료 · 자녀 가입 승인 코드 발급 가능':'이메일 회신 확인 완료 · 자녀 가입 승인 코드 발급 가능'):
+              request.status==='sent'?'동의 이메일 발송됨 · 회신 확인 대기':
+              request.status==='requested'?
+                (request.verification_method==='pass'?'PASS 인증 미완료 · 인증을 다시 신청하세요':'동의 이메일 발송 준비 중'):
               '동의 확인 요청 처리 중'}</p>
-            {request.status==='requested'&&<button type="button" disabled={busy}
-              onClick={()=>void retryGuardianEmail(request.id)}>동의 이메일 발송 다시 시도</button>}
+            {request.status==='requested'&&request.verification_method==='email'&&<button type="button" disabled={busy}
+              onClick={()=>void retryGuardianEmail(request.id)}>이메일 발송 다시 시도</button>
             {request.student_id===null&&request.status==='verified'&&<button type="button" disabled={busy}
               onClick={()=>void rotateGuardianInvite(request.id)}>자녀 가입 승인 코드 발급·재발급</button>}
             <button type="button" disabled={busy}
@@ -738,8 +743,8 @@ export default function Portal() {
               <p className="member-code" aria-label="자녀 가입 승인 코드">{createdInvitation.code}</p>}
           </div>
         )}
-        <p>자녀 승인 코드는 이메일 회신이 확인된 뒤 학생에게 전달하세요.
-          코드만 입력하고 동의가 확인되지 않은 경우 가입되지 않습니다.</p>
+        <p>PASS 본인확인 완료 후 위 목록에서 자녀 가입 승인 코드를 발급해 자녀에게 전달하세요.
+          부모 동의가 확인되지 않은 상태에서는 가입 승인 코드로도 학생 계정을 만들 수 없습니다.</p>
       </section>
       <section className="member-panel"><h2>👨‍👩‍👧 학생 계정 연결</h2>
         <p>학생에게 받은 32자리 코드를 입력해 계정을 연결하세요. 만 14세 미만은 연결 후 보호자 개인정보 동의 이메일에 직접 회신해야 학습 기록을 확인할 수 있습니다.</p>
