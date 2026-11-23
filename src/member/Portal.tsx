@@ -208,8 +208,8 @@ export default function Portal() {
     const {data,error}=await db.from('member_profiles').insert({
       id:session.user.id,role,nickname:nickname.trim(),grade:role==='student'?grade:null,
       under_14:young,terms_version:LEGAL_VERSION,
-      accepted_terms_at:new Date().toISOString(),accepted_privacy_at:new Date().toISOString(),
-      marketing_opt_in:marketingOk,
+      accepted_terms_at:new Date().toISOString(),accepted_privacy_at:young?null:new Date().toISOString(),
+      marketing_opt_in:young?false:marketingOk,
     }).select('*').single();
     setBusy(false);
     if(error){setMessage(error.message);return;}
@@ -426,9 +426,12 @@ export default function Portal() {
         <label><input type="checkbox" checked={termsOk} onChange={e=>setTermsOk(e.target.checked)}/>
           [필수] 서비스 이용약관 동의 <button type="button" onClick={()=>setLegalOpen('terms')}>전문</button></label>
         <label><input type="checkbox" checked={privacyOk} onChange={e=>setPrivacyOk(e.target.checked)}/>
-          [필수] 개인정보 수집·이용 안내 동의 <button type="button" onClick={()=>setLegalOpen('privacy')}>전문</button></label>
-        <label><input type="checkbox" checked={marketingOk} onChange={e=>setMarketingOk(e.target.checked)}/>
-          [선택] 서비스 안내 및 소식 수신</label>
+          [필수] {role==='student'&&isUnder14(birthdate)?
+            '개인정보 수집·이용 안내를 읽었습니다 (법정대리인 동의는 별도로 필요)':
+            '개인정보 수집·이용 안내 동의'} <button type="button" onClick={()=>setLegalOpen('privacy')}>전문</button></label>
+        {!(role==='student'&&isUnder14(birthdate))&&
+          <label><input type="checkbox" checked={marketingOk} onChange={e=>setMarketingOk(e.target.checked)}/>
+            [선택] 서비스 안내 및 소식 수신</label>}
         <p>{(role==='parent'?PARENT_EXTRA:CHILD_EXTRA).join(' ')}</p>
       </div>
       <button type="button" className="member-primary" disabled={busy||!termsOk||!privacyOk} onClick={()=>void saveRegistration()}>
