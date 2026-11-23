@@ -4,6 +4,13 @@
 -- Important: Only the trusted operator can examine received email evidence and verify consent.
 -- Connecting a pairing code, tapping checkbox, or OAuth DOES NOT unlock a minor's records.
 
+-- A child's checkbox is only acknowledgment of the consent-request flow, not
+-- consent authorizing processing of the child's learning history.
+alter table public.member_profiles alter column accepted_privacy_at drop not null;
+alter table public.member_profiles drop constraint if exists minor_or_privacy_acceptance;
+alter table public.member_profiles add constraint minor_or_privacy_acceptance
+  check (under_14 or accepted_privacy_at is not null);
+
 create table if not exists public.guardian_consent_requests (
   id uuid primary key default gen_random_uuid(),
   parent_id uuid not null references public.member_profiles(id) on delete cascade,
