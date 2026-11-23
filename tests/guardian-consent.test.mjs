@@ -81,3 +81,10 @@ test('parent must declare guardianship, grant consent and verify PASS to issue a
   assert.match(portal,/guardian_pass/);
   assert.match(preapproval,/status='verified'/);
 });
+
+test('PASS request cannot be approved through the old email-consent method',()=>{
+  assert.match(passSql,/prevent_guardian_pass_email_bypass/);
+  assert.match(passSql,/if new.status='sent'/);
+  assert.match(passSql,/new.pass_verified_at is null/);
+  assert.match(email,/record.verification_method!=='email'/);
+});
