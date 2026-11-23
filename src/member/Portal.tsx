@@ -12,7 +12,7 @@ import { openGuardianPass, type PassStartResult } from './pass.ts';
 import { CHILD_EXTRA, LEGAL_VERSION, PARENT_EXTRA, PRIVACY, TERMS } from './legal.ts';
 import './portal.css';
 
-type Screen = 'landing' | 'minor-invite' | 'onboarding' | 'student' | 'parent' | 'pending' | 'lesson' | 'guest';
+type Screen = 'landing' | 'join-choice' | 'minor-invite' | 'onboarding' | 'student' | 'parent' | 'pending' | 'lesson' | 'guest';
 type ChildReport = {
   profile: MemberProfile;
   snapshot: LearningProgress;
@@ -86,6 +86,7 @@ export default function Portal() {
   const [newChildNickname,setNewChildNickname]=useState('');
   const [newChildGrade,setNewChildGrade]=useState(1);
   const [minorInvitationInput,setMinorInvitationInput]=useState('');
+  const [pendingOAuthProvider,setPendingOAuthProvider]=useState<'google'|'kakao'>('google');
   const [createdInvitation,setCreatedInvitation]=useState<{id:string;code:string}|null>(null);
   const [message,setMessage]=useState('');
   const [role,setRole]=useState<MemberRole>('student');
@@ -187,6 +188,9 @@ export default function Portal() {
       if(cancelled)return;
       if(error){setMessage(error.message);setScreen('onboarding');setLoading(false);return;}
       if(!data){
+        const expectedRole=sessionStorage.getItem('mathgenius_expected_role');
+        if(expectedRole==='parent' || expectedRole==='student')setRole(expectedRole);
+        sessionStorage.removeItem('mathgenius_expected_role');
         const approvalCode=sessionStorage.getItem('mathgenius_minor_invite');
         if(approvalCode){
           const {error:claimError}=await db!.rpc('claim_guardian_invite',{p_code:approvalCode});
@@ -226,6 +230,18 @@ export default function Portal() {
     });
     if(error)setMessage(error.message);
     return !error;
+  }
+  function prepareOAuth(provider:'google'|'kakao'){
+    setPendingOAuthProvider(provider);setMessage('');setScreen('join-choice');
+  }
+  async function startScreenedOAuth(roleChoice:'parent'|'student'){
+    if(roleChoice==='student' && (!birthdate || birthdate>yyyyMmDd || isUnder14(birthdate))){
+      setMessage('만 14세 미만 학생은 먼저 부모님의 PASS 인증과 가입 승인을 받아야 합니다.');
+      setScreen('minor-invite');return;
+    }
+    sessionStorage.setItem('mathgenius_expected_role',roleChoice);
+    const started=await oauth(pendingOAuthProvider);
+    if(!started)sessionStorage.removeItem('mathgenius_expected_role');
   }
   async function beginMinorSignup(provider:'google'|'kakao'){
     if(!db)return;
@@ -516,10 +532,10 @@ export default function Portal() {
           <h1>수학의 답보다<br/><em>생각하는 힘</em>을 키워요.</h1>
           <p>1~6학년 개념을 움직이는 수학 교구로 배워요.<br/>로그인하면 진도와 오답을 기록하고, 부모님과 함께 성장할 수 있어요.</p>
           <div className="member-login-options">
-            <button type="button" className="member-google" disabled={loading} onClick={()=>void oauth('google')}>
+            <button type="button" className="member-google" disabled={loading} onClick={()=>prepareOAuth('google')}>
               <b className="member-google-mark">G</b> Google로 시작하기
             </button>
-            <button type="button" className="member-kakao" disabled={loading} onClick={()=>void oauth('kakao')}>
+            <button type="button" className="member-kakao" disabled={loading} onClick={()=>prepareOAuth('kakao')}>
               <b>●</b> 카카오로 시작하기
             </button>
             <button type="button" className="member-guest-button" onClick={()=>setScreen('guest')}>
@@ -582,6 +598,36 @@ export default function Portal() {
         <a href="https://larix.kr" target="_blank" rel="noreferrer">운영사 라릭</a>
       </footer>
     </div>}
+    {screen==='join-choice'&&<main className="member-onboarding">
+      <button type="button" onClick={()=>setScreen('landing')}>← 처음으로</button>
+      <h1>회원 유형과 연령을 먼저 확인해요</h1>
+      <p>만 14세 미만 학생은 소셜 로그인 전 부모님의 PASS 동의·인증이 필요합니다.</p>
+      <section className="member-panel">
+        <h2>학부모 회원</h2>
+        <p>자녀 가입 승인, 학습 진도 조회 및 숙제 관리</p>
+        <button className="member-primary" type="button" onClick={()=>void startScreenedOAuth('parent')}>
+          학부모로 {pendingOAuthProvider==='google'?'Google':'카카오'} 로그인
+        </button>
+      </section>
+      <section className="member-panel">
+        <h2>만 14세 이상 학생</h2>
+        <label>생년월일 (연령 구분에만 사용하며 서버에는 저장하지 않습니다)
+          <input aria-label="가입 전 연령 확인 생년월일" type="date" value={birthdate} max={yyyyMmDd}
+            onChange={e=>setBirthdate(e.target.value)}/></label>
+        <button type="button" disabled={!birthdate || isUnder14(birthdate)}
+          onClick={()=>void startScreenedOAuth('student')}>
+          만 14세 이상 학생으로 로그인
+        </button>
+        {birthdate&&isUnder14(birthdate)&&<p className="member-caution">만 14세 미만으로 확인되었습니다.
+          학생 소셜 로그인 전에 부모님 PASS 본인확인으로 가입 승인을 받아야 합니다.</p>}
+      </section>
+      <section className="member-panel">
+        <h2>만 14세 미만 학생</h2>
+        <button type="button" onClick={()=>setScreen('minor-invite')}>
+          부모님 승인 코드로 가입하기 →
+        </button>
+      </section>
+    </main>}
     {screen==='minor-invite'&&<main className="member-onboarding">
       <button type="button" onClick={()=>setScreen('landing')}>← 처음으로</button>
       <h1>만 14세 미만 학생 회원가입</h1>
