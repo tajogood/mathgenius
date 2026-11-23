@@ -28,10 +28,10 @@ test('합동과 대칭의 도형을 마우스로 직접 끌어서 이동한다',
   const x=box!.x+box!.width/2, y=box!.y+box!.height/2;
   await page.mouse.move(x,y);
   await page.mouse.down();
+  await expect(wing).toHaveClass(/lab-symmetry-draggable--active/);
   await page.mouse.move(x-38,y-15,{steps:7});
+  await expect(wing).not.toHaveAttribute('transform',before!);
   await page.mouse.up();
-  const after=await wing.getAttribute('transform');
-  expect(after).not.toBe(before);
 });
 
 test('합동의 주황 손잡이를 잡아 도형을 회전할 수 있다',async({page})=>{
