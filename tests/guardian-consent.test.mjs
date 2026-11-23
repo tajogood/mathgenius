@@ -49,3 +49,35 @@ test('withdrawal stops reading even already-stored child learning events',()=>{
   assert.match(audit,/public.student_is_active\(student_id\)/);
   assert.match(preapproval,/create or replace function public.withdraw_guardian_email_consent_request/);
 });
+
+const passSql=readFileSync('supabase/migrations/202611230004_guardian_pass.sql','utf8');
+const passEdge=readFileSync('supabase/functions/guardian-pass/index.ts','utf8');
+const passClient=readFileSync('src/member/pass.ts','utf8');
+
+test('PASS confirmation never trusts browser-reported success',()=>{
+  assert.match(passClient,/directAgency:'PASS'/);
+  assert.match(passEdge,/api.portone.io\/identity-verifications/);
+  assert.match(passEdge,/verification.status!=='VERIFIED'/);
+  assert.match(passEdge,/verification.channel\?\.key!==channelKey/);
+  assert.match(passEdge,/record.pass_identity_verification_id!==verificationId/);
+  assert.match(passEdge,/admin\.rpc\('finish_guardian_pass_enrollment'/);
+  assert.doesNotMatch(passClient,/PORTONE_API_SECRET|SUPABASE_SERVICE_ROLE_KEY/);
+});
+
+test('PASS verification is server-role only and checks adult age + real name',()=>{
+  assert.match(passSql,/p_verified_birth_date>\(current_date-interval '19 years'\)::date/);
+  assert.match(passSql,/regexp_replace\(btrim\(r.guardian_name\)/);
+  assert.match(passSql,/pass_started_at>now\(\)-interval '15 minutes'/);
+  assert.match(passSql,/from public,anon,authenticated/);
+  assert.match(passSql,/to service_role/);
+});
+
+test('parent must declare guardianship, grant consent and verify PASS to issue a child invitation',()=>{
+  assert.match(portal,/guardianDeclared/);
+  assert.match(portal,/guardianConsentOk/);
+  assert.match(portal,/async function startGuardianPass/);
+  assert.match(portal,/async function completeGuardianPass/);
+  assert.match(portal,/request\.status==='verified'/);
+  assert.match(portal,/guardian_pass/);
+  assert.match(preapproval,/status='verified'/);
+});
