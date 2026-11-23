@@ -307,6 +307,14 @@ export default function AdminPanel(){
         {error}<button type="button" onClick={()=>setError('')}>닫기</button>
       </div>}
       {tab==='overview'&&<div className="admin-main">
+        {health&&(health.application.state==='down'||health.database.state==='down'||
+          (health.metrics?.cpu_pct??0)>=90 ||
+          ((health.metrics?.memory_total_bytes??0)>0 &&
+            (health.metrics?.memory_used_bytes??0)/(health.metrics?.memory_total_bytes??1)>=.9))&&
+          <div role="alert" className="admin-alert">
+            사이트·데이터베이스 오류 또는 높은 서버 자원 사용량이 감지되었습니다.
+            <button type="button" onClick={()=>setTab('system')}>상세 점검 →</button>
+          </div>}
         <div className="admin-section-heading">
           <div><h2>오늘의 서비스 현황</h2><p>한국시간 기준 · 실제 서버에 기록된 데이터</p></div>
           <small>마지막 갱신 {date(updatedAt)}</small>
