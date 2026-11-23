@@ -126,18 +126,21 @@ export default function Portal() {
       .select('student_id,consent_verified_at').eq('parent_id',parentId);
     if(linksError){setMessage(linksError.message);return;}
     const connected=(links ?? []) as LinkRow[];
-    const unverified=connected.filter(link=>link.consent_verified_at===null);
-    setPendingStudentIds(unverified.map(link=>link.student_id));
-    setPendingLinks(unverified.length);
     const {data:requests,error:requestError}=await db.from('guardian_consent_requests')
       .select('id,student_id,status,requested_at,sent_at,verified_at').eq('parent_id',parentId);
     if(requestError){setMessage('보호자 동의 요청 상태를 가져오지 못했습니다. '+requestError.message);}
     setGuardianRequests((requests??[]) as ConsentRequest[]);
-    const ids=connected.filter(link=>link.consent_verified_at!==null).map(link=>link.student_id);
-    if(!ids.length){setChildren([]);return;}
+    const ids=connected.map(link=>link.student_id);
+    if(!ids.length){
+      setChildren([]);setPendingStudentIds([]);setPendingLinks(0);return;
+    }
+    // RLS returns 14+ linked students and verified under-14 students only.
     const {data:profiles,error:profileError}=await db.from('member_profiles').select('*').in('id',ids);
     if(profileError){setMessage(profileError.message);return;}
-    // Unverified child profiles remain hidden until server-side email reply confirmation.
+    const visibleIds=new Set((profiles??[]).map(p=>p.id));
+    const unverified=connected.filter(link=>!visibleIds.has(link.student_id));
+    setPendingStudentIds(unverified.map(link=>link.student_id));
+    setPendingLinks(unverified.length);
     const reports=await Promise.all(((profiles??[]) as MemberProfile[]).map(async child=>{
       const [snapshot,eventRes,homeRes]=await Promise.all([
         db!.from('learning_snapshots').select('progress').eq('student_id',child.id).maybeSingle(),
