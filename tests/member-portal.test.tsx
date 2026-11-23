@@ -12,6 +12,14 @@ describe('회원 랜딩과 GUEST 학습',()=>{
     expect(screen.getByRole('button',{name:/카카오로 시작하기/})).toBeTruthy();
     expect(screen.getByRole('button',{name:/GUEST 체험하기/})).toBeTruthy();
   });
+  it('만 14세 미만은 소셜 로그인 전에 부모 승인 코드 화면을 거친다',()=>{
+    history.replaceState({},'', '/');
+    render(<Portal/>);
+    fireEvent.click(screen.getByRole('button',{name:/만 14세 미만 자녀 가입하기/}));
+    expect(screen.getByRole('heading',{name:/만 14세 미만 학생 회원가입/})).toBeTruthy();
+    expect(screen.getByRole('textbox',{name:/법정대리인 가입 승인 코드/})).toBeTruthy();
+    expect(screen.getByRole('button',{name:/부모님 동의 완료 후 Google/})).toBeTruthy();
+  });
   it('로그인 없이 원래 문제 학습에 들어갈 수 있다',()=>{
     vi.stubGlobal('scrollTo',vi.fn());
     history.replaceState({},'', '/');
