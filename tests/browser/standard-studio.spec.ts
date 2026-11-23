@@ -10,7 +10,7 @@ const viewports=[
 for(const size of viewports){
  test('성취기준 교실 '+size.name+' 화면에 네 개의 선택지가 모두 보인다',async({page})=>{
   await page.setViewportSize({width:size.width,height:size.height});
-  await page.goto('/');
+  await page.goto('/?guest=1');
   await page.getByRole('button',{name:/성취기준 121개 학습/}).click();
   for(let i=0;i<2;i++)await page.getByRole('button',{name:/다음 장면/}).click();
   await page.getByRole('button',{name:/개념 확인 시작/}).click();
@@ -30,7 +30,7 @@ for(const size of viewports){
 }
 
 test('성취기준별 실험은 별도 도형 교구와 개별 평가를 연결한다',async({page})=>{
- await page.goto('/');
+ await page.goto('/?guest=1');
  await page.getByRole('button',{name:/성취기준 121개 학습/}).click();
  await page.locator('#standard-search').fill('6수03-14');
  await page.locator('.studio-lesson-link').filter({hasText:'6수03-14'}).click();

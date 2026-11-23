@@ -1,4 +1,4 @@
-import { useRef,useState } from 'react';
+import { useEffect,useRef,useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { LabProps } from './types';
 import { LabHint,LabTools } from './types';
@@ -44,6 +44,14 @@ export function SymmetryLab({problem:p,standardId}:LabProps){
   const [didTouch,setDidTouch]=useState(false);
   const canvas=useRef<SVGSVGElement>(null);
   const dragging=useRef<DragState|null>(null);
+  const removePointerListeners=useRef<(()=>void)|null>(null);
+  useEffect(()=>()=>removePointerListeners.current?.(),[]);
+  const finishDrag=()=>{
+    dragging.current=null;
+    removePointerListeners.current?.();
+    removePointerListeners.current=null;
+    setActive(false);
+  };
   const isLine=mode==='line';
   const target=originalPosition(mode);
   const targetAngle=mode==='point'?180:0;
@@ -56,31 +64,29 @@ export function SymmetryLab({problem:p,standardId}:LabProps){
   const chooseMode=(next:SymmetryMode)=>{
     setMode(next);setShape(next==='line'?'butterfly':next==='point'?'parallelogram':'house');
     setMove(startPosition(next));setAngle(0);setFlipped(false);
-    setDidTouch(false);setActive(false);dragging.current=null;
+    setDidTouch(false);finishDrag();
   };
   const reset=()=>{
     setMove(startPosition(mode));setAngle(0);setFlipped(false);
-    setDidTouch(false);setActive(false);dragging.current=null;
+    setDidTouch(false);finishDrag();
   };
-  const pointer=(e:ReactPointerEvent<SVGElement>):GeometryPoint|null=>{
+  // SVG viewBox coordinates differ from its CSS bounding box whenever
+  // preserveAspectRatio letterboxes the experiment (especially in mobile cards).
+  // The screen matrix handles both the viewBox and responsive scaling.
+  const pointer=(clientX:number,clientY:number):GeometryPoint|null=>{
+    const matrix=canvas.current?.getScreenCTM();
+    if(matrix){
+      const point=new DOMPoint(clientX,clientY).matrixTransform(matrix.inverse());
+      return {x:point.x,y:point.y};
+    }
     const rect=canvas.current?.getBoundingClientRect();
-    if(!rect||rect.width===0||rect.height===0)return null;
-    return {x:(e.clientX-rect.left)*SIZE.width/rect.width,
-      y:(e.clientY-rect.top)*SIZE.height/rect.height};
+    if(!rect||!rect.width||!rect.height)return null;
+    return {x:(clientX-rect.left)*SIZE.width/rect.width,
+      y:(clientY-rect.top)*SIZE.height/rect.height};
   };
-  const begin=(e:ReactPointerEvent<SVGElement>,action:DragState['action'])=>{
-    const pos=pointer(e);if(!pos)return;
-    e.stopPropagation();e.preventDefault();
-    const base=isLine?{x:180+move.x,y:120+move.y}:move;
-    dragging.current={action,origin:pos,originalPosition:{...move},
-      originalAngle:angle,
-      originalPointerAngle:Math.atan2(pos.y-base.y,pos.x-base.x)};
-    canvas.current?.setPointerCapture?.(e.pointerId);
-    setActive(true);setDidTouch(true);
-  };
-  const drag=(e:ReactPointerEvent<SVGSVGElement>)=>{
+  const dragFromClient=(clientX:number,clientY:number)=>{
     const data=dragging.current;if(!data)return;
-    const now=pointer(e);if(!now)return;
+    const now=pointer(clientX,clientY);if(!now)return;
     if(data.action==='move'){
       const dx=now.x-data.origin.x,dy=now.y-data.origin.y;
       const limits=isLine?{minX:-75,maxX:60,minY:-75,maxY:75}:
@@ -88,16 +94,49 @@ export function SymmetryLab({problem:p,standardId}:LabProps){
       setMove({x:Math.max(limits.minX,Math.min(limits.maxX,data.originalPosition.x+dx)),
         y:Math.max(limits.minY,Math.min(limits.maxY,data.originalPosition.y+dy))});
     }else{
-      const pivot=data.originalPosition;
+      const pivot=isLine?
+        {x:180+data.originalPosition.x,y:120+data.originalPosition.y}:
+        data.originalPosition;
       const rad=Math.atan2(now.y-pivot.y,now.x-pivot.x);
       const deg=(rad-data.originalPointerAngle)*180/Math.PI;
       setAngle(normalizedAngle(Math.round((data.originalAngle+deg)/15)*15));
     }
   };
+  const begin=(e:ReactPointerEvent<SVGElement>,action:DragState['action'])=>{
+    const pos=pointer(e.clientX,e.clientY);if(!pos)return;
+    e.stopPropagation();e.preventDefault();
+    removePointerListeners.current?.();
+    const base=isLine?{x:180+move.x,y:120+move.y}:move;
+    dragging.current={action,origin:pos,originalPosition:{...move},
+      originalAngle:angle,
+      originalPointerAngle:Math.atan2(pos.y-base.y,pos.x-base.x)};
+    // Window listeners retain dragging if pointer capture changes target,
+    // including when pointer leaves the SVG or React re-renders the handle.
+    const pointerId=e.pointerId;
+    const onWindowMove=(event:PointerEvent)=>{
+      if(event.pointerId===pointerId)dragFromClient(event.clientX,event.clientY);
+    };
+    const onWindowEnd=(event:PointerEvent)=>{
+      if(event.pointerId===pointerId)finishDrag();
+    };
+    window.addEventListener('pointermove',onWindowMove);
+    window.addEventListener('pointerup',onWindowEnd);
+    window.addEventListener('pointercancel',onWindowEnd);
+    removePointerListeners.current=()=>{
+      window.removeEventListener('pointermove',onWindowMove);
+      window.removeEventListener('pointerup',onWindowEnd);
+      window.removeEventListener('pointercancel',onWindowEnd);
+    };
+    try{canvas.current?.setPointerCapture?.(pointerId);}catch{/* global listener still handles drag */}
+    setActive(true);setDidTouch(true);
+  };
   const release=(e:ReactPointerEvent<SVGSVGElement>)=>{
     if(!dragging.current)return;
-    dragging.current=null;setActive(false);
-    try{if(e.currentTarget.hasPointerCapture?.(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);}catch{/* pointer already released */}
+    finishDrag();
+    try{
+      if(e.currentTarget.hasPointerCapture?.(e.pointerId))
+        e.currentTarget.releasePointerCapture(e.pointerId);
+    }catch{/* pointer already released */}
   };
   const onKeys=(e:ReactKeyboardEvent<SVGGElement>)=>{
     const shifts:Record<string,GeometryPoint>={
@@ -140,7 +179,7 @@ export function SymmetryLab({problem:p,standardId}:LabProps){
     </div>
     <svg ref={canvas} className="lab-symmetry-stage" viewBox="0 0 360 235"
       role="img" aria-label={'마우스 또는 손가락으로 직접 끌어 움직이는 '+(mode==='congruence'?'합동':mode==='line'?'선대칭':'점대칭')+' 도형'}
-      onPointerMove={drag} onPointerUp={release} onPointerCancel={release}>
+      onPointerUp={release} onPointerCancel={release}>
       <defs><pattern id="symmetry-grid" width="20" height="20" patternUnits="userSpaceOnUse">
         <path d="M20 0 H0 V20" stroke="#dce5f7" strokeWidth=".85" fill="none"/></pattern></defs>
       <rect width="360" height="235" rx="12" fill="url(#symmetry-grid)" pointerEvents="none"/>
@@ -160,7 +199,7 @@ export function SymmetryLab({problem:p,standardId}:LabProps){
           onPointerDown={e=>begin(e,'move')} onKeyDown={onKeys}>
           <polygon points={pointString(mirrored(left))} fill="#88a6f2" stroke="#496bcd"
             strokeWidth="3.5" strokeLinejoin="round"/>
-          <circle cx="31" cy="-7" r="4" fill="#e99f58" stroke="#fff" strokeWidth="1.8"/>
+          <circle cx="31" cy="-7" r="7" fill="#e99f58" stroke="#fff" strokeWidth="1.8" pointerEvents="all"/>
         </g>
       </>:<>
         {mode==='point'&&<>

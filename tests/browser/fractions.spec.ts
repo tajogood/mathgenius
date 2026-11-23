@@ -3,7 +3,7 @@ import {test,expect} from '@playwright/test';
 for (const size of [{name:'phone',width:390,height:844},{name:'tablet',width:768,height:1024},{name:'desktop',width:1440,height:900}]){
   test('교과서형 세로 분수가 '+size.name+' 분수 교구와 답안에서 보인다',async({page})=>{
     await page.setViewportSize({width:size.width,height:size.height});
-    await page.goto('/');
+    await page.goto('/?guest=1');
     // The default is the 5th grade fractions lesson.
     const lab=page.locator('.interactive-lab--fractions');
     await expect(lab).toBeVisible();

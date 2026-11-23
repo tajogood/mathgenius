@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 async function openStandard(page: import('@playwright/test').Page,id:string) {
-  await page.goto('/');
+  await page.goto('/?guest=1');
   await page.getByRole('button',{name:/성취기준 121개 학습/}).click();
   await page.locator('#standard-search').fill(id);
   const entry=page.locator('.studio-lesson-link').filter({hasText:id});
@@ -16,16 +16,28 @@ test('합동과 대칭의 도형을 마우스로 직접 끌어서 이동한다',
   await openStandard(page,'6수03-02');
   const lab=page.getByTestId('symmetry-experiment');
   await expect(lab).toBeVisible();
+  // Exercise a deterministic mode. The generated standard problem can pick
+  // different default modes, and the SVG group bounding box includes empty space.
+  await lab.getByRole('button',{name:'선대칭 거울'}).click();
   const wing=lab.locator('.lab-symmetry-draggable').first();
   const before=await wing.getAttribute('transform');
-  const box=await wing.boundingBox();
+  // A visible circular marker is a guaranteed pointer hit target, unlike
+  // the group's empty bounding-box region or a concave polygon edge.
+  const marker=wing.locator('circle').first();
+  // The lesson page is taller than the viewport. An SVG element's boundingBox()
+  // can be below the fold; raw page.mouse does NOT auto-scroll to it.
+  // Scroll the *actual pointer target* into view before reading screen coordinates.
+  await marker.scrollIntoViewIfNeeded();
+  await expect(marker).toBeInViewport({ratio:1});
+  const box=await marker.boundingBox();
   expect(box).not.toBeNull();
-  await page.mouse.move(box!.x+box!.width/2,box!.y+box!.height/2);
+  const x=box!.x+box!.width/2, y=box!.y+box!.height/2;
+  await page.mouse.move(x,y);
   await page.mouse.down();
-  await page.mouse.move(box!.x+box!.width/2-38,box!.y+box!.height/2-15,{steps:7});
+  await expect(wing).toHaveClass(/lab-symmetry-draggable--active/);
+  await page.mouse.move(x-38,y-15,{steps:7});
+  await expect(wing).not.toHaveAttribute('transform',before!);
   await page.mouse.up();
-  const after=await wing.getAttribute('transform');
-  expect(after).not.toBe(before);
 });
 
 test('합동의 주황 손잡이를 잡아 도형을 회전할 수 있다',async({page})=>{

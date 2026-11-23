@@ -11,7 +11,7 @@ const screens = [
 ] as const;
 
 async function showQuestion(page: import('@playwright/test').Page) {
-  await page.goto('/');
+  await page.goto('/?guest=1');
   await page.locator('.grade-button').first().click();
   await expect(page.locator('.interactive-lab--blocks')).toBeVisible();
   for (let n=0;n<3;n++) await page.locator('.guide-actions .btn--primary').click();
@@ -49,7 +49,7 @@ for (const screen of screens) {
 test('모바일에서 블록을 터치하고 학년·학기 단원을 바꿀 수 있다',async ({browser})=>{
   const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   const page=await context.newPage();
-  await page.goto('/');
+  await page.goto('/?guest=1');
   await page.locator('.grade-button').first().click();
   const first=page.getByRole('button',{name:/1번째 블록 세기/});
   await first.tap();
@@ -64,7 +64,7 @@ test('모바일에서 블록을 터치하고 학년·학기 단원을 바꿀 수
 
 test('분수 막대의 색칠을 바꾸면 실제 분수 계산도 달라진다',async({page})=>{
   await page.setViewportSize({width:1024,height:768});
-  await page.goto('/');
+  await page.goto('/?guest=1');
   const before=await page.locator('.lab-math-feedback').innerText();
   const cells=page.getByRole('button',{name:/분수 칸/});
   expect(await cells.count()).toBeGreaterThan(2);

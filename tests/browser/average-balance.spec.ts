@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 async function openAverageLesson(page:import('@playwright/test').Page) {
- await page.goto('/');
+ await page.goto('/?guest=1');
  await page.getByRole('button',{name:/성취기준 121개 학습/}).click();
  await page.locator('#standard-search').fill('6수04-01');
  const entry=page.locator('.studio-lesson-link').filter({hasText:'6수04-01'});

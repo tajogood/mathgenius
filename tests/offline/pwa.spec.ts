@@ -1,7 +1,7 @@
 import { test,expect } from '@playwright/test';
 
 test('한 번 방문한 후 네트워크를 끊어도 모든 학년의 수학 교구가 열린다',async({page,context})=>{
-  await page.goto('/');
+  await page.goto('/?guest=1');
   await expect(page.locator('.brand')).toContainText('수학');
   await page.waitForFunction(()=>!!navigator.serviceWorker?.ready,{timeout:20_000});
   await page.evaluate(async()=>await navigator.serviceWorker.ready);
