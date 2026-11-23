@@ -9,7 +9,8 @@ type Overview={
   total_members:number;students:number;parents:number;under14:number;
   suspended:number;new_today:number;online_members:number;
   active_students_today:number;answers_today:number;correct_today:number;
-  learning_seconds_today:number;published_notices:number;as_of:string;
+  learning_seconds_today:number;published_notices:number;
+  pending_guardian_consents:number;approved_unclaimed_children:number;open_homework:number;as_of:string;
 };
 type Member={
   id:string;nickname:string;role:'student'|'parent';grade:number|null;
@@ -338,6 +339,9 @@ export default function AdminPanel(){
             <div className="admin-checks">
               <div><span>회원 보호</span><strong>정지 {fmt(overview?.suspended)}명</strong></div>
               <div><span>만 14세 미만 회원</span><strong>{fmt(overview?.under14)}명</strong></div>
+              <div><span>보호자 동의 진행 중</span><strong>{fmt(overview?.pending_guardian_consents)}건</strong></div>
+              <div><span>승인 완료 · 학생 미가입</span><strong>{fmt(overview?.approved_unclaimed_children)}건</strong></div>
+              <div><span>완료되지 않은 숙제</span><strong>{fmt(overview?.open_homework)}건</strong></div>
               <div><span>게시 중 공지</span><strong>{fmt(overview?.published_notices)}건</strong></div>
               <div><span>사이트·DB 상태</span><button type="button" onClick={()=>setTab('system')}>상세 점검 →</button></div>
               <p>개인정보 삭제 요청, 보호자 동의 확인, 서버 장애 알림은 운영정책과 연동 서비스를 별도로 설정해야 합니다.</p>
