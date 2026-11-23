@@ -305,7 +305,19 @@ export default function Portal() {
       await loadParent(profile.id);
     }catch(error){
       setMessage(error instanceof Error?error.message:'자녀 가입 승인 요청에 실패했습니다.');
+      await loadParent(profile.id);
     }finally{setBusy(false);}
+  }
+  async function retryGuardianEmail(requestId:string){
+    if(!db||!profile||profile.role!=='parent'||busy)return;
+    setBusy(true);
+    const {data,error}=await db.functions.invoke('send-guardian-consent',{
+      body:{request_id:requestId},
+    });
+    setBusy(false);
+    if(error)setMessage(error.message);
+    else setMessage(String(data?.message??'동의 이메일을 다시 발송했습니다.'));
+    await loadParent(profile.id);
   }
   async function rotateGuardianInvite(requestId:string){
     if(!db||!profile||profile.role!=='parent'||busy)return;
@@ -638,6 +650,8 @@ export default function Portal() {
               request.status==='sent'?'동의 이메일 발송됨 · 부모님 회신 확인 대기':
               request.status==='requested'?'동의 이메일 발송 준비 중':
               '동의 확인 요청 처리 중'}</p>
+            {request.status==='requested'&&<button type="button" disabled={busy}
+              onClick={()=>void retryGuardianEmail(request.id)}>동의 이메일 발송 다시 시도</button>}
             {request.student_id===null&&<button type="button" disabled={busy}
               onClick={()=>void rotateGuardianInvite(request.id)}>자녀 가입 승인 코드 발급·재발급</button>}
             <button type="button" disabled={busy}
