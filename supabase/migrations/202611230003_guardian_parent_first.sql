@@ -61,7 +61,7 @@ begin
   ) values(
     v_parent,null,btrim(p_guardian_name),v_email,p_relation,'draft-2026-11-23',
     btrim(p_child_nickname),p_child_grade,
-    encode(digest(lower(v_code),'sha256'),'hex'),now()+interval '30 days'
+    md5(lower(v_code)),now()+interval '30 days'
   ) returning id into v_id;
 
   return jsonb_build_object('request_id',v_id,'invitation_code',v_code);
@@ -77,7 +77,7 @@ begin
   then return false; end if;
   return exists(
     select 1 from public.guardian_consent_requests r
-    where r.invite_hash=encode(digest(lower(p_code),'sha256'),'hex')
+    where r.invite_hash=md5(lower(p_code))
       and r.status='verified' and r.verified_at is not null
       and r.student_id is null and r.invite_expires_at>now()
   );
@@ -91,7 +91,7 @@ declare v_code text := replace(gen_random_uuid()::text,'-','');
   v_changed integer;
 begin
   update public.guardian_consent_requests
-  set invite_hash=encode(digest(lower(v_code),'sha256'),'hex')
+  set invite_hash=md5(lower(v_code))
   where id=p_request and parent_id=(select auth.uid())
     and invite_hash is not null and student_id is null
     and status in ('requested','sent','verified')
@@ -113,7 +113,7 @@ begin
   if char_length(coalesce(p_code,''))<>32 or p_code !~ '^[0-9a-fA-F]{32}$'
   then raise exception '가입 승인 코드가 유효하지 않습니다'; end if;
   select * into r from public.guardian_consent_requests
-    where invite_hash=encode(digest(lower(p_code),'sha256'),'hex')
+    where invite_hash=md5(lower(p_code))
       and status='verified' and verified_at is not null
       and student_id is null and invite_expires_at>now() for update;
   if not found then raise exception '부모님의 동의가 확인되지 않았거나 코드가 만료됐습니다'; end if;
