@@ -64,7 +64,8 @@ begin
     md5(lower(v_code)),now()+interval '30 days'
   ) returning id into v_id;
 
-  return jsonb_build_object('request_id',v_id,'invitation_code',v_code);
+  -- Invitation code is intentionally NOT disclosed before verified reply.
+  return jsonb_build_object('request_id',v_id);
 end $$;
 
 -- No personally identifying child details are returned to anonymous users.
@@ -94,8 +95,8 @@ begin
   set invite_hash=md5(lower(v_code))
   where id=p_request and parent_id=(select auth.uid())
     and invite_hash is not null and student_id is null
-    and status in ('requested','sent','verified')
-    and invite_expires_at>now();
+    and status='verified'
+    and verified_at is not null and invite_expires_at>now();
   get diagnostics v_changed=row_count;
   if v_changed<>1 then raise exception '이용 가능한 미연결 자녀 가입 요청이 아닙니다'; end if;
   return v_code;
