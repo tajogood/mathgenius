@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
 :root{--admin-ink:#203052;--admin-muted:#76829a;--admin-line:#e5eaf2;--admin-blue:#5367e8;--admin-bg:#f6f8fc}
 .admin-root,.admin-gate{font-family:'DM Sans','Noto Sans KR',system-ui,sans-serif;color:var(--admin-ink);font-size:14px}
 .admin-root *,.admin-gate *{box-sizing:border-box}
