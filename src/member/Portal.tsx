@@ -9,10 +9,11 @@ import { normalizeStandardProgress, type StandardProgress } from '../standards/p
 import { db, type Assignment, type MemberProfile, type MemberRole, type StudyEvent } from './client.ts';
 import { recommendStudy } from './recommend.ts';
 import { openGuardianPass, type PassStartResult } from './pass.ts';
+import SiteAnnouncements from './SiteAnnouncements.tsx';
 import { CHILD_EXTRA, LEGAL_VERSION, PARENT_EXTRA, PRIVACY, TERMS } from './legal.ts';
 import './portal.css';
 
-type Screen = 'landing' | 'join-choice' | 'minor-invite' | 'onboarding' | 'student' | 'parent' | 'pending' | 'lesson' | 'guest';
+type Screen = 'landing' | 'join-choice' | 'minor-invite' | 'onboarding' | 'student' | 'parent' | 'pending' | 'lesson' | 'guest' | 'suspended';
 type ChildReport = {
   profile: MemberProfile;
   snapshot: LearningProgress;
@@ -215,12 +216,28 @@ export default function Portal() {
       }
       const member=data as MemberProfile;
       setProfile(member);
+      if(member.account_status==='suspended'){
+        setScreen('suspended');setLoading(false);return;
+      }
       if(member.role==='parent'){await loadParent(member.id);if(!cancelled)setScreen('parent');}
       else await loadStudent(member);
       if(!cancelled)setLoading(false);
     });
     return ()=>{cancelled=true;};
   },[session?.user.id]);
+
+  // Authenticated-only presence: count unique members active within two minutes.
+  // Do not ping for anonymous guests or inactive tabs (children's data minimization).
+  useEffect(()=>{
+    if(!db || !session || !profile || profile.account_status==='suspended')return;
+    const ping=()=>{
+      if(document.visibilityState==='visible')void db!.rpc('ping_member_presence');
+    };
+    ping();
+    const handle=window.setInterval(ping,30000);
+    document.addEventListener('visibilitychange',ping);
+    return ()=>{window.clearInterval(handle);document.removeEventListener('visibilitychange',ping);};
+  },[session?.user.id,profile?.id,profile?.account_status]);
 
   async function oauth(provider:'google'|'kakao'): Promise<boolean> {
     if(!db){setMessage('로그인 서버를 준비 중입니다. 지금은 GUEST 체험을 이용할 수 있습니다.');return false;}
@@ -260,7 +277,7 @@ export default function Portal() {
     if(!started)sessionStorage.removeItem('mathgenius_minor_invite');
   }
   async function signOut(){
-    if(db)await db.auth.signOut();
+    if(db){await db.rpc('clear_member_presence');await db.auth.signOut();}
     setProfile(null);setPairingCode('');setScreen('landing');
   }
   async function saveRegistration(){
@@ -491,6 +508,14 @@ export default function Portal() {
   const selectedReport=children.find(c=>c.profile.id===selectedChild);
 
   return <div className="member-root">
+    <SiteAnnouncements audience={profile?.role??null}/>
+    {!loading&&screen==='suspended'&&<main className="member-onboarding">
+      <h1>계정 이용이 일시 중지되었습니다</h1>
+      <p>운영자의 계정 이용 제한 조치로 회원 학습 기록 접근과 숙제 기능이 중지되었습니다.</p>
+      <p>이의제기 및 계정 복구는 서비스 운영자에게 문의해 주세요. 회원가입 없이 사용하는 GUEST 학습은 계속 가능합니다.</p>
+      <button type="button" onClick={()=>void signOut()}>로그아웃</button>
+      <button type="button" onClick={()=>setScreen('guest')}>로그인 없이 수학 체험하기</button>
+    </main>}
     {(screen==='landing'||screen==='guest')&&screen==='landing'&&<div className="member-landing">
       <header className="member-navigation">
         <strong>✦ 수학<span>천재</span><small> MathGenius</small></strong>
