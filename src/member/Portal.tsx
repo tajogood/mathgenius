@@ -23,6 +23,10 @@ type ChildReport = {
   assignments: Assignment[];
 };
 type LinkRow = { student_id: string; consent_verified_at: string | null };
+type ConsentRequest = {
+  id: string; student_id: string; status: 'requested'|'sent'|'verified'|'rejected'|'withdrawn';
+  requested_at: string; sent_at: string|null; verified_at:string|null;
+};
 const yyyyMmDd = new Date().toISOString().slice(0, 10);
 
 function isUnder14(date: string): boolean {
@@ -70,6 +74,12 @@ export default function Portal() {
   const [assignments,setAssignments]=useState<Assignment[]>([]);
   const [children,setChildren]=useState<ChildReport[]>([]);
   const [pendingLinks,setPendingLinks]=useState(0);
+  const [pendingStudentIds,setPendingStudentIds]=useState<string[]>([]);
+  const [guardianRequests,setGuardianRequests]=useState<ConsentRequest[]>([]);
+  const [guardianName,setGuardianName]=useState('');
+  const [guardianRelation,setGuardianRelation]=useState<'mother'|'father'|'legal_guardian'>('mother');
+  const [guardianDeclared,setGuardianDeclared]=useState(false);
+  const [guardianConsentOk,setGuardianConsentOk]=useState(false);
   const [message,setMessage]=useState('');
   const [role,setRole]=useState<MemberRole>('student');
   const [nickname,setNickname]=useState('');
@@ -116,12 +126,18 @@ export default function Portal() {
       .select('student_id,consent_verified_at').eq('parent_id',parentId);
     if(linksError){setMessage(linksError.message);return;}
     const connected=(links ?? []) as LinkRow[];
-    setPendingLinks(0);
-    const ids=connected.map(link=>link.student_id);
+    const unverified=connected.filter(link=>link.consent_verified_at===null);
+    setPendingStudentIds(unverified.map(link=>link.student_id));
+    setPendingLinks(unverified.length);
+    const {data:requests,error:requestError}=await db.from('guardian_consent_requests')
+      .select('id,student_id,status,requested_at,sent_at,verified_at').eq('parent_id',parentId);
+    if(requestError){setMessage('보호자 동의 요청 상태를 가져오지 못했습니다. '+requestError.message);}
+    setGuardianRequests((requests??[]) as ConsentRequest[]);
+    const ids=connected.filter(link=>link.consent_verified_at!==null).map(link=>link.student_id);
     if(!ids.length){setChildren([]);return;}
     const {data:profiles,error:profileError}=await db.from('member_profiles').select('*').in('id',ids);
     if(profileError){setMessage(profileError.message);return;}
-    setPendingLinks(connected.length-(profiles?.length??0));
+    // Unverified child profiles remain hidden until server-side email reply confirmation.
     const reports=await Promise.all(((profiles??[]) as MemberProfile[]).map(async child=>{
       const [snapshot,eventRes,homeRes]=await Promise.all([
         db!.from('learning_snapshots').select('progress').eq('student_id',child.id).maybeSingle(),
@@ -213,6 +229,39 @@ export default function Portal() {
     const {data,error}=await db.rpc('accept_pairing_code',{entered_code:enteredCode.trim()});
     setMessage(error?.message??String(data));
     if(!error && profile) {setEnteredCode('');await loadParent(profile.id);}
+  }
+  async function requestGuardianConsent(studentId:string){
+    if(!db || !profile || profile.role!=='parent'||busy)return;
+    if(!guardianDeclared || !guardianConsentOk){
+      setMessage('법정대리인 관계와 개인정보 처리 동의를 각각 확인해 주세요.');return;
+    }
+    if(guardianName.trim().length<2){setMessage('법정대리인의 실명을 입력해 주세요.');return;}
+    setBusy(true);setMessage('');
+    try {
+      const {data:requestId,error}=await db.rpc('request_guardian_email_consent',{
+        p_student_id:studentId,p_guardian_name:guardianName.trim(),p_relation:guardianRelation,
+        p_declared_guardian:guardianDeclared,p_accepted_consent:guardianConsentOk,
+      });
+      if(error)throw error;
+      const {data:result,error:emailError}=await db.functions.invoke('send-guardian-consent',{
+        body:{request_id:requestId},
+      });
+      if(emailError)throw emailError;
+      setMessage(String(result?.message??'동의 확인 이메일을 발송했습니다. 학부모가 답장해야 합니다.'));
+      await loadParent(profile.id);
+    } catch(error){
+      setMessage(error instanceof Error?error.message:'법정대리인 동의 요청에 실패했습니다.');
+    } finally{setBusy(false);}
+  }
+  async function withdrawGuardianConsent(studentId:string){
+    if(!db || !profile || profile.role!=='parent'||busy)return;
+    const confirmed=window.confirm('이 학생의 법정대리인 동의를 철회하시겠습니까? 회원 학습기록 접근이 중지됩니다.');
+    if(!confirmed)return;
+    setBusy(true);
+    const {error}=await db.rpc('withdraw_guardian_email_consent',{p_student:studentId});
+    setBusy(false);
+    setMessage(error?.message??'법정대리인 동의를 철회했습니다. 회원 학습 기록 접근이 중지됩니다.');
+    if(!error)await loadParent(profile.id);
   }
   async function createHomework(){
     if(!db || !profile || !selectedChild)return;
@@ -367,8 +416,9 @@ export default function Portal() {
         <label>생년월일 (만 14세 미만 여부 확인에만 사용하고 저장하지 않습니다)
           <input type="date" max={yyyyMmDd} value={birthdate} onChange={e=>setBirthdate(e.target.value)}/></label>
         {birthdate&&isUnder14(birthdate)&&<div className="member-caution">
-          만 14세 미만 학생입니다. 학생 계정 연결 코드를 발급할 수 있지만, 법정대리인의 검증된 동의가 완료되기 전까지
-          학습 기록 저장과 학부모 조회는 잠겨 있습니다. 현재는 GUEST 모드를 이용할 수 있어요.
+          만 14세 미만 학생은 회원가입 요청 후 보호자 동의를 받아야 합니다. 학생 연결 코드로 부모님 계정을 연결하고,
+          부모님에게 전송된 동의 안내 이메일에 부모님이 직접 답장한 뒤 운영자가 확인하면 회원 학습을 시작할 수 있습니다.
+          동의 확인 전에는 회원 학습기록을 서버에 저장하지 않습니다. GUEST 모드는 이용할 수 있어요.
         </div>}
       </>}
       <div className="member-consents">
@@ -382,15 +432,18 @@ export default function Portal() {
         <p>{(role==='parent'?PARENT_EXTRA:CHILD_EXTRA).join(' ')}</p>
       </div>
       <button type="button" className="member-primary" disabled={busy||!termsOk||!privacyOk} onClick={()=>void saveRegistration()}>
-        {busy?'가입 처리 중…':'회원가입 완료'}
+        {busy?'가입 처리 중…':role==='student'&&isUnder14(birthdate)?'보호자 동의 신청 및 가입 대기':'회원가입 완료'}
       </button>
     </main>}
     {!loading&&screen==='pending'&&<main className="member-onboarding">
-      <h1>보호자 동의 확인이 필요해요</h1>
-      <p>법정대리인 인증이 완료되기 전까지 학습 기록을 서버에 저장하지 않습니다.</p>
+      <h1>부모님 동의를 확인하고 있어요</h1>
+      <p>만 14세 미만 학생은 부모님이 개인정보 이용에 동의한 사실을 확인해야 회원 학습을 시작할 수 있어요.</p>
       <button type="button" className="member-primary" onClick={()=>void issueCode()}>학부모 연결 코드 발급</button>
       {pairingCode&&<div className="member-code">{pairingCode}</div>}
-      <p>학부모가 코드를 입력하면 연결 요청이 생성됩니다. 실제 보호자 본인확인 연동은 별도로 필요합니다.</p>
+      <p>① 위 코드를 부모님께 전달해 주세요. ② 부모님이 학부모 계정에서 코드를 입력합니다.
+        ③ 개인정보 이용 동의 이메일을 받고 직접 회신합니다.
+        ④ 운영자가 이메일 회신을 확인하면 학습 기록 기능이 열립니다.</p>
+      <button type="button" onClick={()=>profile&&void loadStudent(profile)}>동의 확인 상태 새로고침</button>
       <button type="button" onClick={()=>setScreen('guest')}>GUEST 학습하기</button>
       <button type="button" onClick={()=>void signOut()}>로그아웃</button>
     </main>}
@@ -427,11 +480,48 @@ export default function Portal() {
       <header className="member-dashboard-header"><div><small>PARENT DASHBOARD</small><h1>{profile.nickname}님의 학습 관리</h1></div>
         <button onClick={()=>void signOut()}>로그아웃</button></header>
       <section className="member-panel"><h2>👨‍👩‍👧 학생 계정 연결</h2>
-        <p>학생 화면에서 발급받은 32자리 연결 코드를 입력하세요. 만 14세 미만은 별도 법정대리인 본인확인이 필요합니다.</p>
+        <p>학생에게 받은 32자리 코드를 입력해 계정을 연결하세요. 만 14세 미만은 연결 후 보호자 개인정보 동의 이메일에 직접 회신해야 학습 기록을 확인할 수 있습니다.</p>
         <div className="member-inline-form"><input aria-label="학생 연결 코드" value={enteredCode} maxLength={32}
           onChange={e=>setEnteredCode(e.target.value)} placeholder="학생 연결 코드 32자리"/>
           <button onClick={()=>void redeemCode()}>연결 요청</button></div>
-        {pendingLinks>0&&<p>보호자 검증 또는 연결 절차 진행 중인 계정: {pendingLinks}명</p>}
+        {pendingLinks>0&&<p>법정대리인 동의 확인이 필요한 계정: {pendingLinks}명</p>}
+        {pendingStudentIds.length>0&&<div className="member-guardian-consent">
+          <h3>만 14세 미만 자녀 가입 승인</h3>
+          <p>학생과 코드를 연결하는 것만으로 가입이 승인되지 않습니다. 부모님이 아래 내용을 직접 확인하고
+            동의 이메일에 답장한 후 운영자의 회신 검토가 완료되어야 합니다.</p>
+          <label>법정대리인 실명
+            <input value={guardianName} maxLength={80} onChange={e=>setGuardianName(e.target.value)}
+              placeholder="보호자 본인 실명" autoComplete="name"/></label>
+          <label>학생과의 관계
+            <select value={guardianRelation} onChange={e=>setGuardianRelation(e.target.value as typeof guardianRelation)}>
+              <option value="mother">어머니 (법정대리인)</option><option value="father">아버지 (법정대리인)</option>
+              <option value="legal_guardian">그 외 법정대리인</option>
+            </select></label>
+          <label><input type="checkbox" checked={guardianDeclared} onChange={e=>setGuardianDeclared(e.target.checked)}/>
+            본인은 이 학생의 법정대리인이며 해당 아동의 개인정보 처리에 동의할 권한이 있습니다.</label>
+          <div className="member-caution">
+            <strong>개인정보 수집·이용 안내</strong>
+            <p>수집 항목: 학생 SNS 식별자·닉네임·학년·연령 구분, 단원 방문·정오답·반복 학습·활동 시간·숙제 및 동의 이력.</p>
+            <p>이용 목적: 수학 학습 기록 관리, 개인별 복습 추천, 연결된 부모님의 학습 진도 확인 및 숙제 관리.</p>
+            <p>거부·철회: 동의하지 않으면 회원 학습 기록 기능을 이용할 수 없으며, 로그인하지 않는 GUEST 체험은 이용할 수 있습니다.
+              동의 철회 및 삭제를 요청할 수 있습니다. 보유기간·위탁·국외이전 등 세부 방침은 출시 전 확정합니다.</p>
+          </div>
+          <label><input type="checkbox" checked={guardianConsentOk} onChange={e=>setGuardianConsentOk(e.target.checked)}/>
+            위 만 14세 미만 아동 개인정보 수집·이용 목적과 항목을 확인했으며 법정대리인으로서 동의합니다.</label>
+          <p>동의 안내 이메일은 인증된 학부모 로그인 계정의 이메일 주소로 보내며, 이메일 본문에 기재된 문구를
+            직접 회신하셔야 합니다. 체크박스만으로 동의 확인이 끝나지 않습니다.</p>
+          {pendingStudentIds.map((id,index)=>{
+            const request=guardianRequests.find(item=>item.student_id===id);
+            return <div className="member-task-row" key={id}>
+              <span>학생 연결 요청 {index+1} · {request?.status==='sent'?'동의 이메일 발송됨 · 회신 확인 대기':
+                request?.status==='requested'?'이메일 발송 준비 중':request?.status==='withdrawn'?'이전 동의 철회됨':'보호자 동의 요청 전'}</span>
+              <button type="button" disabled={busy||!guardianDeclared||!guardianConsentOk||guardianName.trim().length<2||
+                request?.status==='sent'} onClick={()=>void requestGuardianConsent(id)}>
+                {request?.status==='sent'?'회신 확인 대기':'학부모 동의 이메일 보내기'}
+              </button>
+            </div>;
+          })}
+        </div>}
       </section>
       {children.length===0?<section className="member-panel">연결된 학생이 아직 없습니다. 학생 계정에서 코드를 만들어 주세요.</section>:<>
         <label className="member-child-select">학습 현황을 볼 학생
@@ -440,6 +530,13 @@ export default function Portal() {
           </select>
         </label>
         {selectedReport&&<>
+          {selectedReport.profile.under_14&&<section className="member-panel">
+            <h2>법정대리인 동의 관리</h2>
+            <p>법정대리인 동의가 확인된 학생입니다. 동의를 철회하면 학생 회원 학습과 보호자 열람이 중지됩니다.</p>
+            <button type="button" disabled={busy} onClick={()=>void withdrawGuardianConsent(selectedReport.profile.id)}>
+              법정대리인 동의 철회
+            </button>
+          </section>}
           <div className="member-stat-grid">
             <article><b>{selectedReport.attempts}</b><span>도전한 문제</span></article>
             <article><b>{selectedReport.attempts?Math.round(selectedReport.correct/selectedReport.attempts*100):0}%</b><span>정답률</span></article>
